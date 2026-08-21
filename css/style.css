@@ -1197,7 +1197,29 @@ body {
 }
 
 .room-legend {
-  display: f.legend-lower { background: #dcfce7; border: 1px solid #86efac; }
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.room-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.76rem;
+  color: #475569;
+}
+
+.legend-color-box {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.legend-leader { background: #fef08a; border: 1.5px solid #ca8a04; }
+.legend-upper { background: #e0f2fe; border: 1px solid #7dd3fc; }
+.legend-lower { background: #dcfce7; border: 1px solid #86efac; }
 
 /* ==========================================================================
    4. 兩寢一套房結構 (Dormitory Suite Module: Left Room ⇋ Bath ⇋ Right Room)

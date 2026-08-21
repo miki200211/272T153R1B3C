@@ -7,7 +7,7 @@
   <meta name="description" content="272梯 陸軍步兵第153旅 步1營第3連 (宜蘭金六結) 官方結訓數位紀念冊與通訊錄">
   <!-- Favicon / 國軍徽章風格圖示 -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎖️</text></svg>">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=2.2.0">
 </head>
 <body>
 
@@ -398,14 +398,14 @@
         </div>
       </section>
 
-      <!-- 4. 寢室配置專區 (Room View) -->
+      <!-- 4. 寢室套房配置專區 (Room Suite View) -->
       <section id="view-room" class="view-section">
         <div class="section-header">
           <div class="section-header-title">
-            <h2 id="room-view-title" onclick="APP.openRoomSelector()" style="cursor: pointer;" title="點擊切換寢室">
-              第一寢 床位配置圖
+            <h2 id="room-view-title" onclick="APP.openRoomSelector()" style="cursor: pointer;" title="點擊切換寢室套房">
+              第 1 ＆ 2 寢 雙寢套房 (中間獨立衛浴)
             </h2>
-            <span class="tag">10人房標準雙層鋼床</span>
+            <span class="tag">兩寢一套房・中央專屬衛浴</span>
           </div>
           <div class="room-legend">
             <div class="room-legend-item">
@@ -426,22 +426,16 @@
         <!-- 寢室快捷切換橫條 (手機與桌面通用) -->
         <div class="quick-selector-wrapper">
           <div class="quick-pill-scroll" id="room-quick-pill-bar">
-            <!-- 由 JS 動態渲染一到十一寢快捷膠囊按鈕 -->
+            <!-- 由 JS 動態渲染 6 組雙寢套房快捷膠囊按鈕 -->
           </div>
-          <button class="btn-popup-picker" onclick="APP.openRoomSelector()" title="開啟完整寢室選單">
-            <span>🛏️ 全寢室 ▾</span>
+          <button class="btn-popup-picker" onclick="APP.openRoomSelector()" title="開啟完整寢室套房選單">
+            <span>🛏️ 全套房選單 ▾</span>
           </button>
         </div>
 
-        <!-- 寢室床位藍圖 -->
-        <div class="room-blueprint-container">
-          <div class="room-blueprint-header">
-            <div style="font-weight: 800; color: var(--primary-dark);">🛏️ 10人寢室 3D 雙層鋼床空間配置視覺化 (1號下鋪為帶班班長)</div>
-            <div style="font-size: 0.82rem; color: var(--text-muted);">點擊床位可查看該床弟兄詳細自介</div>
-          </div>
-          <div class="bunks-grid" id="room-bunks-grid">
-            <!-- 床位由 JS 動態渲染 -->
-          </div>
+        <!-- 雙寢一套房展示區 (左寢 ⇋ 中央衛浴 ⇋ 右寢) -->
+        <div id="room-bunks-grid">
+          <!-- 由 JS 動態渲染雙寢一套房橫向/手機上下結構 -->
         </div>
       </section>
 
@@ -801,9 +795,9 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- 載入核心腳本 (循序載入) -->
-  <script src="js/config.js"></script>
-  <script src="js/mockData.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/config.js?v=2.2.0"></script>
+  <script src="js/mockData.js?v=2.2.0"></script>
+  <script src="js/api.js?v=2.2.0"></script>
+  <script src="js/app.js?v=2.2.0"></script>
 </body>
 </html>

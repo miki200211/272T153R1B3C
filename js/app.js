@@ -318,9 +318,10 @@ const APP = {
       this.renderSquadView();
     } else if (viewName === 'room') {
       this.selectedRoom = param !== null ? Number(param) : (this.selectedRoom || 1);
-      const roomSec = document.getElementById('view-room') || document.getElementById('view-rooms');
+      const roomSec = document.getElementById('view-room');
       if (roomSec) roomSec.classList.add('active');
-      this.setActiveNavBtn(`room-${this.selectedRoom}`);
+      const suiteNavId = Math.floor((this.selectedRoom - 1) / 2) * 2 + 1;
+      this.setActiveNavBtn(`room-${suiteNavId}`);
       this.renderRoomView();
     } else if (viewName === 'legends') {
       const legendsSec = document.getElementById('view-legends');
