@@ -1277,10 +1277,13 @@ const APP = {
 
     if (this.currentUser) {
       const displayName = this.currentUser.name || `學號 ${this.currentUser.id}`;
-      const initials = this.currentUser.name ? this.currentUser.name.substring(this.currentUser.name.length - 1) : '我';
-      const userPhoto = this.currentUser.avatar_military || this.currentUser.avatar_url || this.currentUser.avatar_civilian;
+      const initials = this.currentUser.name 
+        ? this.currentUser.name.substring(Math.max(0, this.currentUser.name.length - 2)) 
+        : (this.currentUser.id ? this.currentUser.id.substring(Math.max(0, this.currentUser.id.length - 2)) : '我');
+      const rawPhoto = this.currentUser.avatar_military || this.currentUser.avatar_url || this.currentUser.avatar_civilian;
+      const userPhoto = this.formatImageUrl(rawPhoto);
       const avatarHtml = userPhoto 
-        ? `<img src="${userPhoto}" alt="${displayName}">` 
+        ? `<img src="${userPhoto}" alt="${this.escapeHtml(displayName)}" onerror="this.onerror=null; this.parentElement.innerHTML='${initials}'">` 
         : initials;
 
       const adminBadgeHtml = this.isAdmin() ? '<span class="badge-admin">👑 管理員</span>' : '';

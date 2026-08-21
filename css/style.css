@@ -132,6 +132,14 @@ body {
   gap: 0.5rem;
 }
 
+.brand-title-desktop {
+  display: inline;
+}
+
+.brand-title-mobile {
+  display: none;
+}
+
 .brand-tag {
   background-color: var(--gold);
   color: var(--primary-dark);
@@ -2504,7 +2512,7 @@ textarea.form-control {
   }
 
   .brand-text h1 {
-    font-size: 0.88rem !important;
+    font-size: 1.15rem !important;
     white-space: nowrap !important;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2513,10 +2521,19 @@ textarea.form-control {
     gap: 0.3rem;
   }
 
+  .brand-title-desktop {
+    display: none !important;
+  }
+
+  .brand-title-mobile {
+    display: inline !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    letter-spacing: 0.8px;
+  }
+
   .brand-tag {
-    font-size: 0.62rem !important;
-    padding: 1px 5px !important;
-    flex-shrink: 0;
+    display: none !important;
   }
 
   .brand-text p {
