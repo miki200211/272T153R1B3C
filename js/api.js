@@ -79,7 +79,7 @@ const API = {
           if (String(user.password || user.id) !== cleanPwd) {
             return { success: false, message: '密碼錯誤！預設密碼為幹部帳號，忘記請聯繫 13055' };
           }
-          const safeUser = { ...user, is_cadre: true };
+          const safeUser = { ...user, is_cadre: true, needs_password_change: Boolean(cleanPwd === cleanId) };
           delete safeUser.password;
           return { success: true, user: safeUser, message: '登入成功' };
         } else {
@@ -91,7 +91,7 @@ const API = {
           if (String(user.password || user.id) !== cleanPwd) {
             return { success: false, message: '密碼錯誤！預設密碼為學號，忘記請聯繫 13055' };
           }
-          const safeUser = { ...user, is_cadre: false };
+          const safeUser = { ...user, is_cadre: false, needs_password_change: Boolean(cleanPwd === cleanId) };
           delete safeUser.password;
           return { success: true, user: safeUser, message: '登入成功' };
         }

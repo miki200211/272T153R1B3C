@@ -83,6 +83,21 @@ const APP = {
     return s.substring(0, 16);
   },
 
+  // 輔助函式：將 Google Drive 圖片連結轉為公開直連 Google CDN 網址 (突破跨域阻擋與 Cookie 限制，秒速載入)
+  formatImageUrl(url) {
+    if (!url) return '';
+    const clean = String(url).trim();
+    if (!clean) return '';
+    if (clean.startsWith('data:image/')) return clean; // Base64 直接回傳
+    
+    // 擷取 Google Drive File ID (支援 uc?id=, file/d/, open?id= 等各種格式)
+    const match = clean.match(/[?&]id=([a-zA-Z0-9_-]+)/) || clean.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      return `https://lh3.googleusercontent.com/d/${match[1]}`;
+    }
+    return clean;
+  },
+
   // 智慧圖片等比縮圖與壓縮機制 (Canvas Resizer & Compressor)
   // 將任意大圖 (例如手機拍的 5~20MB 照片) 自動等比縮圖至最適證件照尺寸 (預設寬 600px, 高 800px)
   // 並壓縮為高品質 JPEG (品質 0.82)，大幅縮小檔案大小 (~60KB~120KB) 同時保有清晰畫質，徹底解決上傳過大問題！
@@ -172,6 +187,13 @@ const APP = {
     // 預設導航至首頁
     this.navigate('home');
 
+    // 檢查目前登入者是否處於首次登入未修改密碼狀態 (強制要求設定密碼)
+    if (this.currentUser && this.currentUser.needs_password_change) {
+      setTimeout(() => {
+        this.openForcePasswordModal();
+      }, 500);
+    }
+
     // 註冊鍵盤快捷鍵 (如 Esc 關閉彈窗)
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
@@ -195,8 +217,8 @@ const APP = {
       ig: String(m.ig ?? '').trim(),
       line: String(m.line ?? '').trim(),
       bio: String(m.bio ?? '').trim(),
-      avatar_military: String(m.avatar_military ?? m.avatar_url ?? '').trim(),
-      avatar_civilian: String(m.avatar_civilian ?? '').trim()
+      avatar_military: this.formatImageUrl(m.avatar_military || m.avatar_url || ''),
+      avatar_civilian: this.formatImageUrl(m.avatar_civilian || '')
     }));
   },
 
@@ -214,8 +236,8 @@ const APP = {
       ig: String(c.ig ?? '').trim(),
       line: String(c.line ?? '').trim(),
       bio: String(c.bio ?? '').trim(),
-      avatar_military: String(c.avatar_military ?? c.avatar_url ?? c.photo_url ?? '').trim(),
-      avatar_civilian: String(c.avatar_civilian ?? '').trim(),
+      avatar_military: this.formatImageUrl(c.avatar_military || c.avatar_url || c.photo_url || ''),
+      avatar_civilian: this.formatImageUrl(c.avatar_civilian || ''),
       is_cadre: true
     }));
   },
@@ -1037,6 +1059,16 @@ const APP = {
       
       const isCadre = Boolean(result.user.is_cadre || String(result.user.id).toUpperCase().startsWith('1B3C'));
       const welcomeName = result.user.name ? `${result.user.name} ${isCadre ? '幹部' : '弟兄'}` : `${isCadre ? '幹部' : '弟兄'} #${result.user.id}`;
+
+      // 首次登入檢查：若密碼尚未自訂修改，強制彈出設定新密碼視窗且無法跳過
+      if (result.user.needs_password_change) {
+        this.showToast(`歡迎 ${welcomeName}！首次登入請先設定自訂密碼以保障安全。`, 'warning');
+        setTimeout(() => {
+          this.openForcePasswordModal();
+        }, 400);
+        return;
+      }
+
       this.showToast(`歡迎回來，${welcomeName}！正在為您定位卡片...`, 'success');
 
       if (isCadre) {
@@ -1067,6 +1099,110 @@ const APP = {
 
     } else {
       this.showToast(result ? result.message : '登入失敗，請確認學號密碼', 'error');
+    }
+  },
+
+  // =========================================================================
+  // 首次登入強制設定新密碼 (Force Password Change)
+  // =========================================================================
+
+  openForcePasswordModal() {
+    if (!this.currentUser) return;
+    const accountDisplay = document.getElementById('force-pwd-account-display');
+    if (accountDisplay) {
+      const isCadre = Boolean(this.currentUser.is_cadre || String(this.currentUser.id).toUpperCase().startsWith('1B3C'));
+      const roleLabel = isCadre ? '長官幹部' : '弟兄學號';
+      const nameLabel = this.currentUser.name ? ` (${this.currentUser.name})` : '';
+      accountDisplay.value = `${roleLabel} #${this.currentUser.id}${nameLabel}`;
+    }
+    const newPwd = document.getElementById('force-new-password');
+    const confirmPwd = document.getElementById('force-confirm-password');
+    if (newPwd) newPwd.value = '';
+    if (confirmPwd) confirmPwd.value = '';
+    const modal = document.getElementById('modal-force-password-change');
+    if (modal) modal.classList.add('active');
+  },
+
+  async handleForcePasswordChange(e) {
+    e.preventDefault();
+    if (!this.currentUser) return;
+    if (this.isSubmitting) return;
+
+    const newPwdInput = document.getElementById('force-new-password');
+    const confirmPwdInput = document.getElementById('force-confirm-password');
+    const newPassword = newPwdInput ? newPwdInput.value.trim() : '';
+    const confirmPassword = confirmPwdInput ? confirmPwdInput.value.trim() : '';
+
+    if (newPassword.length < 4) {
+      this.showToast('新密碼長度至少需要 4 個字元！', 'error');
+      return;
+    }
+
+    if (newPassword.toUpperCase() === String(this.currentUser.id).trim().toUpperCase()) {
+      this.showToast('新密碼不能與原本的預設學號/帳號相同，請自訂專屬密碼！', 'error');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      this.showToast('兩次輸入的新密碼不一致，請重新檢查！', 'error');
+      return;
+    }
+
+    const submitBtn = document.getElementById('btn-force-pwd-submit');
+    const originalBtnText = submitBtn ? submitBtn.textContent : '🔒 確認設定新密碼並啟用帳號';
+
+    this.isSubmitting = true;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ 新密碼設定中，請稍候...';
+    }
+
+    this.showToast('⏳ 正在為您設定新密碼並啟用帳號...', 'info');
+
+    try {
+      const payload = {
+        id: this.currentUser.id,
+        newPassword
+      };
+
+      const result = await API.updateProfile(payload);
+      if (result && result.success) {
+        this.currentUser.needs_password_change = false;
+        this.currentUser.password_changed = true;
+        CONFIG.setCurrentUser(this.currentUser);
+
+        const modal = document.getElementById('modal-force-password-change');
+        if (modal) modal.classList.remove('active');
+
+        this.showToast('🎉 自訂新密碼設定成功！帳號已正式啟用，歡迎使用紀念冊系統！', 'success');
+        
+        const isCadre = Boolean(this.currentUser.is_cadre || String(this.currentUser.id).toUpperCase().startsWith('1B3C'));
+        if (isCadre) {
+          this.navigate('cadres');
+        } else {
+          const userSquad = Number(this.currentUser.squad) || 1;
+          this.navigate('squad', userSquad);
+        }
+
+        // 若尚未填寫姓名，貼心自動引導填寫基本資料與上傳照片
+        if (!this.currentUser.name) {
+          setTimeout(() => {
+            this.openEditProfileModal();
+            this.showToast('📸 歡迎填寫個人檔案與上傳迷彩軍裝/私服便服照！', 'info');
+          }, 800);
+        }
+      } else {
+        this.showToast(result ? result.message : '設定失敗，請稍後重試', 'error');
+      }
+    } catch (err) {
+      console.error('設定新密碼異常:', err);
+      this.showToast('設定異常，請稍後重試', 'error');
+    } finally {
+      this.isSubmitting = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+      }
     }
   },
 
@@ -1656,12 +1792,22 @@ const APP = {
   // =========================================================================
 
   closeModal(modalId) {
+    if (modalId === 'modal-force-password-change' && this.currentUser && this.currentUser.needs_password_change) {
+      this.showToast('🔒 首次登入請務必先設定自訂新密碼！', 'warning');
+      return;
+    }
     const modal = document.getElementById(modalId);
     if (modal) modal.classList.remove('active');
   },
 
   closeAllModals() {
-    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+      // 若處於強制設定新密碼狀態，禁止透過 Esc 關閉此彈窗
+      if (m.id === 'modal-force-password-change' && this.currentUser && this.currentUser.needs_password_change) {
+        return;
+      }
+      m.classList.remove('active');
+    });
   },
 
   copyToClipboard(text, label = '內容') {

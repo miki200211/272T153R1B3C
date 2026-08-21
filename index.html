@@ -508,6 +508,50 @@
     </div>
   </div>
 
+  <!-- 1.5 首次登入強制設定新密碼彈窗 (Force Password Change Modal - Non-dismissible) -->
+  <div class="modal-overlay force-modal-overlay" id="modal-force-password-change" onclick="event.stopPropagation()">
+    <div class="modal-card" style="max-width: 460px; border-top: 5px solid #dc2626;">
+      <div class="modal-header" style="background: #fef2f2; border-bottom: 1px solid #fee2e2;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1.3rem;">🔒</span>
+          <div>
+            <h3 style="color: #991b1b; font-size: 1.05rem; margin: 0;">首次登入：請設定自訂新密碼</h3>
+            <p style="font-size: 0.76rem; color: #b91c1c; margin: 0;">系統安全防護機制</p>
+          </div>
+        </div>
+      </div>
+      <form id="form-force-password-change" onsubmit="APP.handleForcePasswordChange(event)">
+        <div class="modal-body" style="padding: 1.25rem;">
+          <div style="background: #fff7ed; border: 1px solid #ffedd5; border-radius: var(--radius-sm); padding: 0.75rem 0.85rem; margin-bottom: 1rem; font-size: 0.82rem; color: #9a3412; line-height: 1.45;">
+            <strong>⚠️ 首次登入安全機制：</strong><br>
+            您的帳號目前仍為系統預設密碼。為保障您的個資、通訊資訊與私服照片安全，<strong>必須先設定專屬新密碼</strong>，設定完成後方可開始使用紀念冊與編輯個人資料。
+          </div>
+
+          <div class="form-group">
+            <label>目前登入帳號</label>
+            <input type="text" id="force-pwd-account-display" class="form-control" readonly style="background: #f1f5f9; color: #475569; font-weight: 700;">
+          </div>
+
+          <div class="form-group">
+            <label for="force-new-password">請設定新密碼 <span style="color: #dc2626;">*</span></label>
+            <input type="password" id="force-new-password" class="form-control" placeholder="請輸入新密碼 (至少 4 個字元)" required autocomplete="new-password">
+            <span class="form-hint">建議使用好記的英數字組合，勿使用原本學號/帳號</span>
+          </div>
+
+          <div class="form-group">
+            <label for="force-confirm-password">再次確認新密碼 <span style="color: #dc2626;">*</span></label>
+            <input type="password" id="force-confirm-password" class="form-control" placeholder="請再次輸入新密碼" required autocomplete="new-password">
+          </div>
+        </div>
+        <div class="modal-footer" style="background: #fafafa; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+          <button type="submit" id="btn-force-pwd-submit" class="btn-primary" style="width: 100%; padding: 0.65rem; font-size: 0.95rem;">
+            🔒 確認設定新密碼並啟用帳號
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- 2. 編輯個人資料彈窗 (Edit Profile Modal) -->
   <div class="modal-overlay" id="modal-edit-profile">
     <div class="modal-card">

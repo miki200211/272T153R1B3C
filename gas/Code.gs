@@ -159,6 +159,8 @@ function handleLogin(data) {
         const userObj = rowToObject(headers, row);
         delete userObj.password; // 安全考量不回傳密碼
         userObj.is_cadre = isCadreId;
+        // 首次登入檢查：若目前密碼與帳號/學號相同，代表尚未設定自訂密碼，強制要求修改
+        userObj.needs_password_change = Boolean(storedPwd.toUpperCase() === cleanId.toUpperCase());
         return { success: true, user: userObj, message: '登入成功' };
       } else {
         return { success: false, message: '密碼錯誤！忘記密碼請聯繫 13055' };
@@ -585,8 +587,8 @@ function saveAvatarToDrive(memberId, base64Data) {
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   } catch (e) {}
 
-  // 回傳公開可檢視之直連網址
-  return `https://drive.google.com/uc?id=${file.getId()}`;
+  // 回傳公開可檢視之 Google CDN 直連圖片網址 (無跨域與 Cookie 限制，完美顯示於網頁)
+  return `https://lh3.googleusercontent.com/d/${file.getId()}`;
 }
 
 // =========================================================================
