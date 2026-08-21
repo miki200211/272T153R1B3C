@@ -490,7 +490,20 @@ const APP = {
     }
   },
 
-  // 2. 幹部專區渲染 (支援 100 位長官與班長)
+  // 計算幹部職等排序權重 (將官 > 校官 > 尉官 > 士官長 > 上士 > 中士 > 下士 > 一兵 > 二兵)
+  getRankOrderWeight(rank) {
+    const r = String(rank || '').trim();
+    if (r.includes('將') || r.includes('校') || r.includes('尉')) return 100;
+    if (r.includes('士官長') || r.includes('一等') || r.includes('二等') || r.includes('三等')) return 80;
+    if (r.includes('上士')) return 70;
+    if (r.includes('中士')) return 60;
+    if (r.includes('下士')) return 50;
+    if (r.includes('一兵')) return 40;
+    if (r.includes('二兵')) return 30;
+    return 10;
+  },
+
+  // 2. 幹部專區渲染 (依職等順序排列：士官長 ➔ 上士 ➔ 中士 ➔ 下士 ➔ 一兵)
   renderCadresView() {
     const cadresListGrid = document.getElementById('cadres-list-grid');
     if (cadresListGrid) {
@@ -501,7 +514,18 @@ const APP = {
           </div>
         `;
       } else {
-        cadresListGrid.innerHTML = this.cadres.map(c => this.createCadreCardHtml(c)).join('');
+        // 依軍階職等排序：有姓名的幹部依職等高低排列，空白卡位排在最後
+        const sortedCadres = [...this.cadres].sort((a, b) => {
+          const aHasName = Boolean(a.name && a.name.trim());
+          const bHasName = Boolean(b.name && b.name.trim());
+          if (aHasName && !bHasName) return -1;
+          if (!aHasName && bHasName) return 1;
+          const weightA = this.getRankOrderWeight(a.rank_level);
+          const weightB = this.getRankOrderWeight(b.rank_level);
+          if (weightA !== weightB) return weightB - weightA;
+          return String(a.id).localeCompare(String(b.id));
+        });
+        cadresListGrid.innerHTML = sortedCadres.map(c => this.createCadreCardHtml(c)).join('');
       }
     }
   },
@@ -632,13 +656,28 @@ const APP = {
     }
 
     const leader = MOCK_DATA.squadLeaders[squadNum] || { name: '帶班班長', rank: '帶班幹部', quote: '（待幹部填寫帶班期勉）' };
-    const leaderRankEl = document.getElementById('squad-leader-rank');
-    const leaderNameEl = document.getElementById('squad-leader-name');
-    const leaderQuoteEl = document.getElementById('squad-leader-quote');
-    
-    if (leaderRankEl) leaderRankEl.textContent = leader.rank;
-    if (leaderNameEl) leaderNameEl.textContent = leader.name;
-    if (leaderQuoteEl) leaderQuoteEl.textContent = leader.quote;
+    const leaderBannerEl = document.getElementById('squad-leader-banner');
+    if (leaderBannerEl) {
+      let leaderInfoHtml = `
+        <span class="badge" style="background:#b45309; color:#fff; padding: 2px 7px; border-radius: 4px;">🎖️ ${this.escapeHtml(leader.rank || '帶班幹部')}</span>
+        <strong>班長：${this.escapeHtml(leader.name || '帶班班長')}</strong>
+      `;
+      if (leader.assistant) {
+        leaderInfoHtml += `
+          <span style="display: inline-block; width: 12px;"></span>
+          <span class="badge" style="background:#0284c7; color:#fff; padding: 2px 7px; border-radius: 4px;">⚔️ ${this.escapeHtml(leader.assistant.rank || '副班長')}</span>
+          <strong>副班長：${this.escapeHtml(leader.assistant.name || '帶班幹部')}</strong>
+        `;
+      }
+      leaderBannerEl.innerHTML = `
+        <div class="squad-leader-info" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+          ${leaderInfoHtml}
+        </div>
+        <div class="squad-leader-quote" style="margin-top: 0.25rem;">
+          ${this.escapeHtml(leader.quote || '（待幹部填寫帶班期勉）')}
+        </div>
+      `;
+    }
 
     const countTag = document.getElementById('squad-member-count-tag');
     const squadMembers = this.allMembers.filter(m => Number(m.squad) === squadNum);
@@ -889,7 +928,7 @@ const APP = {
 
         <div class="dorm-leader-brief">
           <span class="badge">🎖️ 1號下鋪</span>
-          <strong>帶班幹部：${this.escapeHtml(leaderInfo.name || '帶班班長')}</strong>
+          <strong>帶班幹部：${this.escapeHtml(leaderInfo.rank ? `${leaderInfo.rank} ${leaderInfo.name}` : leaderInfo.name || '帶班班長')}</strong>
         </div>
 
         <div class="dorm-bunks-list">
@@ -987,16 +1026,8 @@ const APP = {
           <div class="facility-item">
             <span class="facility-icon">🚰</span>
             <div class="facility-info">
-              <strong>雙梳洗檯與大理容鏡</strong>
-              <small>個人盥洗用具定位區</small>
-            </div>
-          </div>
-
-          <div class="facility-item">
-            <span class="facility-icon">🧺</span>
-            <div class="facility-info">
-              <strong>毛巾與內務吊掛區</strong>
-              <small>標準軍規生活自律</small>
+              <strong>超大洗手台</strong>
+              <small>有肥皂</small>
             </div>
           </div>
         </div>
@@ -1042,15 +1073,18 @@ const APP = {
 
   // 渲染班長專屬 1 號下鋪
   createLeaderBedSlotHtml(leader, bedNo) {
+    const leaderName = leader && leader.name ? leader.name : '帶班班長';
+    const leaderRank = leader && leader.rank ? leader.rank : '帶班幹部';
+    const leaderDuty = leader && leader.duty ? leader.duty : '帶班幹部床位';
     return `
-      <div class="bed-card bed-leader" onclick="APP.showToast('🪖 帶班班長床位（幹部名冊填寫後自動連動）', 'info')" title="帶班班長床位">
+      <div class="bed-card bed-leader" onclick="APP.showToast('🪖 帶班幹部床位：${this.escapeHtml(leaderRank)} ${this.escapeHtml(leaderName)}', 'info')" title="帶班幹部床位：${this.escapeHtml(leaderRank)} ${this.escapeHtml(leaderName)}">
         <span class="bed-label-pill">🎖️ ${bedNo} 號床 (下鋪)</span>
         <div class="bed-occupant-info">
           <div class="bed-occupant-name" style="color: #92400e; font-weight: 800;">
-            🪖 帶班班長
+            🎖️ ${this.escapeHtml(leaderRank)} ${this.escapeHtml(leaderName)}
           </div>
           <div class="bed-occupant-id" style="color: #b45309; font-weight: 600;">
-            帶班幹部床位 (待幹部填寫)
+            ${this.escapeHtml(leaderDuty)}
           </div>
         </div>
       </div>
