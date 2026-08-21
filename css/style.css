@@ -1197,82 +1197,169 @@ body {
 }
 
 .room-legend {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  font-size: 0.8rem;
-}
+  display: f.legend-lower { background: #dcfce7; border: 1px solid #86efac; }
 
-.room-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.legend-color-box {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-}
-
-.legend-leader { background: linear-gradient(135deg, #fef08a 0%, #facc15 100%); border: 1.5px solid #ca8a04; }
-.legend-upper { background: #dbeafe; border: 1px solid #93c5fd; }
-.legend-lower { background: #dcfce7; border: 1px solid #86efac; }
-
-/* 寢室床位網格 (10人室，模擬5組雙層鋼床上下鋪配置) */
-.bunks-grid {
+/* ==========================================================================
+   4. 兩寢一套房結構 (Dormitory Suite Module: Left Room ⇋ Bath ⇋ Right Room)
+   ========================================================================== */
+.dorm-suite-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: 1fr 270px 1fr;
   gap: 1.25rem;
+  align-items: stretch;
+  margin-top: 0.5rem;
+}
+
+/* 單側寢室翼 (Room Wing) */
+.dorm-room-wing {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid #cbd5cb;
+  border-top: 4.5px solid var(--primary-accent);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  box-shadow: 0 4px 14px rgba(16, 25, 18, 0.06);
+  transition: var(--transition);
+}
+
+.dorm-room-wing.is-selected-room {
+  border-color: var(--gold);
+  border-top-color: var(--gold);
+  box-shadow: 0 0 0 2px var(--gold), 0 8px 24px rgba(212, 175, 55, 0.2);
+}
+
+.dorm-wing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1.5px solid #eef2eb;
+}
+
+.dorm-wing-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.dorm-wing-badge {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--primary-dark);
+  background: rgba(43, 62, 50, 0.1);
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  width: fit-content;
+}
+
+.dorm-wing-name {
+  font-size: 1.12rem;
+  font-weight: 900;
+  color: var(--primary-dark);
+  margin: 0;
+}
+
+.dorm-capacity-tag {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.dorm-leader-brief {
+  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+  border: 1px solid #fde68a;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.84rem;
+  color: #92400e;
+}
+
+.dorm-leader-brief .badge {
+  background: #b45309;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* 5 組雙層鋼床列表 */
+.dorm-bunks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
 }
 
 .bunk-unit {
-  background: #f8fafc;
-  border: 2px solid #cbd5e1;
+  background: #f8faf8;
+  border: 1.5px solid #d8e2d8;
   border-radius: var(--radius-md);
   padding: 0.75rem;
-  position: relative;
+  transition: var(--transition);
+}
+
+.bunk-unit:hover {
+  border-color: var(--primary-accent);
+  background: #f1f6f1;
+  box-shadow: 0 3px 8px rgba(16, 25, 18, 0.06);
 }
 
 .bunk-unit-title {
   font-size: 0.78rem;
   font-weight: 800;
-  color: #475569;
-  text-align: center;
-  margin-bottom: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: var(--primary-dark);
+  margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
+  justify-content: space-between;
+}
+
+.bunk-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #55695a;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1px 5px;
+  border-radius: 3px;
 }
 
 .bunk-slots {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .bed-card {
   border-radius: var(--radius-sm);
-  padding: 0.65rem 0.75rem;
+  padding: 0.6rem 0.75rem;
   display: flex;
   align-items: center;
   gap: 0.65rem;
   transition: var(--transition);
   cursor: pointer;
+  border: 1px solid transparent;
 }
 
 .bed-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
 /* 班長專屬下鋪 */
 .bed-leader {
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-  border: 2px solid var(--gold) !important;
+  background: linear-gradient(135deg, #fffdf2 0%, #fef3c7 100%);
+  border: 1.5px solid var(--gold) !important;
   box-shadow: 0 2px 6px rgba(212, 175, 55, 0.25);
 }
 
@@ -1284,8 +1371,8 @@ body {
 }
 
 .bed-upper {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
 }
 
 .bed-lower {
@@ -1294,14 +1381,14 @@ body {
 }
 
 .bed-label-pill {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 800;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
   flex-shrink: 0;
 }
 
-.bed-upper .bed-label-pill { background: #3b82f6; color: #fff; }
+.bed-upper .bed-label-pill { background: #0284c7; color: #fff; }
 .bed-lower .bed-label-pill { background: #16a34a; color: #fff; }
 
 .bed-occupant-info {
@@ -1311,7 +1398,7 @@ body {
 
 .bed-occupant-name {
   font-size: 0.88rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
@@ -1320,8 +1407,140 @@ body {
 
 .bed-occupant-id {
   font-size: 0.72rem;
-  color: var(--text-muted);
-  font-family: monospace;
+  color: #55695a;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   中央專用獨立套房衛浴模組 (Central Shared Bathroom Module)
+   ========================================================================== */
+.dorm-bathroom-module {
+  background: 
+    radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.12) 0%, transparent 60%),
+    linear-gradient(180deg, #101c13 0%, #1a2f22 50%, #122117 100%);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border-camo);
+  padding: 1.25rem 1rem;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 6px 20px rgba(10, 20, 14, 0.35);
+  position: relative;
+}
+
+.bathroom-header {
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 0.75rem;
+}
+
+.bathroom-icon-badge {
+  font-size: 2.2rem;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.bathroom-title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--gold-light);
+  margin: 0 0 0.2rem 0;
+  letter-spacing: 0.5px;
+}
+
+.bathroom-desc {
+  font-size: 0.72rem;
+  color: var(--camo-tan);
+  font-weight: 600;
+}
+
+.bathroom-facility-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.facility-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-md);
+  text-align: left;
+}
+
+.facility-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.facility-info strong {
+  display: block;
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.facility-info small {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--camo-tan);
+}
+
+.bathroom-doors-indicator {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 0.75rem;
+}
+
+.door-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  text-align: center;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: var(--gold-light);
+}
+
+/* 第 12 寢備用空寢樣式 */
+.dorm-empty-room-wing {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 2px dashed #94a3b8 !important;
+}
+
+.empty-room-hero-box {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid #e2e8f0;
+}
+
+.empty-bunks-placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.empty-bunk-slot {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  text-align: center;
 }
 
 /* ==========================================================================
@@ -2221,6 +2440,12 @@ textarea.form-control {
 
   .main-content {
     padding: 1.5rem 1.5rem 4rem 1.5rem;
+  }
+
+  /* 兩寢一套房模組在平板與手機端切換為上下垂直堆疊排版 */
+  .dorm-suite-container {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
 }
 

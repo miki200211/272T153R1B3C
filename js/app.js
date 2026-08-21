@@ -372,54 +372,25 @@ const APP = {
     this.openRoomSelector();
   },
 
-  openSquadSelector() {
-    const grid = document.getElementById('squad-selector-grid');
-    if (grid) {
-      const squadRanges = {
-        1: '13001 ~ 13011 (11人)',
-        2: '13012 ~ 13022 (11人)',
-        3: '13023 ~ 13033 (11人)',
-        4: '13034 ~ 13044 (11人)',
-        5: '13045 ~ 13055 (11人)',
-        6: '13056 ~ 13066 (11人)',
-        7: '13067 ~ 13077 (11人)',
-        8: '13078 ~ 13087 (10人)',
-        9: '13088 ~ 13098 (11人)'
-      };
-
-      grid.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
-        const isActive = (this.currentView === 'squad' && this.selectedSquad === num);
-        const leader = MOCK_DATA.squadLeaders[num] || { name: '帶班幹部' };
-        return `
-          <div class="selector-card-item ${isActive ? 'active' : ''}" onclick="APP.selectSquad(${num})">
-            <div class="selector-card-title">👥 第 ${this.toChineseNum(num)} 班</div>
-            <div class="selector-card-subtitle">${squadRanges[num]}</div>
-            <div class="selector-card-badge">🎖️ ${leader.name}</div>
-          </div>
-        `;
-      }).join('');
-    }
-    const modal = document.getElementById('modal-select-squad');
-    if (modal) modal.classList.add('active');
-  },
-
-  selectSquad(squadNum) {
-    this.closeModal('modal-select-squad');
-    this.navigate('squad', squadNum);
-  },
-
   openRoomSelector() {
     const grid = document.getElementById('room-selector-grid');
     if (grid) {
-      grid.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(num => {
-        const isActive = (this.currentView === 'room' && this.selectedRoom === num);
-        const leader = MOCK_DATA.squadLeaders[num] || { name: '帶班幹部' };
-        const capacityText = num === 11 ? '9人 (含班長)' : '10人 (含班長)';
+      const suites = [
+        { roomA: 1, roomB: 2, title: '🏢 第 1 & 2 寢套房', subtitle: '第 1 寢 (10人) ⇋ 🚿 衛浴 ⇋ 第 2 寢 (10人)', count: '共 20 人' },
+        { roomA: 3, roomB: 4, title: '🏢 第 3 & 4 寢套房', subtitle: '第 3 寢 (10人) ⇋ 🚿 衛浴 ⇋ 第 4 寢 (10人)', count: '共 20 人' },
+        { roomA: 5, roomB: 6, title: '🏢 第 5 & 6 寢套房', subtitle: '第 5 寢 (10人) ⇋ 🚿 衛浴 ⇋ 第 6 寢 (10人)', count: '共 20 人' },
+        { roomA: 7, roomB: 8, title: '🏢 第 7 & 8 寢套房', subtitle: '第 7 寢 (10人) ⇋ 🚿 衛浴 ⇋ 第 8 寢 (10人)', count: '共 20 人' },
+        { roomA: 9, roomB: 10, title: '🏢 第 9 & 10 寢套房', subtitle: '第 9 寢 (10人) ⇋ 🚿 衛浴 ⇋ 第 10 寢 (10人)', count: '共 20 人' },
+        { roomA: 11, roomB: 12, title: '🏢 第 11 & 12 寢套房', subtitle: '第 11 寢 (9人) ⇋ 🚿 衛浴 ⇋ 第 12 寢 (備用空寢)', count: '共 9 人 (12未住人)' }
+      ];
+
+      grid.innerHTML = suites.map(s => {
+        const isActive = (this.currentView === 'room' && (this.selectedRoom === s.roomA || this.selectedRoom === s.roomB));
         return `
-          <div class="selector-card-item ${isActive ? 'active' : ''}" onclick="APP.selectRoom(${num})">
-            <div class="selector-card-title">🛏️ 第 ${this.toChineseNum(num)} 寢</div>
-            <div class="selector-card-subtitle">${capacityText}</div>
-            <div class="selector-card-badge">🎖️ ${leader.name}</div>
+          <div class="selector-card-item ${isActive ? 'active' : ''}" onclick="APP.selectRoom(${s.roomA})">
+            <div class="selector-card-title">${s.title}</div>
+            <div class="selector-card-subtitle" style="font-size:0.75rem;">${s.subtitle}</div>
+            <div class="selector-card-badge">${s.count}</div>
           </div>
         `;
       }).join('');
@@ -610,7 +581,7 @@ const APP = {
               ${!hasName ? '<span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">(待填寫)</span>' : ''}
             </h3>
             <div class="member-nickname">稱呼: ${this.escapeHtml(cadre.nickname || '未填寫')}</div>
-            <div class="flip-hint-text" onclick="APP.toggleCardFlip(this.closest('.member-card').querySelector('.avatar-flip-container'), event, '${cadre.id}')">
+            <div class="flip-hint-text" onclick="APP.toggleCardFlip(this.closest('.member-card, .cadre-card').querySelector('.avatar-flip-container'), event, '${cadre.id}')">
               <span>🔄 點擊照片翻轉 (軍裝 ⇋ 便服)</span>
             </div>
           </div>
@@ -644,7 +615,6 @@ const APP = {
     const titleEl = document.getElementById('squad-view-title');
     if (titleEl) titleEl.textContent = `第 ${this.toChineseNum(squadNum)} 班 成員名冊`;
 
-    // 渲染班級快捷切換橫條 (膠囊按鈕)
     const squadPillBar = document.getElementById('squad-quick-pill-bar');
     if (squadPillBar) {
       squadPillBar.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
@@ -652,7 +622,7 @@ const APP = {
         return `
           <button class="quick-pill-item ${isActive ? 'active' : ''}" onclick="APP.navigate('squad', ${num})" title="切換至第${this.toChineseNum(num)}班">
             <span>第${this.toChineseNum(num)}班</span>
-            <span class="pill-badge">${num === 8 ? '10人' : '11人'}</span>
+            <span class="pill-badge">${(num === 8) ? '10人' : '11人'}</span>
           </button>
         `;
       }).join('');
@@ -660,44 +630,29 @@ const APP = {
       if (activePill) activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
 
-    // 更新帶班班長資訊
-    const leaderInfo = MOCK_DATA.squadLeaders[squadNum] || { name: '帶班班長', rank: '帶班幹部', quote: '（待幹部填寫帶班期勉）' };
-    const rankEl = document.getElementById('squad-leader-rank');
-    const nameEl = document.getElementById('squad-leader-name');
-    const quoteEl = document.getElementById('squad-leader-quote');
-    if (rankEl) rankEl.textContent = leaderInfo.rank || '帶班幹部';
-    if (nameEl) nameEl.textContent = leaderInfo.name || '帶班班長';
-    if (quoteEl) quoteEl.textContent = leaderInfo.quote || '（待幹部填寫帶班期勉）';
-
-    // 篩選本班成員
-    let members = this.allMembers.filter(m => Number(m.squad) === squadNum);
-
-    // 搜尋過濾
-    if (this.searchQuery) {
-      const q = this.searchQuery.toLowerCase();
-      members = members.filter(m => 
-        String(m.id).toLowerCase().includes(q) ||
-        (m.name && m.name.toLowerCase().includes(q)) ||
-        (m.nickname && m.nickname.toLowerCase().includes(q)) ||
-        (m.duty && m.duty.toLowerCase().includes(q)) ||
-        (m.bio && m.bio.toLowerCase().includes(q))
-      );
-    }
+    const leader = MOCK_DATA.squadLeaders[squadNum] || { name: '帶班班長', rank: '帶班幹部', quote: '（待幹部填寫帶班期勉）' };
+    const leaderRankEl = document.getElementById('squad-leader-rank');
+    const leaderNameEl = document.getElementById('squad-leader-name');
+    const leaderQuoteEl = document.getElementById('squad-leader-quote');
+    
+    if (leaderRankEl) leaderRankEl.textContent = leader.rank;
+    if (leaderNameEl) leaderNameEl.textContent = leader.name;
+    if (leaderQuoteEl) leaderQuoteEl.textContent = leader.quote;
 
     const countTag = document.getElementById('squad-member-count-tag');
-    if (countTag) countTag.textContent = `${members.length} 人`;
+    const squadMembers = this.allMembers.filter(m => Number(m.squad) === squadNum);
+    if (countTag) countTag.textContent = `${squadMembers.length} 人`;
 
     const membersGrid = document.getElementById('squad-members-grid');
     if (membersGrid) {
-      if (members.length === 0) {
+      if (squadMembers.length === 0) {
         membersGrid.innerHTML = `
           <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #94a3b8;">
-            <p style="font-size: 1.1rem; font-weight: 700;">查無符合「${this.escapeHtml(this.searchQuery)}」的弟兄資料</p>
-            <p style="font-size: 0.85rem; margin-top: 0.5rem;">請嘗試搜尋其他關鍵字或學號</p>
+            <p style="font-size: 1.1rem; font-weight: 700;">查無此班級成員</p>
           </div>
         `;
       } else {
-        membersGrid.innerHTML = members.map(m => this.createMemberCardHtml(m)).join('');
+        membersGrid.innerHTML = squadMembers.map(m => this.createMemberCardHtml(m)).join('');
       }
     }
   },
@@ -712,17 +667,13 @@ const APP = {
     return Boolean(this.currentUser && String(this.currentUser.id) === '13055');
   },
 
-  // 建立成員卡片 (含 3D 雙照片翻轉結構)
   createMemberCardHtml(member) {
-    const cleanId = String(member.id ?? '').trim();
-    const isMe = Boolean(this.currentUser && String(this.currentUser.id).trim() === cleanId);
+    const isMe = Boolean(this.currentUser && String(this.currentUser.id) === String(member.id));
     const isAdmin = this.isAdmin();
-    const memberName = String(member.name ?? '').trim();
-    const hasName = Boolean(memberName);
-    const displayName = hasName ? memberName : `弟兄 #${cleanId}`;
-    const initials = hasName 
-      ? memberName.substring(Math.max(0, memberName.length - 2)) 
-      : cleanId.substring(Math.max(0, cleanId.length - 2));
+    const displayName = member.name ? member.name : `弟兄 #${member.id}`;
+    const initials = member.name 
+      ? member.name.substring(Math.max(0, member.name.length - 2)) 
+      : member.id.substring(Math.max(0, member.id.length - 2));
 
     // 正面：大兵軍裝照
     const milPhoto = member.avatar_military || member.avatar_url;
@@ -733,7 +684,7 @@ const APP = {
     // 背面：私人便服照
     const civPhoto = member.avatar_civilian;
     const civAvatarHtml = civPhoto 
-      ? `<img src="${civPhoto}" alt="私人照" onerror="this.onerror=null; this.parentElement.innerHTML='🕶️ ${initials}'">` 
+      ? `<img src="${civPhoto}" alt="便服照" onerror="this.onerror=null; this.parentElement.innerHTML='🕶️ ${initials}'">` 
       : `<span>🕶️ ${initials}</span>`;
 
     const igButton = member.ig 
@@ -748,18 +699,16 @@ const APP = {
          </button>` 
       : `<button class="btn-social btn-line" style="opacity: 0.45; cursor: not-allowed;" title="未填寫 LINE">💬 未填寫</button>`;
 
-    // 只有自己可以編輯自己的資料與照片
     const editSelfBtn = isMe 
       ? `<button class="btn-edit-self" onclick="APP.openEditProfileModal()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
           </svg>
-          <span>編輯我的個人資料與照片</span>
+          <span>編輯我的個人檔案與雙照片</span>
         </button>` 
       : '';
 
-    // 13055 管理員專屬：可將其他人的密碼恢復為預設學號
     const adminResetBtn = (isAdmin && !isMe)
       ? `<button class="btn-admin-reset" onclick="APP.handleAdminResetPassword('${member.id}')" title="管理員權限：將此弟兄密碼恢復為預設學號">
           <span>🔑 恢復預設密碼</span>
@@ -781,12 +730,12 @@ const APP = {
           <div class="member-header-text">
             <div class="member-id-row">
               <span class="member-id-badge">#${member.id}</span>
-              <span class="member-room-badge">第 ${this.toChineseNum(member.room)} 寢</span>
+              <span class="member-room-badge">第${this.toChineseNum(member.room)}寢</span>
             </div>
             <h3 class="member-name" title="${this.escapeHtml(displayName)}" onclick="APP.showMemberDetail('${member.id}')" style="cursor:pointer;">
               ${this.escapeHtml(displayName)}
               ${isMe ? '<span style="color: var(--gold); font-size: 0.75rem; font-weight: 800;">(我)</span>' : ''}
-              ${!hasName ? '<span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">(待填寫)</span>' : ''}
+              ${!member.name ? '<span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">(待填寫)</span>' : ''}
             </h3>
             <div class="member-nickname">綽號: ${this.escapeHtml(member.nickname || '未填寫')}</div>
             <div class="flip-hint-text" onclick="APP.toggleCardFlip(this.closest('.member-card').querySelector('.avatar-flip-container'), event, '${member.id}')">
@@ -796,13 +745,13 @@ const APP = {
         </div>
 
         <div style="display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.25rem;">
-          <span class="member-duty-tag">🎖️ ${this.escapeHtml(member.duty || '一般兵')}</span>
+          <span class="member-duty-tag">🎖️ 公差：${this.escapeHtml(member.duty || '一般兵')}</span>
           ${member.interests ? `<span class="member-interest-tag" title="個人興趣">🎨 興趣：${this.escapeHtml(member.interests)}</span>` : ''}
           ${member.dream ? `<span class="member-dream-tag" title="未來夢想">🌟 夢想：${this.escapeHtml(member.dream)}</span>` : ''}
         </div>
 
         <div class="member-bio">
-          ${this.escapeHtml(member.bio || (hasName ? '結訓快樂！歡迎常保持聯絡！' : '（尚未填寫自我介紹與感言...）'))}
+          ${this.escapeHtml(member.bio || (member.name ? '金六結 153R 1B3C 結訓快樂！' : '（尚未填寫自我介紹與感言...）'))}
         </div>
 
         <div class="member-social-actions">
@@ -815,11 +764,21 @@ const APP = {
     `;
   },
 
-  // 3D 照片翻轉觸發
+  // 3D 照片翻轉觸發 (修復 ID 衝突，優先使用 DOM 階層選取)
   toggleCardFlip(container, event, memberId) {
     if (event) event.stopPropagation();
-    const flipCard = document.getElementById(`flip-card-${memberId}`);
-    const flipTag = document.getElementById(`flip-tag-${memberId}`);
+    let flipCard = null;
+    let flipTag = null;
+    
+    if (container && container.querySelector) {
+      flipCard = container.querySelector('.avatar-flip-card');
+      flipTag = container.querySelector('.flip-tag-badge');
+    }
+    
+    if (!flipCard && memberId) {
+      flipCard = document.getElementById(`flip-card-${memberId}`);
+      flipTag = document.getElementById(`flip-tag-${memberId}`);
+    }
 
     if (flipCard) {
       const isFlipped = flipCard.classList.toggle('is-flipped');
@@ -828,7 +787,8 @@ const APP = {
           flipTag.textContent = '🕶️ 便服';
           flipTag.className = 'flip-tag-badge flip-tag-back';
         } else {
-          flipTag.textContent = '🪖 大兵';
+          const isCadre = (String(memberId).includes('1B3C') || String(memberId).includes('cadre') || (container && container.closest('.cadre-member-card, .cadre-card')));
+          flipTag.textContent = isCadre ? '🪖 軍裝' : '🪖 大兵';
           flipTag.className = 'flip-tag-badge flip-tag-front';
         }
       }
@@ -851,21 +811,40 @@ const APP = {
     }
   },
 
-  // 4. 寢室配置圖渲染 (10人房標準上下鋪，1號下鋪固定為帶班班長)
+  // 4. 寢室套房配置圖渲染 (兩寢一套房模組：左寢 ⇋ 中間獨立衛浴 ⇋ 右寢)
   renderRoomView() {
-    const roomNum = this.selectedRoom;
-    const titleEl = document.getElementById('room-view-title');
-    if (titleEl) titleEl.textContent = `第 ${this.toChineseNum(roomNum)} 寢 床位配置圖 (10人標準房)`;
+    let roomNum = Number(this.selectedRoom) || 1;
+    if (roomNum < 1 || roomNum > 12) roomNum = 1;
+    this.selectedRoom = roomNum;
 
-    // 渲染寢室快捷切換橫條 (膠囊按鈕)
+    // 計算套房分組 (1&2, 3&4, 5&6, 7&8, 9&10, 11&12)
+    const pairIndex = Math.floor((roomNum - 1) / 2);
+    const roomA = pairIndex * 2 + 1;
+    const roomB = pairIndex * 2 + 2;
+
+    const titleEl = document.getElementById('room-view-title');
+    if (titleEl) {
+      titleEl.textContent = `第 ${this.toChineseNum(roomA)} ＆ ${this.toChineseNum(roomB)} 寢 雙寢套房 (中間獨立衛浴)`;
+    }
+
+    // 渲染寢室快捷切換橫條 (6 組套房膠囊按鈕)
     const roomPillBar = document.getElementById('room-quick-pill-bar');
     if (roomPillBar) {
-      roomPillBar.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(num => {
-        const isActive = (num === roomNum);
+      const suitePairs = [
+        { a: 1, b: 2, label: '第 1 & 2 寢', badge: '20人套房' },
+        { a: 3, b: 4, label: '第 3 & 4 寢', badge: '20人套房' },
+        { a: 5, b: 6, label: '第 5 & 6 寢', badge: '20人套房' },
+        { a: 7, b: 8, label: '第 7 & 8 寢', badge: '20人套房' },
+        { a: 9, b: 10, label: '第 9 & 10 寢', badge: '20人套房' },
+        { a: 11, b: 12, label: '第 11 & 12 寢', badge: '9人 (12空寢)' }
+      ];
+
+      roomPillBar.innerHTML = suitePairs.map(s => {
+        const isActive = (roomNum === s.a || roomNum === s.b);
         return `
-          <button class="quick-pill-item ${isActive ? 'active' : ''}" onclick="APP.navigate('room', ${num})" title="切換至第${this.toChineseNum(num)}寢">
-            <span>第${this.toChineseNum(num)}寢</span>
-            <span class="pill-badge">${num === 11 ? '9人' : '10人'}</span>
+          <button class="quick-pill-item ${isActive ? 'active' : ''}" onclick="APP.navigate('room', ${s.a})" title="切換至 ${s.label}">
+            <span>${s.label}</span>
+            <span class="pill-badge">${s.badge}</span>
           </button>
         `;
       }).join('');
@@ -873,67 +852,194 @@ const APP = {
       if (activePill) activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
 
-    // 取得該寢室 9 位弟兄
-    const roomMembers = this.allMembers.filter(m => Number(m.room) === roomNum);
     const bunksGrid = document.getElementById('room-bunks-grid');
     if (!bunksGrid) return;
 
-    // 帶班班長資訊 (對應班長)
+    // 渲染雙寢一套房（橫向 3 欄 / 手機上下排版）
+    bunksGrid.innerHTML = `
+      <div class="dorm-suite-container">
+        <!-- 左翼：第 ${roomA} 寢 (10人房標準配置) -->
+        ${this.createRoomWingHtml(roomA, roomNum === roomA)}
+
+        <!-- 中間：兩寢共用專屬獨立衛浴與廁所 -->
+        ${this.createSharedBathroomWingHtml(roomA, roomB)}
+
+        <!-- 右翼：第 ${roomB} 寢 (10人房，若第12寢則為備用空寢) -->
+        ${roomB === 12 ? this.createEmptyRoomWingHtml(12, roomNum === 12) : this.createRoomWingHtml(roomB, roomNum === roomB)}
+      </div>
+    `;
+  },
+
+  // 渲染單間 10 人寢室 (5 組雙層鋼床 = 10 個床位，1號下鋪為帶班班長)
+  createRoomWingHtml(roomNum, isSelected) {
+    const roomMembers = this.allMembers.filter(m => Number(m.room) === roomNum);
     const leaderInfo = MOCK_DATA.squadLeaders[roomNum] || { name: '帶班班長', rank: '帶班幹部', quote: '（待幹部填寫帶班期勉）' };
+    const capacityText = roomNum === 11 ? '9 人滿編 (含班長)' : '10 人滿編 (含班長)';
 
-    let bunksHtml = `
-      <!-- A 棟雙層床 (1號下鋪固定為班長) -->
-      <div class="bunk-unit">
-        <div class="bunk-unit-title">🛏️ A 棟雙層床 (幹部房位)</div>
-        <div class="bunk-slots">
-          <!-- 上鋪：2號床 (弟兄) -->
-          ${this.createBedSlotHtml(roomMembers[0], 2, '上鋪 (Upper)')}
-          <!-- 下鋪：1號床 (帶班班長專屬) -->
-          ${this.createLeaderBedSlotHtml(leaderInfo, 1)}
+    return `
+      <div class="dorm-room-wing ${isSelected ? 'is-selected-room' : ''}">
+        <div class="dorm-wing-header">
+          <div class="dorm-wing-title-group">
+            <span class="dorm-wing-badge">🛏️ 第 ${this.toChineseNum(roomNum)} 寢</span>
+            <h3 class="dorm-wing-name">步三連・第 ${this.toChineseNum(roomNum)} 寢室</h3>
+          </div>
+          <span class="dorm-capacity-tag">${capacityText}</span>
         </div>
-      </div>
 
-      <!-- B 棟雙層床 -->
-      <div class="bunk-unit">
-        <div class="bunk-unit-title">🛏️ B 棟雙層床</div>
-        <div class="bunk-slots">
-          ${this.createBedSlotHtml(roomMembers[2], 4, '上鋪 (Upper)')}
-          ${this.createBedSlotHtml(roomMembers[1], 3, '下鋪 (Lower)')}
+        <div class="dorm-leader-brief">
+          <span class="badge">🎖️ 1號下鋪</span>
+          <strong>帶班幹部：${this.escapeHtml(leaderInfo.name || '帶班班長')}</strong>
         </div>
-      </div>
 
-      <!-- C 棟雙層床 -->
-      <div class="bunk-unit">
-        <div class="bunk-unit-title">🛏️ C 棟雙層床</div>
-        <div class="bunk-slots">
-          ${this.createBedSlotHtml(roomMembers[4], 6, '上鋪 (Upper)')}
-          ${this.createBedSlotHtml(roomMembers[3], 5, '下鋪 (Lower)')}
-        </div>
-      </div>
+        <div class="dorm-bunks-list">
+          <!-- A 棟雙層床 (1號下鋪班長，2號上鋪弟兄) -->
+          <div class="bunk-unit">
+            <div class="bunk-unit-title">
+              <span>🛏️ A 棟雙層床 (靠房門與衛浴)</span>
+              <span class="bunk-tag">1~2 號床位</span>
+            </div>
+            <div class="bunk-slots">
+              ${this.createBedSlotHtml(roomMembers[0], 2, '上鋪 (Upper)')}
+              ${this.createLeaderBedSlotHtml(leaderInfo, 1)}
+            </div>
+          </div>
 
-      <!-- D 棟雙層床 -->
-      <div class="bunk-unit">
-        <div class="bunk-unit-title">🛏️ D 棟雙層床</div>
-        <div class="bunk-slots">
-          ${this.createBedSlotHtml(roomMembers[6], 8, '上鋪 (Upper)')}
-          ${this.createBedSlotHtml(roomMembers[5], 7, '下鋪 (Lower)')}
-        </div>
-      </div>
+          <!-- B 棟雙層床 (3號下鋪，4號上鋪) -->
+          <div class="bunk-unit">
+            <div class="bunk-unit-title">
+              <span>🛏️ B 棟雙層床</span>
+              <span class="bunk-tag">3~4 號床位</span>
+            </div>
+            <div class="bunk-slots">
+              ${this.createBedSlotHtml(roomMembers[2], 4, '上鋪 (Upper)')}
+              ${this.createBedSlotHtml(roomMembers[1], 3, '下鋪 (Lower)')}
+            </div>
+          </div>
 
-      <!-- E 棟雙層床 -->
-      <div class="bunk-unit">
-        <div class="bunk-unit-title">🛏️ E 棟雙層床</div>
-        <div class="bunk-slots">
-          ${this.createBedSlotHtml(roomMembers[8], 10, '上鋪 (Upper)')}
-          ${this.createBedSlotHtml(roomMembers[7], 9, '下鋪 (Lower)')}
+          <!-- C 棟雙層床 (5號下鋪，6號上鋪) -->
+          <div class="bunk-unit">
+            <div class="bunk-unit-title">
+              <span>🛏️ C 棟雙層床</span>
+              <span class="bunk-tag">5~6 號床位</span>
+            </div>
+            <div class="bunk-slots">
+              ${this.createBedSlotHtml(roomMembers[4], 6, '上鋪 (Upper)')}
+              ${this.createBedSlotHtml(roomMembers[3], 5, '下鋪 (Lower)')}
+            </div>
+          </div>
+
+          <!-- D 棟雙層床 (7號下鋪，8號上鋪) -->
+          <div class="bunk-unit">
+            <div class="bunk-unit-title">
+              <span>🛏️ D 棟雙層床</span>
+              <span class="bunk-tag">7~8 號床位</span>
+            </div>
+            <div class="bunk-slots">
+              ${this.createBedSlotHtml(roomMembers[6], 8, '上鋪 (Upper)')}
+              ${this.createBedSlotHtml(roomMembers[5], 7, '下鋪 (Lower)')}
+            </div>
+          </div>
+
+          <!-- E 棟雙層床 (9號下鋪，10號上鋪) -->
+          <div class="bunk-unit">
+            <div class="bunk-unit-title">
+              <span>🛏️ E 棟雙層床</span>
+              <span class="bunk-tag">9~10 號床位</span>
+            </div>
+            <div class="bunk-slots">
+              ${this.createBedSlotHtml(roomMembers[8], 10, '上鋪 (Upper)')}
+              ${this.createBedSlotHtml(roomMembers[7], 9, '下鋪 (Lower)')}
+            </div>
+          </div>
         </div>
       </div>
     `;
-
-    bunksGrid.innerHTML = bunksHtml;
   },
 
-  // 渲染班長專屬 1 號下鋪 (已清除錯誤假名)
+  // 渲染兩寢共用獨立衛浴模組
+  createSharedBathroomWingHtml(roomA, roomB) {
+    return `
+      <div class="dorm-bathroom-module">
+        <div class="bathroom-header">
+          <div class="bathroom-icon-badge">🚿</div>
+          <h4 class="bathroom-title">專用套房衛浴</h4>
+          <span class="bathroom-desc">第 ${roomA} 寢 ＆ 第 ${roomB} 寢 兩寢專用</span>
+        </div>
+
+        <div class="bathroom-facility-list">
+          <div class="facility-item">
+            <span class="facility-icon">🚿</span>
+            <div class="facility-info">
+              <strong>乾濕分離淋浴隔間</strong>
+              <small>獨立熱水供應系統</small>
+            </div>
+          </div>
+
+          <div class="facility-item">
+            <span class="facility-icon">🚽</span>
+            <div class="facility-info">
+              <strong>獨立衛生隔間</strong>
+              <small>定時清消維護</small>
+            </div>
+          </div>
+
+          <div class="facility-item">
+            <span class="facility-icon">🚰</span>
+            <div class="facility-info">
+              <strong>雙梳洗檯與大理容鏡</strong>
+              <small>個人盥洗用具定位區</small>
+            </div>
+          </div>
+
+          <div class="facility-item">
+            <span class="facility-icon">🧺</span>
+            <div class="facility-info">
+              <strong>毛巾與內務吊掛區</strong>
+              <small>標準軍規生活自律</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="bathroom-doors-indicator">
+          <div class="door-tag door-left">🚪 ⇦ 第 ${roomA} 寢房門</div>
+          <div class="door-tag door-right">第 ${roomB} 寢房門 ⇨ 🚪</div>
+        </div>
+      </div>
+    `;
+  },
+
+  // 渲染第 12 寢 (備用空寢・庫房整備・未住人)
+  createEmptyRoomWingHtml(roomNum, isSelected) {
+    return `
+      <div class="dorm-room-wing dorm-empty-room-wing ${isSelected ? 'is-selected-room' : ''}">
+        <div class="dorm-wing-header">
+          <div class="dorm-wing-title-group">
+            <span class="dorm-wing-badge" style="background: rgba(100, 116, 139, 0.15); color: #475569;">🏢 第十二寢</span>
+            <h3 class="dorm-wing-name">步三連・第十二寢室 (備用)</h3>
+          </div>
+          <span class="dorm-capacity-tag" style="background: #f1f5f9; color: #64748b; border-color: #cbd5cb;">📦 272梯未住人</span>
+        </div>
+
+        <div class="empty-room-hero-box">
+          <div style="font-size: 2.5rem; margin-bottom: 0.35rem;">📦</div>
+          <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 0.35rem;">連隊備用空寢・庫房整備區</h4>
+          <p style="font-size: 0.84rem; color: #64748b; line-height: 1.6; max-width: 300px; margin: 0 auto;">
+            本連 272 梯次全連 98 位弟兄已完整編配於第一至十一寢。第十二寢作為連隊預備寢室與軍品裝備庫房整備空間，無人員進駐。
+          </p>
+        </div>
+
+        <div class="empty-bunks-placeholder">
+          <div class="empty-bunk-slot"><span>🛏️ A 棟雙層床（備用 / 庫房區）</span></div>
+          <div class="empty-bunk-slot"><span>🛏️ B 棟雙層床（備用 / 庫房區）</span></div>
+          <div class="empty-bunk-slot"><span>🛏️ C 棟雙層床（備用 / 庫房區）</span></div>
+          <div class="empty-bunk-slot"><span>🛏️ D 棟雙層床（備用 / 庫房區）</span></div>
+          <div class="empty-bunk-slot"><span>🛏️ E 棟雙層床（備用 / 庫房區）</span></div>
+        </div>
+      </div>
+    `;
+  },
+
+  // 渲染班長專屬 1 號下鋪
   createLeaderBedSlotHtml(leader, bedNo) {
     return `
       <div class="bed-card bed-leader" onclick="APP.showToast('🪖 帶班班長床位（幹部名冊填寫後自動連動）', 'info')" title="帶班班長床位">
