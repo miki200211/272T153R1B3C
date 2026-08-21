@@ -10,8 +10,7 @@ const CONFIG = {
   ADMIN_CONTACT_ID: '13055', // 忘記密碼聯繫窗口
   
   // Google Apps Script (GAS) 部署 Web App URL
-  // 可在系統設定視窗內輸入動態保存於 LocalStorage
-  DEFAULT_GAS_API_URL: '',
+  DEFAULT_GAS_API_URL: 'https://script.google.com/macros/s/AKfycbzfb5CvPloGelEUUvvFci9n7H9BVIr_BMntexgtQpPpSRsz-jLRHEL8uP_hz1vf8krkSw/exec',
 
   // LocalStorage 鍵名
   STORAGE_KEYS: {

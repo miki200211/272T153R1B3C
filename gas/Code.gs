@@ -88,6 +88,36 @@ function createJsonResponse(data) {
   return output;
 }
 
+/**
+ * 智慧取得或建立試算表資料庫 (完美相容容器綁定與獨立 Apps Script 專案)
+ */
+function getDatabaseSpreadsheet() {
+  let ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (ss) {
+    return ss;
+  }
+
+  // 獨立 Apps Script 模式：自動從 Google Drive 資料夾搜尋或自動建立
+  try {
+    const folder = DriveApp.getFolderById(PARENT_FOLDER_ID);
+    const files = folder.getFilesByName('153R1B3C_Database');
+    if (files.hasNext()) {
+      const file = files.next();
+      return SpreadsheetApp.openById(file.getId());
+    } else {
+      const newSs = SpreadsheetApp.create('153R1B3C_Database');
+      const newFile = DriveApp.getFileById(newSs.getId());
+      newFile.moveTo(folder);
+      // 自動初始化結構
+      setupDatabase(newSs);
+      return newSs;
+    }
+  } catch (e) {
+    Logger.log('取得試算表失敗: ' + e.toString());
+    return null;
+  }
+}
+
 // =========================================================================
 // API 處理常式
 // =========================================================================
@@ -101,7 +131,9 @@ function handleLogin(data) {
     return { success: false, message: '請輸入帳號/學號與密碼' };
   }
 
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getDatabaseSpreadsheet();
+  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+
   const cleanId = String(id).trim();
   const cleanPwd = String(password).trim();
 
@@ -141,8 +173,13 @@ function handleLogin(data) {
  * 2. 取得全站基礎資料 (包含所有成員、長官幹部、傳奇、日記)
  */
 function handleGetAllData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getDatabaseSpreadsheet();
+  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
   
+  if (!ss.getSheetByName('Members')) {
+    setupDatabase(ss);
+  }
+
   const members = getSheetDataAsObjects(ss.getSheetByName('Members')).map(m => {
     delete m.password;
     return m;
@@ -179,7 +216,9 @@ function handleUpdateProfile(data) {
   const { id, name, nickname, rank_level, duty, enlist_date, interests, dream, ig, line, bio, avatarMilitaryBase64, avatarCivilianBase64, newPassword } = data;
   if (!id) return { success: false, message: '缺少帳號 id' };
 
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getDatabaseSpreadsheet();
+  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+
   const cleanId = String(id).trim();
   const isCadreId = cleanId.toUpperCase().startsWith('1B3C');
   const targetSheetName = isCadreId ? 'Cadres' : 'Members';
@@ -268,8 +307,11 @@ function handleUpdateProfile(data) {
  * 4. 傳奇版操作
  */
 function handleGetLegends() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const legends = getSheetDataAsObjects(ss.getSheetByName('Legends'));
+  const ss = getDatabaseSpreadsheet();
+  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+
+  const sheet = ss.getSheetByName('Legends');
+  const legends = sheet ? getSheetDataAsObjects(sheet) : [];
   legends.sort((a, b) => (b.legend_id || 0) - (a.legend_id || 0));
   return { success: true, data: legends };
 }
@@ -280,7 +322,9 @@ function handleAddLegend(data) {
     return { success: false, message: '請填寫完整傳奇資訊' };
   }
 
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getDatabaseSpreadsheet();
+  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+
   const sheet = ss.getSheetByName('Legends');
   if (!sheet) return { success: false, message: 'Legends 資料表不存在' };
 
@@ -308,8 +352,11 @@ function handleAddLegend(data) {
  * 5. 大兵日記操作
  */
 function handleGetDiaries() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const diaries = getSheetDataAsObjects(ss.getSheetByName('Diaries'));
+  const ss = getDatabaseSpreadsheet();
+  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+
+  const sheet = ss.getSheetByName('Diaries');
+  const diaries = sheet ? getSheetDataAsObjects(sheet) : [];
   diaries.sort((a, b) => (b.diary_id || 0) - (a.diary_id || 0));
   return { success: true, data: diaries };
 }
@@ -320,7 +367,9 @@ function handleAddDiary(data) {
     return { success: false, message: '請填寫完整日記資訊' };
   }
 
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getDatabaseSpreadsheet();
+  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+
   const sheet = ss.getSheetByName('Diaries');
   if (!sheet) return { success: false, message: 'Diaries 資料表不存在' };
 
@@ -355,7 +404,9 @@ function handleResetPassword(data) {
     return { success: false, message: '缺少目標帳號 target_id' };
   }
 
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getDatabaseSpreadsheet();
+  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+
   const cleanTarget = String(target_id).trim();
   const isCadre = cleanTarget.toUpperCase().startsWith('1B3C');
   const targetSheetName = isCadre ? 'Cadres' : 'Members';
@@ -473,8 +524,12 @@ function rowToObject(headers, row) {
 /**
  * 執行此函式可自動在試算表中建立 Members, Cadres, Legends, Diaries 四張工作表並填入預設資料
  */
-function setupDatabase() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+function setupDatabase(targetSs) {
+  const ss = targetSs || getDatabaseSpreadsheet();
+  if (!ss) {
+    Logger.log('❌ 找不到有效的試算表資料庫');
+    return;
+  }
 
   // 1. 初始化 Members 表 (清空預設姓名與自介，由弟兄登入後自行填寫)
   let memberSheet = ss.getSheetByName('Members');
