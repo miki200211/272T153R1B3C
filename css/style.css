@@ -168,6 +168,33 @@ body {
   object-fit: cover;
 }
 
+.btn-refresh-data {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: var(--transition);
+}
+
+.btn-refresh-data:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: var(--gold);
+  color: var(--gold);
+  transform: translateY(-1px);
+}
+
+.btn-refresh-data:active svg {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
+}
+
 .btn-auth {
   background: var(--gold);
   color: var(--primary-dark);

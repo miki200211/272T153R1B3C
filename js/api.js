@@ -277,20 +277,42 @@ const API = {
     }
   },
 
+  // 記憶體快取 (優化 100+ 人同時訪問時的連線效率，避免頻繁發送 API)
+  _allDataCache: null,
+  _allDataCacheTime: 0,
+  _cacheTtlMs: 20000, // 20 秒記憶體快取
+
   // 封裝的高階 API 方法
   async login(id, password) {
     return this.sendGasRequest('login', { id, password });
   },
 
-  async getAllData() {
-    return this.sendGasRequest('getAllData');
+  async getAllData(forceRefresh = false) {
+    const now = Date.now();
+    if (!forceRefresh && this._allDataCache && (now - this._allDataCacheTime < this._cacheTtlMs)) {
+      return this._allDataCache;
+    }
+    const res = await this.sendGasRequest('getAllData');
+    if (res && res.success) {
+      this._allDataCache = res;
+      this._allDataCacheTime = Date.now();
+    }
+    return res;
+  },
+
+  // 寫入操作成功時主動使快取失效
+  invalidateCache() {
+    this._allDataCache = null;
+    this._allDataCacheTime = 0;
   },
 
   async updateProfile(profileData) {
+    this.invalidateCache();
     return this.sendGasRequest('updateProfile', profileData);
   },
 
   async resetPassword(targetId, adminId) {
+    this.invalidateCache();
     return this.sendGasRequest('resetPassword', { target_id: targetId, admin_id: adminId });
   },
 
@@ -299,6 +321,7 @@ const API = {
   },
 
   async addLegend(legendData) {
+    this.invalidateCache();
     return this.sendGasRequest('addLegend', legendData);
   },
 
@@ -307,6 +330,7 @@ const API = {
   },
 
   async addDiary(diaryData) {
+    this.invalidateCache();
     return this.sendGasRequest('addDiary', diaryData);
   }
 };

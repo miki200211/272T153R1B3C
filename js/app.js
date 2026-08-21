@@ -73,6 +73,16 @@ const APP = {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   },
 
+  // 輔助函式：美化日期時間顯示 (例如 2026-08-21 09:09)
+  formatDateDisplay(dateStr) {
+    if (!dateStr) return '';
+    const s = String(dateStr).trim();
+    if (s.includes('T')) {
+      return s.replace('T', ' ').substring(0, 16);
+    }
+    return s.substring(0, 16);
+  },
+
   // 智慧圖片等比縮圖與壓縮機制 (Canvas Resizer & Compressor)
   // 將任意大圖 (例如手機拍的 5~20MB 照片) 自動等比縮圖至最適證件照尺寸 (預設寬 600px, 高 800px)
   // 並壓縮為高品質 JPEG (品質 0.82)，大幅縮小檔案大小 (~60KB~120KB) 同時保有清晰畫質，徹底解決上傳過大問題！
@@ -148,6 +158,7 @@ const APP = {
   searchQuery: '',
   tempMilitaryAvatarBase64: null,
   tempCivilianAvatarBase64: null,
+  isSubmitting: false, // 防重複連點與並發鎖旗標
 
   // 初始化應用程式
   async init() {
@@ -238,6 +249,15 @@ const APP = {
     if (memberCountEl) memberCountEl.textContent = this.allMembers.length;
     const cadreCountEl = document.getElementById('stat-cadres-count');
     if (cadreCountEl) cadreCountEl.textContent = this.cadres.length;
+  },
+
+  // 手動 / 即時同步最新雲端資料庫
+  async refreshData() {
+    this.showToast('🔄 正在同步最新雲端資料庫與照片...', 'info');
+    API.invalidateCache();
+    await this.loadAllData();
+    this.navigate(this.currentView, this.currentView === 'squad' ? this.selectedSquad : (this.currentView === 'room' ? this.selectedRoom : null));
+    this.showToast('✨ 雲端資料庫同步完成，已是最新狀態！', 'success');
   },
 
   // =========================================================================
@@ -828,12 +848,23 @@ const APP = {
     `;
   },
 
-  // 5. 傳奇版渲染
+  // 5. 傳奇版渲染 (自動前端去重與日期美化)
   renderLegendsView() {
     const listContainer = document.getElementById('legends-list-container');
     if (!listContainer) return;
 
-    if (this.legends.length === 0) {
+    // 前端即時去重處理 (避免因網路重試或歷史資料產生重複卡片)
+    const seenLegendKeys = new Set();
+    const uniqueLegends = [];
+    for (const l of this.legends) {
+      const key = `${String(l.target_id).trim()}_${String(l.author_id).trim()}_${String(l.title).trim()}_${String(l.content).trim()}`;
+      if (!seenLegendKeys.has(key)) {
+        seenLegendKeys.add(key);
+        uniqueLegends.push(l);
+      }
+    }
+
+    if (uniqueLegends.length === 0) {
       listContainer.innerHTML = `
         <div style="text-align: center; padding: 3.5rem 1.5rem; background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
           <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">⚡</div>
@@ -844,7 +875,7 @@ const APP = {
       return;
     }
 
-    listContainer.innerHTML = this.legends.map(l => {
+    listContainer.innerHTML = uniqueLegends.map(l => {
       const targetMember = this.allMembers.find(m => String(m.id) === String(l.target_id));
       const targetName = targetMember && targetMember.name ? `${targetMember.name} (第${this.toChineseNum(targetMember.squad)}班)` : `#${l.target_id}`;
 
@@ -863,7 +894,7 @@ const APP = {
                 <span class="tag-author">✍️ 爆料者: #${l.author_id} (${this.escapeHtml(authorName)})</span>
               </div>
             </div>
-            <span class="legend-date">📅 ${l.created_at || ''}</span>
+            <span class="legend-date">📅 ${this.formatDateDisplay(l.created_at)}</span>
           </div>
           <div class="legend-content">
             ${this.escapeHtml(l.content)}
@@ -873,12 +904,23 @@ const APP = {
     }).join('');
   },
 
-  // 6. 大兵日記渲染 (莒光作文簿風格)
+  // 6. 大兵日記渲染 (莒光作文簿風格，自動前端去重與日期美化)
   renderDiariesView() {
     const listContainer = document.getElementById('diaries-list-container');
     if (!listContainer) return;
 
-    if (this.diaries.length === 0) {
+    // 前端即時去重處理
+    const seenDiaryKeys = new Set();
+    const uniqueDiaries = [];
+    for (const d of this.diaries) {
+      const key = `${String(d.author_id).trim()}_${String(d.title).trim()}_${String(d.content).trim()}`;
+      if (!seenDiaryKeys.has(key)) {
+        seenDiaryKeys.add(key);
+        uniqueDiaries.push(d);
+      }
+    }
+
+    if (uniqueDiaries.length === 0) {
       listContainer.innerHTML = `
         <div style="text-align: center; padding: 3.5rem 1.5rem; background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
           <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📖</div>
@@ -889,7 +931,7 @@ const APP = {
       return;
     }
 
-    listContainer.innerHTML = this.diaries.map(d => {
+    listContainer.innerHTML = uniqueDiaries.map(d => {
       const authorMember = this.allMembers.find(m => String(m.id) === String(d.author_id));
       const authorName = authorMember && authorMember.name ? `${authorMember.name} (第${this.toChineseNum(authorMember.squad)}班)` : `弟兄 #${d.author_id}`;
 
@@ -902,7 +944,7 @@ const APP = {
               </svg>
               國軍莒光作文簿・生活心得
             </span>
-            <span class="jukuang-meta">📅 發表時間：${d.created_at || ''}</span>
+            <span class="jukuang-meta">📅 發表時間：${this.formatDateDisplay(d.created_at)}</span>
           </div>
 
           <div class="jukuang-page">
@@ -1158,6 +1200,7 @@ const APP = {
   async handleSaveProfile(e) {
     e.preventDefault();
     if (!this.currentUser) return;
+    if (this.isSubmitting) return;
 
     const isCadre = Boolean(this.currentUser.is_cadre || String(this.currentUser.id).toUpperCase().startsWith('1B3C'));
     const name = document.getElementById('profile-name').value.trim();
@@ -1193,65 +1236,76 @@ const APP = {
     }
 
     const saveBtn = document.getElementById('btn-save-profile');
+    const originalSaveText = saveBtn ? saveBtn.textContent : '儲存更新';
+
+    this.isSubmitting = true;
     if (saveBtn) {
       saveBtn.disabled = true;
-      saveBtn.textContent = '資料與照片儲存中...';
+      saveBtn.textContent = '⏳ 資料與照片上傳中...';
     }
 
-    const payload = {
-      id: this.currentUser.id,
-      name,
-      nickname,
-      rank_level: isCadre ? rank_level : undefined,
-      duty,
-      enlist_date: isCadre ? enlist_date : undefined,
-      interests,
-      dream,
-      ig,
-      line,
-      bio,
-      newPassword: newPassword || undefined,
-      avatarMilitaryBase64: this.tempMilitaryAvatarBase64,
-      avatarCivilianBase64: this.tempCivilianAvatarBase64
-    };
+    this.showToast('⏳ 個人資料與照片儲存中，請稍候...', 'info');
 
-    const result = await API.updateProfile(payload);
+    try {
+      const payload = {
+        id: this.currentUser.id,
+        name,
+        nickname,
+        rank_level: isCadre ? rank_level : undefined,
+        duty,
+        enlist_date: isCadre ? enlist_date : undefined,
+        interests,
+        dream,
+        ig,
+        line,
+        bio,
+        newPassword: newPassword || undefined,
+        avatarMilitaryBase64: this.tempMilitaryAvatarBase64,
+        avatarCivilianBase64: this.tempCivilianAvatarBase64
+      };
 
-    if (saveBtn) {
-      saveBtn.disabled = false;
-      saveBtn.textContent = '儲存更新';
-    }
+      const result = await API.updateProfile(payload);
 
-    if (result && result.success) {
-      this.currentUser = result.user || { ...this.currentUser, ...payload };
-      CONFIG.setCurrentUser(this.currentUser);
+      if (result && result.success) {
+        this.currentUser = result.user || { ...this.currentUser, ...payload };
+        CONFIG.setCurrentUser(this.currentUser);
 
-      if (isCadre) {
-        const cIdx = this.cadres.findIndex(c => String(c.id).toUpperCase() === String(this.currentUser.id).toUpperCase());
-        if (cIdx !== -1) {
-          this.cadres[cIdx] = { ...this.cadres[cIdx], ...this.currentUser };
+        if (isCadre) {
+          const cIdx = this.cadres.findIndex(c => String(c.id).toUpperCase() === String(this.currentUser.id).toUpperCase());
+          if (cIdx !== -1) {
+            this.cadres[cIdx] = { ...this.cadres[cIdx], ...this.currentUser };
+          }
+          this.renderCadresView();
+          this.renderHomeView();
+        } else {
+          const mIdx = this.allMembers.findIndex(m => String(m.id) === String(this.currentUser.id));
+          if (mIdx !== -1) {
+            this.allMembers[mIdx] = { ...this.allMembers[mIdx], ...this.currentUser };
+          }
+          if (this.currentView === 'squad') this.renderSquadView();
+          if (this.currentView === 'room') this.renderRoomView();
         }
-        this.renderCadresView();
-        this.renderHomeView();
-      } else {
-        const mIdx = this.allMembers.findIndex(m => String(m.id) === String(this.currentUser.id));
-        if (mIdx !== -1) {
-          this.allMembers[mIdx] = { ...this.allMembers[mIdx], ...this.currentUser };
-        }
-        if (this.currentView === 'squad') this.renderSquadView();
-        if (this.currentView === 'room') this.renderRoomView();
-      }
 
-      this.updateAuthUI();
-      this.closeModal('modal-edit-profile');
-      
-      if (newPassword) {
-        this.showToast('個人資料、雙照片與新密碼已成功設定！請牢記您的新密碼。', 'success');
+        this.updateAuthUI();
+        this.closeModal('modal-edit-profile');
+        
+        if (newPassword) {
+          this.showToast('✨ 個人資料、雙照片與新密碼已成功設定！請牢記您的新密碼。', 'success');
+        } else {
+          this.showToast('✨ 個人資料與雙照片已成功儲存！', 'success');
+        }
       } else {
-        this.showToast('個人資料與雙照片已成功儲存！', 'success');
+        this.showToast(result ? result.message : '更新失敗，請稍後再試', 'error');
       }
-    } else {
-      this.showToast(result ? result.message : '更新失敗，請稍後再試', 'error');
+    } catch (err) {
+      console.error('儲存個人檔案異常:', err);
+      this.showToast('儲存異常，請稍後重試', 'error');
+    } finally {
+      this.isSubmitting = false;
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalSaveText;
+      }
     }
   },
 
@@ -1274,6 +1328,7 @@ const APP = {
   async handleAddLegend(e) {
     e.preventDefault();
     if (!this.currentUser) return;
+    if (this.isSubmitting) return;
 
     const targetId = document.getElementById('legend-target-id').value.trim();
     const title = document.getElementById('legend-title').value.trim();
@@ -1284,21 +1339,54 @@ const APP = {
       return;
     }
 
-    const payload = {
-      target_id: targetId,
-      author_id: this.currentUser.id,
-      title,
-      content
-    };
+    const form = e.target;
+    const submitBtn = form ? form.querySelector('button[type="submit"]') : document.querySelector('#modal-add-legend button[type="submit"]');
+    const originalBtnText = submitBtn ? submitBtn.textContent : '發布傳奇';
 
-    const result = await API.addLegend(payload);
-    if (result && result.success) {
-      if (result.data) this.legends.unshift(result.data);
-      this.closeModal('modal-add-legend');
-      this.showToast('傳奇事蹟發布成功！', 'success');
-      this.renderLegendsView();
-    } else {
-      this.showToast(result ? result.message : '發布失敗', 'error');
+    this.isSubmitting = true;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ 上傳發布中，請稍候...';
+    }
+
+    this.showToast('⏳ 傳奇事蹟上傳中，請稍候...', 'info');
+
+    try {
+      const payload = {
+        target_id: targetId,
+        author_id: this.currentUser.id,
+        title,
+        content
+      };
+
+      const result = await API.addLegend(payload);
+      if (result && result.success) {
+        if (result.data) {
+          const exists = this.legends.some(l => 
+            String(l.target_id).trim() === String(result.data.target_id).trim() &&
+            String(l.author_id).trim() === String(result.data.author_id).trim() &&
+            String(l.title).trim() === String(result.data.title).trim() &&
+            String(l.content).trim() === String(result.data.content).trim()
+          );
+          if (!exists) {
+            this.legends.unshift(result.data);
+          }
+        }
+        this.closeModal('modal-add-legend');
+        this.showToast('✨ 傳奇事蹟發布成功！', 'success');
+        this.renderLegendsView();
+      } else {
+        this.showToast(result ? result.message : '發布失敗，請稍後重試', 'error');
+      }
+    } catch (err) {
+      console.error('發布傳奇異常:', err);
+      this.showToast('發布異常，請稍後重試', 'error');
+    } finally {
+      this.isSubmitting = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+      }
     }
   },
 
@@ -1321,6 +1409,7 @@ const APP = {
   async handleAddDiary(e) {
     e.preventDefault();
     if (!this.currentUser) return;
+    if (this.isSubmitting) return;
 
     const title = document.getElementById('diary-title').value.trim();
     const content = document.getElementById('diary-content').value.trim();
@@ -1330,20 +1419,52 @@ const APP = {
       return;
     }
 
-    const payload = {
-      author_id: this.currentUser.id,
-      title,
-      content
-    };
+    const form = e.target;
+    const submitBtn = form ? form.querySelector('button[type="submit"]') : document.querySelector('#modal-add-diary button[type="submit"]');
+    const originalBtnText = submitBtn ? submitBtn.textContent : '發布日記';
 
-    const result = await API.addDiary(payload);
-    if (result && result.success) {
-      if (result.data) this.diaries.unshift(result.data);
-      this.closeModal('modal-add-diary');
-      this.showToast('大兵日記已送交輔導長批閱！', 'success');
-      this.renderDiariesView();
-    } else {
-      this.showToast(result ? result.message : '發布失敗', 'error');
+    this.isSubmitting = true;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ 上傳發布中，請稍候...';
+    }
+
+    this.showToast('⏳ 莒光作文簿上傳中，請稍候...', 'info');
+
+    try {
+      const payload = {
+        author_id: this.currentUser.id,
+        title,
+        content
+      };
+
+      const result = await API.addDiary(payload);
+      if (result && result.success) {
+        if (result.data) {
+          const exists = this.diaries.some(d => 
+            String(d.author_id).trim() === String(result.data.author_id).trim() &&
+            String(d.title).trim() === String(result.data.title).trim() &&
+            String(d.content).trim() === String(result.data.content).trim()
+          );
+          if (!exists) {
+            this.diaries.unshift(result.data);
+          }
+        }
+        this.closeModal('modal-add-diary');
+        this.showToast('✨ 大兵日記已送交輔導長批閱！', 'success');
+        this.renderDiariesView();
+      } else {
+        this.showToast(result ? result.message : '發布失敗，請稍後重試', 'error');
+      }
+    } catch (err) {
+      console.error('發布日記異常:', err);
+      this.showToast('發布異常，請稍後重試', 'error');
+    } finally {
+      this.isSubmitting = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+      }
     }
   },
 

@@ -33,6 +33,15 @@
       </div>
 
       <div class="header-actions">
+        <!-- 即時資料同步按鈕 -->
+        <button class="btn-refresh-data" onclick="APP.refreshData()" title="點擊即時同步雲端最新資料與照片">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          <span>同步最新</span>
+        </button>
+
         <!-- 登入狀態區 (動態切換) -->
         <div id="auth-status-container">
           <!-- 未登入狀態 -->

@@ -180,6 +180,10 @@ function handleGetAllData() {
     setupDatabase(ss);
   }
 
+  // 自動清理試算表中重複發布的傳奇與日記
+  cleanSheetDuplicates(ss.getSheetByName('Legends'), [1, 2, 3, 4]);
+  cleanSheetDuplicates(ss.getSheetByName('Diaries'), [1, 2, 3]);
+
   const members = getSheetDataAsObjects(ss.getSheetByName('Members')).map(m => {
     delete m.password;
     return m;
@@ -191,8 +195,19 @@ function handleGetAllData() {
     return c;
   });
 
-  const legends = getSheetDataAsObjects(ss.getSheetByName('Legends'));
-  const diaries = getSheetDataAsObjects(ss.getSheetByName('Diaries'));
+  const legends = getSheetDataAsObjects(ss.getSheetByName('Legends')).map(l => {
+    if (l.created_at && String(l.created_at).includes('T')) {
+      l.created_at = String(l.created_at).replace('T', ' ').substring(0, 16);
+    }
+    return l;
+  });
+
+  const diaries = getSheetDataAsObjects(ss.getSheetByName('Diaries')).map(d => {
+    if (d.created_at && String(d.created_at).includes('T')) {
+      d.created_at = String(d.created_at).replace('T', ' ').substring(0, 16);
+    }
+    return d;
+  });
 
   // 依照發布時間倒序排列
   legends.sort((a, b) => (b.legend_id || 0) - (a.legend_id || 0));
@@ -216,101 +231,112 @@ function handleUpdateProfile(data) {
   const { id, name, nickname, rank_level, duty, enlist_date, interests, dream, ig, line, bio, avatarMilitaryBase64, avatarCivilianBase64, newPassword } = data;
   if (!id) return { success: false, message: '缺少帳號 id' };
 
-  const ss = getDatabaseSpreadsheet();
-  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000); // 等待最多 15 秒鎖定，防範 100 人同時寫入碰撞
 
-  const cleanId = String(id).trim();
-  const isCadreId = cleanId.toUpperCase().startsWith('1B3C');
-  const targetSheetName = isCadreId ? 'Cadres' : 'Members';
-  const sheet = ss.getSheetByName(targetSheetName);
+    const ss = getDatabaseSpreadsheet();
+    if (!ss) return { success: false, message: '無法連接試算表資料庫' };
 
-  if (!sheet) return { success: false, message: `${targetSheetName} 資料表不存在` };
+    const cleanId = String(id).trim();
+    const isCadreId = cleanId.toUpperCase().startsWith('1B3C');
+    const targetSheetName = isCadreId ? 'Cadres' : 'Members';
+    const sheet = ss.getSheetByName(targetSheetName);
 
-  const values = sheet.getDataRange().getValues();
-  const headers = values[0];
-  const idColIdx = headers.indexOf('id');
+    if (!sheet) return { success: false, message: `${targetSheetName} 資料表不存在` };
 
-  let rowIndex = -1;
-  for (let i = 1; i < values.length; i++) {
-    if (String(values[i][idColIdx]).toUpperCase() === cleanId.toUpperCase()) {
-      rowIndex = i + 1; // 轉為 1-based 列號
-      break;
-    }
-  }
+    const values = sheet.getDataRange().getValues();
+    const headers = values[0];
+    const idColIdx = headers.indexOf('id');
 
-  if (rowIndex === -1) {
-    return { success: false, message: `查無此帳號 (${cleanId})` };
-  }
-
-  // 軍裝照上傳 Drive
-  let avatarMilUrl = null;
-  if (avatarMilitaryBase64 && avatarMilitaryBase64.includes('base64,')) {
-    try {
-      avatarMilUrl = saveAvatarToDrive(`${cleanId}_mil`, avatarMilitaryBase64);
-    } catch (e) {
-      Logger.log('軍裝照上傳失敗: ' + e.toString());
-    }
-  }
-
-  // 私人便服照上傳 Drive
-  let avatarCivUrl = null;
-  if (avatarCivilianBase64 && avatarCivilianBase64.includes('base64,')) {
-    try {
-      avatarCivUrl = saveAvatarToDrive(`${cleanId}_civ`, avatarCivilianBase64);
-    } catch (e) {
-      Logger.log('私人便服照上傳失敗: ' + e.toString());
-    }
-  }
-
-  const nowStr = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy-MM-dd HH:mm');
-
-  // 依欄位名稱寫入對應儲存格
-  function updateCell(colName, val) {
-    if (val !== undefined && val !== null && val !== '') {
-      const colIdx = headers.indexOf(colName);
-      if (colIdx !== -1) {
-        sheet.getRange(rowIndex, colIdx + 1).setValue(val);
+    let rowIndex = -1;
+    for (let i = 1; i < values.length; i++) {
+      if (String(values[i][idColIdx]).toUpperCase() === cleanId.toUpperCase()) {
+        rowIndex = i + 1; // 轉為 1-based 列號
+        break;
       }
     }
-  }
 
-  if (name !== undefined) updateCell('name', name);
-  if (nickname !== undefined) updateCell('nickname', nickname);
-  if (rank_level !== undefined) updateCell('rank_level', rank_level);
-  if (duty !== undefined) updateCell('duty', duty);
-  if (enlist_date !== undefined) updateCell('enlist_date', enlist_date);
-  if (interests !== undefined) updateCell('interests', interests);
-  if (dream !== undefined) updateCell('dream', dream);
-  if (ig !== undefined) updateCell('ig', ig);
-  if (line !== undefined) updateCell('line', line);
-  if (bio !== undefined) updateCell('bio', bio);
-  if (newPassword) updateCell('password', String(newPassword).trim()); // 更新登入密碼
-  if (avatarMilUrl) {
-    updateCell('avatar_military', avatarMilUrl);
-    updateCell('avatar_url', avatarMilUrl);
-  }
-  if (avatarCivUrl) {
-    updateCell('avatar_civilian', avatarCivUrl);
-  }
-  updateCell('updated_at', nowStr);
+    if (rowIndex === -1) {
+      return { success: false, message: `查無此帳號 (${cleanId})` };
+    }
 
-  // 取得更新後的完整物件
-  const updatedRow = sheet.getRange(rowIndex, 1, 1, headers.length).getValues()[0];
-  const userObj = rowToObject(headers, updatedRow);
-  delete userObj.password;
-  userObj.is_cadre = isCadreId;
+    // 軍裝照上傳 Drive
+    let avatarMilUrl = null;
+    if (avatarMilitaryBase64 && avatarMilitaryBase64.includes('base64,')) {
+      try {
+        avatarMilUrl = saveAvatarToDrive(`${cleanId}_mil`, avatarMilitaryBase64);
+      } catch (e) {
+        Logger.log('軍裝照上傳失敗: ' + e.toString());
+      }
+    }
 
-  return { success: true, user: userObj, message: '個人資料、照片與密碼設定更新成功！' };
+    // 私人便服照上傳 Drive
+    let avatarCivUrl = null;
+    if (avatarCivilianBase64 && avatarCivilianBase64.includes('base64,')) {
+      try {
+        avatarCivUrl = saveAvatarToDrive(`${cleanId}_civ`, avatarCivilianBase64);
+      } catch (e) {
+        Logger.log('私人便服照上傳失敗: ' + e.toString());
+      }
+    }
+
+    const nowStr = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy-MM-dd HH:mm');
+
+    // 依欄位名稱寫入對應儲存格
+    function updateCell(colName, val) {
+      if (val !== undefined && val !== null && val !== '') {
+        const colIdx = headers.indexOf(colName);
+        if (colIdx !== -1) {
+          sheet.getRange(rowIndex, colIdx + 1).setValue(val);
+        }
+      }
+    }
+
+    if (name !== undefined) updateCell('name', name);
+    if (nickname !== undefined) updateCell('nickname', nickname);
+    if (rank_level !== undefined) updateCell('rank_level', rank_level);
+    if (duty !== undefined) updateCell('duty', duty);
+    if (enlist_date !== undefined) updateCell('enlist_date', enlist_date);
+    if (interests !== undefined) updateCell('interests', interests);
+    if (dream !== undefined) updateCell('dream', dream);
+    if (ig !== undefined) updateCell('ig', ig);
+    if (line !== undefined) updateCell('line', line);
+    if (bio !== undefined) updateCell('bio', bio);
+    if (newPassword) updateCell('password', String(newPassword).trim()); // 更新登入密碼
+    if (avatarMilUrl) {
+      updateCell('avatar_military', avatarMilUrl);
+      updateCell('avatar_url', avatarMilUrl);
+    }
+    if (avatarCivUrl) {
+      updateCell('avatar_civilian', avatarCivUrl);
+    }
+    updateCell('updated_at', nowStr);
+
+    // 取得更新後的完整物件
+    const updatedRow = sheet.getRange(rowIndex, 1, 1, headers.length).getValues()[0];
+    const userObj = rowToObject(headers, updatedRow);
+    delete userObj.password;
+    userObj.is_cadre = isCadreId;
+
+    return { success: true, user: userObj, message: '個人資料、照片與密碼設定更新成功！' };
+  } catch (err) {
+    return { success: false, message: '伺服器繁忙，請稍後再試: ' + err.toString() };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 /**
- * 4. 傳奇版操作
+ * 4. 傳奇版操作 (含後端並發鎖與防重複提交機制)
  */
 function handleGetLegends() {
   const ss = getDatabaseSpreadsheet();
   if (!ss) return { success: false, message: '無法連接試算表資料庫' };
 
   const sheet = ss.getSheetByName('Legends');
+  cleanSheetDuplicates(sheet, [1, 2, 3, 4]);
+
   const legends = sheet ? getSheetDataAsObjects(sheet) : [];
   legends.sort((a, b) => (b.legend_id || 0) - (a.legend_id || 0));
   return { success: true, data: legends };
@@ -322,40 +348,78 @@ function handleAddLegend(data) {
     return { success: false, message: '請填寫完整傳奇資訊' };
   }
 
-  const ss = getDatabaseSpreadsheet();
-  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000); // 並發防碰撞
 
-  const sheet = ss.getSheetByName('Legends');
-  if (!sheet) return { success: false, message: 'Legends 資料表不存在' };
+    const ss = getDatabaseSpreadsheet();
+    if (!ss) return { success: false, message: '無法連接試算表資料庫' };
 
-  const values = sheet.getDataRange().getValues();
-  const legendId = values.length; // 自動累加
-  const nowStr = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy-MM-dd HH:mm');
+    const sheet = ss.getSheetByName('Legends');
+    if (!sheet) return { success: false, message: 'Legends 資料表不存在' };
 
-  sheet.appendRow([legendId, String(target_id), String(author_id || ''), title, content, nowStr]);
+    const values = sheet.getDataRange().getValues();
+    const cleanTarget = String(target_id).trim();
+    const cleanAuthor = String(author_id || '').trim();
+    const cleanTitle = String(title).trim();
+    const cleanContent = String(content).trim();
 
-  return {
-    success: true,
-    data: {
-      legend_id: legendId,
-      target_id: String(target_id),
-      author_id: String(author_id || ''),
-      title: title,
-      content: content,
-      created_at: nowStr
-    },
-    message: '傳奇事蹟發布成功！'
-  };
+    // 防重複提交檢查：若最近 15 筆內已存在完全相同的爆料，直接返回該記錄避免連點產生重複
+    for (let i = values.length - 1; i >= Math.max(1, values.length - 15); i--) {
+      const r = values[i];
+      if (String(r[1]).trim() === cleanTarget &&
+          String(r[2]).trim() === cleanAuthor &&
+          String(r[3]).trim() === cleanTitle &&
+          String(r[4]).trim() === cleanContent) {
+        return {
+          success: true,
+          data: {
+            legend_id: r[0],
+            target_id: cleanTarget,
+            author_id: cleanAuthor,
+            title: cleanTitle,
+            content: cleanContent,
+            created_at: String(r[5] || '').replace('T', ' ').substring(0, 16)
+          },
+          message: '傳奇事蹟發布成功！'
+        };
+      }
+    }
+
+    const legendId = values.length; // 自動累加編號
+    const nowStr = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy-MM-dd HH:mm');
+
+    sheet.appendRow([legendId, cleanTarget, cleanAuthor, cleanTitle, cleanContent, nowStr]);
+
+    return {
+      success: true,
+      data: {
+        legend_id: legendId,
+        target_id: cleanTarget,
+        author_id: cleanAuthor,
+        title: cleanTitle,
+        content: cleanContent,
+        created_at: nowStr
+      },
+      message: '傳奇事蹟發布成功！'
+    };
+  } catch (err) {
+    return { success: false, message: '伺服器繁忙，請稍後重試: ' + err.toString() };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 /**
- * 5. 大兵日記操作
+ * 5. 大兵日記操作 (含後端並發鎖與防重複提交機制)
  */
 function handleGetDiaries() {
   const ss = getDatabaseSpreadsheet();
   if (!ss) return { success: false, message: '無法連接試算表資料庫' };
 
   const sheet = ss.getSheetByName('Diaries');
+  cleanSheetDuplicates(sheet, [1, 2, 3]);
+
   const diaries = sheet ? getSheetDataAsObjects(sheet) : [];
   diaries.sort((a, b) => (b.diary_id || 0) - (a.diary_id || 0));
   return { success: true, data: diaries };
@@ -367,29 +431,62 @@ function handleAddDiary(data) {
     return { success: false, message: '請填寫完整日記資訊' };
   }
 
-  const ss = getDatabaseSpreadsheet();
-  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000); // 並發防碰撞
 
-  const sheet = ss.getSheetByName('Diaries');
-  if (!sheet) return { success: false, message: 'Diaries 資料表不存在' };
+    const ss = getDatabaseSpreadsheet();
+    if (!ss) return { success: false, message: '無法連接試算表資料庫' };
 
-  const values = sheet.getDataRange().getValues();
-  const diaryId = values.length; // 自動累加
-  const nowStr = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy-MM-dd HH:mm');
+    const sheet = ss.getSheetByName('Diaries');
+    if (!sheet) return { success: false, message: 'Diaries 資料表不存在' };
 
-  sheet.appendRow([diaryId, String(author_id), title, content, nowStr]);
+    const values = sheet.getDataRange().getValues();
+    const cleanAuthor = String(author_id).trim();
+    const cleanTitle = String(title).trim();
+    const cleanContent = String(content).trim();
 
-  return {
-    success: true,
-    data: {
-      diary_id: diaryId,
-      author_id: String(author_id),
-      title: title,
-      content: content,
-      created_at: nowStr
-    },
-    message: '大兵日記發布成功！'
-  };
+    // 防重複提交檢查
+    for (let i = values.length - 1; i >= Math.max(1, values.length - 15); i--) {
+      const r = values[i];
+      if (String(r[1]).trim() === cleanAuthor &&
+          String(r[2]).trim() === cleanTitle &&
+          String(r[3]).trim() === cleanContent) {
+        return {
+          success: true,
+          data: {
+            diary_id: r[0],
+            author_id: cleanAuthor,
+            title: cleanTitle,
+            content: cleanContent,
+            created_at: String(r[4] || '').replace('T', ' ').substring(0, 16)
+          },
+          message: '大兵日記發布成功！'
+        };
+      }
+    }
+
+    const diaryId = values.length; // 自動累加編號
+    const nowStr = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy-MM-dd HH:mm');
+
+    sheet.appendRow([diaryId, cleanAuthor, cleanTitle, cleanContent, nowStr]);
+
+    return {
+      success: true,
+      data: {
+        diary_id: diaryId,
+        author_id: cleanAuthor,
+        title: cleanTitle,
+        content: cleanContent,
+        created_at: nowStr
+      },
+      message: '大兵日記發布成功！'
+    };
+  } catch (err) {
+    return { success: false, message: '伺服器繁忙，請稍後重試: ' + err.toString() };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 /**
@@ -493,8 +590,44 @@ function saveAvatarToDrive(memberId, base64Data) {
 }
 
 // =========================================================================
-// 試算表資料讀取輔助函式
+// 試算表資料讀取與去重輔助函式
 // =========================================================================
+
+/**
+ * 自動清除指定工作表中的重複資料列（保留第一筆與標頭）
+ */
+function cleanSheetDuplicates(sheet, keyIndices) {
+  if (!sheet) return;
+  try {
+    const values = sheet.getDataRange().getValues();
+    if (values.length <= 2) return;
+
+    const seen = new Set();
+    const uniqueRows = [values[0]]; // 保留第 1 列標頭
+
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      // 依指定欄位組合出唯一指紋
+      const key = keyIndices.map(idx => String(row[idx] || '').trim()).join('|||');
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        // 重新編號 ID (第 1 欄)
+        row[0] = uniqueRows.length;
+        uniqueRows.push(row);
+      }
+    }
+
+    // 若有重複項目則進行覆蓋清理
+    if (uniqueRows.length < values.length) {
+      sheet.clear();
+      sheet.getRange(1, 1, uniqueRows.length, uniqueRows[0].length).setValues(uniqueRows);
+      formatHeaderRow(sheet);
+      SpreadsheetApp.flush();
+    }
+  } catch (e) {
+    Logger.log('去重清理略過: ' + e.toString());
+  }
+}
 
 function getSheetDataAsObjects(sheet) {
   if (!sheet) return [];
