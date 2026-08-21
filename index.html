@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>272梯 陸軍153旅 1B3C 結訓紀念冊 (宜蘭金六結)</title>
+  <meta name="description" content="272梯 陸軍步兵第153旅 步1營第3連 (宜蘭金六結) 官方結訓數位紀念冊與通訊錄">
+  <!-- Favicon / 國軍徽章風格圖示 -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎖️</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       頂部導覽列 (Site Header)
+       ========================================================================== -->
+  <header class="site-header">
+    <div class="header-container">
+      <div class="brand-section" onclick="APP.navigate('home')">
+        <div class="brand-badge" title="陸軍步兵第153旅 步1營第3連">
+          <!-- 陸軍五角星徽章圖示 -->
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2l2.4 7.2h7.6l-6.2 4.5 2.4 7.3-6.2-4.6-6.2 4.6 2.4-7.3-6.2-4.5h7.6z"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>
+            272T 陸軍153旅 1B3C
+            <span class="brand-tag">宜蘭金六結</span>
+          </h1>
+          <p>步兵第一營第三連 結訓紀念冊</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- 登入狀態區 (動態切換) -->
+        <div id="auth-status-container">
+          <!-- 未登入狀態 -->
+          <button id="btn-show-login" class="btn-auth" onclick="APP.openLoginModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>
+            </svg>
+            <span>登入</span>
+          </button>
+        </div>
+
+
+
+        <!-- 手機版選單切換按鈕 -->
+        <button class="mobile-menu-toggle" onclick="APP.toggleMobileDrawer()" aria-label="切換選單">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       系統主體結構 (左側導覽列 Left Sidebar + 右側主要內容 Main Content)
+       ========================================================================== -->
+  <div class="layout-container">
+
+    <!-- 手機版側邊欄抽屜遮罩 (Backdrop) -->
+    <div class="drawer-backdrop" id="drawer-backdrop" onclick="APP.closeMobileDrawer()"></div>
+
+    <!-- 左側常駐導覽列 (Left Sidebar Navigation) -->
+    <aside class="sidebar-nav" id="sidebar-nav">
+      
+      <!-- 導覽頂部識別區 -->
+      <div class="sidebar-header-badge">
+        <div class="sidebar-badge-logo">153R 1B3C</div>
+        <div class="sidebar-badge-desc">連隊導覽中心</div>
+      </div>
+
+      <!-- 主選單區 -->
+      <div>
+        <div class="nav-section-title">
+          <span>🎖️ 連隊核心</span>
+        </div>
+        <ul class="nav-list">
+          <li>
+            <button class="nav-item-btn active" data-nav="home" onclick="APP.navigate('home')">
+              <span class="nav-label">🏠 153R1B3C 首頁</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="cadres" onclick="APP.navigate('cadres')">
+              <span class="nav-label">⭐ 長官幹部區 (100名)</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- 班級名冊 (第一~九班) - 可收放 -->
+      <div>
+        <div class="nav-section-title collapsible-header" onclick="APP.toggleNavSection('squads')" title="點擊收放班級選單">
+          <span>👥 班級名冊 (第一~九班)</span>
+          <span class="collapse-icon" id="collapse-icon-squads">▾</span>
+        </div>
+        <ul class="nav-list collapsible-list" id="nav-squads-list">
+          <li>
+            <button class="nav-item-btn" data-nav="squad-1" onclick="APP.navigate('squad', 1)">
+              <span class="nav-label">第一班</span>
+              <span class="nav-badge">13001~011</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="squad-2" onclick="APP.navigate('squad', 2)">
+              <span class="nav-label">第二班</span>
+              <span class="nav-badge">13012~022</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="squad-3" onclick="APP.navigate('squad', 3)">
+              <span class="nav-label">第三班</span>
+              <span class="nav-badge">13023~033</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="squad-4" onclick="APP.navigate('squad', 4)">
+              <span class="nav-label">第四班</span>
+              <span class="nav-badge">13034~044</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="squad-5" onclick="APP.navigate('squad', 5)">
+              <span class="nav-label">第五班</span>
+              <span class="nav-badge">13045~055</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="squad-6" onclick="APP.navigate('squad', 6)">
+              <span class="nav-label">第六班</span>
+              <span class="nav-badge">13056~066</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="squad-7" onclick="APP.navigate('squad', 7)">
+              <span class="nav-label">第七班</span>
+              <span class="nav-badge">13067~077</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="squad-8" onclick="APP.navigate('squad', 8)">
+              <span class="nav-label">第八班</span>
+              <span class="nav-badge">13078~087</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="squad-9" onclick="APP.navigate('squad', 9)">
+              <span class="nav-label">第九班</span>
+              <span class="nav-badge">13088~098</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- 寢室配置 (第一~十一寢) - 可收放 -->
+      <div>
+        <div class="nav-section-title collapsible-header" onclick="APP.toggleNavSection('rooms')" title="點擊收放寢室選單">
+          <span>🛏️ 寢室配置 (第一~十一寢)</span>
+          <span class="collapse-icon" id="collapse-icon-rooms">▾</span>
+        </div>
+        <ul class="nav-list collapsible-list" id="nav-rooms-list">
+          <!-- 第一~十一 寢按鈕 -->
+          <li>
+            <button class="nav-item-btn" data-nav="room-1" onclick="APP.navigate('room', 1)">
+              <span class="nav-label">第一寢</span>
+              <span class="nav-badge">10人 (含班長)</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="room-2" onclick="APP.navigate('room', 2)">
+              <span class="nav-label">第二寢</span>
+              <span class="nav-badge">10人 (含班長)</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="room-3" onclick="APP.navigate('room', 3)">
+              <span class="nav-label">第三寢</span>
+              <span class="nav-badge">10人 (含班長)</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="room-4" onclick="APP.navigate('room', 4)">
+              <span class="nav-label">第四寢</span>
+              <span class="nav-badge">10人 (含班長)</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="room-5" onclick="APP.navigate('room', 5)">
+              <span class="nav-label">第五寢</span>
+              <span class="nav-badge">10人 (含班長)</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="room-6" onclick="APP.navigate('room', 6)">
+              <span class="nav-label">第六寢</span>
+              <span class="nav-badge">10人 (含班長)</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="room-7" onclick="APP.navigate('room', 7)">
+              <span class="nav-label">第七寢</span>
+              <span class="nav-badge">10人 (含班長)</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="room-8" onclick="APP.navigate('room', 8)">
+              <span class="nav-label">第八寢</span>
+              <span class="nav-badge">10人 (含班長)</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="room-9" onclick="APP.navigate('room', 9)">
+              <span class="nav-label">第九寢</span>
+              <span class="nav-badge">10人 (含班長)</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="room-10" onclick="APP.navigate('room', 10)">
+              <span class="nav-label">第十寢</span>
+              <span class="nav-badge">10人 (含班長)</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="room-11" onclick="APP.navigate('room', 11)">
+              <span class="nav-label">第十一寢</span>
+              <span class="nav-badge">9人 (含班長)</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- 互動專區 -->
+      <div>
+        <div class="nav-section-title">
+          <span>🔥 互動專區</span>
+        </div>
+        <ul class="nav-list">
+          <li>
+            <button class="nav-item-btn" data-nav="legends" onclick="APP.navigate('legends')">
+              <span class="nav-label">⚡ 傳奇版</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="diaries" onclick="APP.navigate('diaries')">
+              <span class="nav-label">📖 大兵日記</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+    </aside>
+
+    <!-- 主要內容展示區 (右側) -->
+    <main class="main-content" id="main-content">
+
+      <!-- 1. 首頁總覽 (Home View) -->
+      <section id="view-home" class="view-section active">
+        <!-- 英雄橫幅 -->
+        <div class="hero-banner">
+          <div class="hero-content">
+            <div class="hero-badge-pill">
+              <span>🎖️ 忠誠精實・榮譽三連</span>
+            </div>
+            <h2 class="hero-title">陸軍步兵第153旅 步1營第3連</h2>
+            <p class="hero-desc">
+              紀念我們在宜蘭金六結共同揮灑汗水、鑑測行軍、打靶刺槍的迷彩歲月。<br>
+              四個月的革命情感，一輩子的真摯兄弟！結訓快樂，江湖再見！
+            </p>
+            <div class="hero-stats-grid">
+              <div class="hero-stat-card">
+                <div class="stat-num" id="stat-members-count">98</div>
+                <div class="stat-label">三連弟兄總數</div>
+              </div>
+              <div class="hero-stat-card">
+                <div class="stat-num">9</div>
+                <div class="stat-label">建制建全班級</div>
+              </div>
+              <div class="hero-stat-card">
+                <div class="stat-num">11</div>
+                <div class="stat-label">寢室溫馨床位</div>
+              </div>
+              <div class="hero-stat-card">
+                <div class="stat-num" id="stat-cadres-count">100</div>
+                <div class="stat-label">長官幹部群</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 首頁幹部精選 -->
+        <div class="section-header">
+          <div class="section-header-title">
+            <h2>連隊長官與幹部風采</h2>
+            <span class="tag">三連核心</span>
+          </div>
+          <button class="btn-secondary" onclick="APP.navigate('cadres')">查看完整幹部群 →</button>
+        </div>
+        <div class="cadres-grid" id="home-cadres-grid">
+          <!-- 幹部卡片由 JS 動態渲染 -->
+        </div>
+
+        <!-- 首頁最新互動動態 (傳奇 + 大兵日記) -->
+        <div style="margin-top: 2.5rem;">
+          <div class="section-header">
+            <div class="section-header-title">
+              <h2>最新連隊動態與回憶</h2>
+              <span class="tag">精選回顧</span>
+            </div>
+            <div class="toolbar-actions">
+              <button class="btn-secondary" onclick="APP.navigate('legends')">傳奇版</button>
+              <button class="btn-primary" onclick="APP.navigate('diaries')">大兵日記</button>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+            <div id="home-latest-legend">
+              <!-- 最新傳奇預覽 -->
+            </div>
+            <div id="home-latest-diary">
+              <!-- 最新日記預覽 -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. 連隊長官/幹部專區 (Cadres View) -->
+      <section id="view-cadres" class="view-section">
+        <div class="section-header">
+          <div class="section-header-title">
+            <h2>連隊長官與幹部陣容 (1B3C001 ~ 1B3C100)</h2>
+            <span class="tag">100位長官班長</span>
+          </div>
+        </div>
+        <div class="cadres-grid" id="cadres-list-grid">
+          <!-- 幹部列表由 JS 動態渲染 -->
+        </div>
+      </section>
+
+      <!-- 3. 班級名冊專區 (Squad View) -->
+      <section id="view-squad" class="view-section">
+        <div class="section-header">
+          <div class="section-header-title">
+            <h2 id="squad-view-title">第一班 成員名冊</h2>
+            <span class="tag" id="squad-member-count-tag">11 人</span>
+          </div>
+          <div class="toolbar-actions">
+            <!-- 即時搜尋框 -->
+            <div class="search-input-group">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="member-search-input" placeholder="搜尋學號、姓名、公差、綽號..." oninput="APP.handleSearch(this.value)">
+            </div>
+          </div>
+        </div>
+
+        <!-- 帶班班長資訊橫幅 -->
+        <div class="squad-leader-banner" id="squad-leader-banner">
+          <div class="squad-leader-info">
+            <span class="badge" id="squad-leader-rank">帶班幹部</span>
+            <strong id="squad-leader-name">帶班班長</strong>
+          </div>
+          <div class="squad-leader-quote" id="squad-leader-quote">
+            （待幹部填寫帶班期勉）
+          </div>
+        </div>
+
+        <!-- 班級成員名冊網格 -->
+        <div class="members-grid" id="squad-members-grid">
+          <!-- 成員卡片由 JS 動態渲染 -->
+        </div>
+      </section>
+
+      <!-- 4. 寢室配置專區 (Room View) -->
+      <section id="view-room" class="view-section">
+        <div class="section-header">
+          <div class="section-header-title">
+            <h2 id="room-view-title">第一寢 床位配置圖</h2>
+            <span class="tag">10人房標準雙層鋼床</span>
+          </div>
+          <div class="room-legend">
+            <div class="room-legend-item">
+              <div class="legend-color-box legend-leader"></div>
+              <span>🎖️ 班長專屬下鋪</span>
+            </div>
+            <div class="room-legend-item">
+              <div class="legend-color-box legend-lower"></div>
+              <span>弟兄下鋪 (Lower)</span>
+            </div>
+            <div class="room-legend-item">
+              <div class="legend-color-box legend-upper"></div>
+              <span>弟兄上鋪 (Upper)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 寢室床位藍圖 -->
+        <div class="room-blueprint-container">
+          <div class="room-blueprint-header">
+            <div style="font-weight: 800; color: var(--primary-dark);">🛏️ 10人寢室 3D 雙層鋼床空間配置視覺化 (1號下鋪為帶班班長)</div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">點擊床位可查看該床弟兄詳細自介</div>
+          </div>
+          <div class="bunks-grid" id="room-bunks-grid">
+            <!-- 床位由 JS 動態渲染 -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 傳奇版 (Legends View) -->
+      <section id="view-legends" class="view-section">
+        <div class="section-header">
+          <div class="section-header-title">
+            <h2>三連傳奇榜 (Legends)</h2>
+            <span class="tag">天兵事蹟・爆笑回憶</span>
+          </div>
+          <button class="btn-primary" onclick="APP.openAddLegendModal()">+ 爆料新傳奇</button>
+        </div>
+        <div class="legends-container" id="legends-list-container">
+          <!-- 傳奇卡片由 JS 動態渲染 -->
+        </div>
+      </section>
+
+      <!-- 6. 大兵日記 / 莒光園地 (Diaries View) -->
+      <section id="view-diaries" class="view-section">
+        <div class="section-header">
+          <div class="section-header-title">
+            <h2>大兵日記 (莒光作文簿)</h2>
+            <span class="tag">國軍生活心得筆記</span>
+          </div>
+          <button class="btn-primary" onclick="APP.openAddDiaryModal()">✍️ 寫大兵日記</button>
+        </div>
+        <div class="diaries-container" id="diaries-list-container">
+          <!-- 莒光作文簿由 JS 動態渲染 -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- 手機版底部常駐快捷導覽列 (Mobile Bottom Navigation Bar) -->
+  <nav class="mobile-bottom-nav">
+    <button class="mobile-bottom-btn active" data-bottom-nav="home" onclick="APP.navigate('home')">
+      <span class="bottom-icon">🏠</span>
+      <span class="bottom-label">首頁</span>
+    </button>
+    <button class="mobile-bottom-btn" data-bottom-nav="cadres" onclick="APP.navigate('cadres')">
+      <span class="bottom-icon">⭐</span>
+      <span class="bottom-label">幹部</span>
+    </button>
+    <button class="mobile-bottom-btn" data-bottom-nav="squad" onclick="APP.navigate('squad', 1)">
+      <span class="bottom-icon">👥</span>
+      <span class="bottom-label">班級</span>
+    </button>
+    <button class="mobile-bottom-btn" data-bottom-nav="room" onclick="APP.navigate('room', 1)">
+      <span class="bottom-icon">🛏️</span>
+      <span class="bottom-label">寢室</span>
+    </button>
+    <button class="mobile-bottom-btn" data-bottom-nav="diaries" onclick="APP.navigate('diaries')">
+      <span class="bottom-icon">📖</span>
+      <span class="bottom-label">日記</span>
+    </button>
+  </nav>
+
+  <!-- ==========================================================================
+       模態彈窗 (Modals)
+       ========================================================================== -->
+
+  <!-- 1. 登入彈窗 (Login Modal) -->
+  <div class="modal-overlay" id="modal-login">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>弟兄登入認證</h3>
+        <button class="modal-close-btn" onclick="APP.closeModal('modal-login')">&times;</button>
+      </div>
+      <form id="form-login" onsubmit="APP.handleLogin(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="login-id">學號 / 幹部帳號 (ID)</label>
+            <input type="text" id="login-id" class="form-control" placeholder="例：13005 (弟兄) 或 1B3C001 (幹部)" required autocomplete="username">
+            <span class="form-hint">弟兄請輸入 5 位數學號；長官班長請輸入 1B3C001~1B3C100</span>
+          </div>
+          <div class="form-group">
+            <label for="login-password">密碼</label>
+            <input type="password" id="login-password" class="form-control" placeholder="預設密碼為學號或幹部帳號" required autocomplete="current-password">
+            <span class="form-hint" style="color: #c1121f; font-weight: 600;">🔒 忘記密碼請聯繫 13055</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="APP.closeModal('modal-login')">取消</button>
+          <button type="submit" class="btn-primary">確認登入</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. 編輯個人資料彈窗 (Edit Profile Modal) -->
+  <div class="modal-overlay" id="modal-edit-profile">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="edit-profile-modal-title">編輯個人基本資料</h3>
+        <button class="modal-close-btn" onclick="APP.closeModal('modal-edit-profile')">&times;</button>
+      </div>
+      <form id="form-edit-profile" onsubmit="APP.handleSaveProfile(event)">
+        <div class="modal-body">
+          <!-- 雙照片上傳 (軍裝照 + 私人便服照) -->
+          <div class="form-group">
+            <label>個人雙面照片 (點擊卡片照片可 3D 動畫翻轉切換)</label>
+            <div class="dual-avatar-upload-grid">
+              <!-- 大兵照/軍裝照 -->
+              <div class="avatar-upload-item">
+                <label id="label-military-avatar">🪖 軍裝照片</label>
+                <div class="avatar-preview-circle" id="profile-military-avatar-preview">
+                  <span>🪖</span>
+                </div>
+                <input type="file" id="profile-military-file" class="file-input-compact" accept="image/*" onchange="APP.handleMilitaryAvatarSelect(this)">
+                <span class="form-hint">迷彩軍裝/大兵照</span>
+              </div>
+
+              <!-- 私人便服照 -->
+              <div class="avatar-upload-item">
+                <label id="label-civilian-avatar">🕶️ 私人便服照</label>
+                <div class="avatar-preview-circle" id="profile-civilian-avatar-preview">
+                  <span>🕶️</span>
+                </div>
+                <input type="file" id="profile-civilian-file" class="file-input-compact" accept="image/*" onchange="APP.handleCivilianAvatarSelect(this)">
+                <span class="form-hint">退伍私服/生活照</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group">
+              <label for="profile-name">姓名</label>
+              <input type="text" id="profile-name" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="profile-nickname">綽號 / 稱呼</label>
+              <input type="text" id="profile-nickname" class="form-control">
+            </div>
+          </div>
+
+          <!-- 幹部專屬職等與入伍日期欄位 -->
+          <div id="profile-cadre-fields-group" style="display: none;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label for="profile-rank-level">🎖️ 職等 / 階級</label>
+                <input type="text" id="profile-rank-level" class="form-control" placeholder="例：少校、上尉、中尉、士官長、上士、中士、下士">
+              </div>
+              <div class="form-group">
+                <label for="profile-enlist-date">📅 入伍日期 (自動算年資)</label>
+                <input type="date" id="profile-enlist-date" class="form-control" oninput="APP.handleEnlistDateChange(this.value)" onchange="APP.handleEnlistDateChange(this.value)">
+              </div>
+            </div>
+            <div id="profile-service-years-preview" style="font-size: 0.8rem; color: #0369a1; font-weight: 700; margin-top: -0.35rem; margin-bottom: 0.75rem; display: none;"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="profile-duty">職位 / 職務 / 公差</label>
+            <input type="text" id="profile-duty" class="form-control" placeholder="例：連長 / 輔導長 / 第1班班長 / 班頭 / 打飯班">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group">
+              <label for="profile-ig">Instagram 帳號</label>
+              <input type="text" id="profile-ig" class="form-control" placeholder="不含 @">
+            </div>
+            <div class="form-group">
+              <label for="profile-line">LINE ID</label>
+              <input type="text" id="profile-line" class="form-control" placeholder="方便大家聯繫">
+            </div>
+          </div>
+
+          <!-- 興趣與夢想 -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group">
+              <label for="profile-interests">🎨 個人興趣 / 專長</label>
+              <input type="text" id="profile-interests" class="form-control" placeholder="例：健身、打球、電玩、攝影">
+            </div>
+            <div class="form-group">
+              <label for="profile-dream">🌟 未來夢想 / 目標</label>
+              <input type="text" id="profile-dream" class="form-control" placeholder="例：環遊世界、創業開店、百萬年薪">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="profile-bio" id="label-profile-bio">自我介紹與期勉感言</label>
+            <textarea id="profile-bio" class="form-control" placeholder="寫下給三連弟兄的期勉、祝福或近況..."></textarea>
+          </div>
+
+          <!-- 自訂新密碼設定區 -->
+          <div style="background: #fdfbf7; border: 1.5px solid var(--gold); border-radius: var(--radius-md); padding: 0.85rem; margin-top: 0.25rem;">
+            <div style="font-size: 0.85rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+              <span>🔒 設定新密碼 (首次登入請務必修改)</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label for="profile-new-password" style="font-size: 0.78rem;">新密碼</label>
+                <input type="password" id="profile-new-password" class="form-control" placeholder="若不變更請留空" autocomplete="new-password">
+              </div>
+              <div class="form-group">
+                <label for="profile-confirm-password" style="font-size: 0.78rem;">確認新密碼</label>
+                <input type="password" id="profile-confirm-password" class="form-control" placeholder="再次輸入新密碼" autocomplete="new-password">
+              </div>
+            </div>
+            <span class="form-hint" style="color: #b45309; font-size: 0.72rem; margin-top: 0.35rem; display: block;">
+              💡 預設密碼為學號。設定新密碼後，下次登入請使用此新密碼。
+            </span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="APP.closeModal('modal-edit-profile')">取消</button>
+          <button type="submit" class="btn-primary" id="btn-save-profile">儲存更新</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. 新增傳奇事蹟彈窗 (Add Legend Modal) -->
+  <div class="modal-overlay" id="modal-add-legend">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚡ 爆料新傳奇事蹟</h3>
+        <button class="modal-close-btn" onclick="APP.closeModal('modal-add-legend')">&times;</button>
+      </div>
+      <form id="form-add-legend" onsubmit="APP.handleAddLegend(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="legend-target-id">傳奇主角 (學號)</label>
+            <input type="text" id="legend-target-id" class="form-control" placeholder="例：13005" required>
+            <span class="form-hint">請輸入該位天兵或風雲人物的 5 位數學號</span>
+          </div>
+          <div class="form-group">
+            <label for="legend-title">事蹟標題</label>
+            <input type="text" id="legend-title" class="form-control" placeholder="例：單戰戰備水壺失蹤事件" required>
+          </div>
+          <div class="form-group">
+            <label for="legend-content">完整事蹟描述</label>
+            <textarea id="legend-content" class="form-control" style="min-height: 120px;" placeholder="請詳細記錄這段讓全連笑翻的傳奇經過..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="APP.closeModal('modal-add-legend')">取消</button>
+          <button type="submit" class="btn-primary">發布傳奇</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. 寫大兵日記彈窗 (Add Diary Modal) -->
+  <div class="modal-overlay" id="modal-add-diary">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>📖 撰寫莒光作文簿 (大兵日記)</h3>
+        <button class="modal-close-btn" onclick="APP.closeModal('modal-add-diary')">&times;</button>
+      </div>
+      <form id="form-add-diary" onsubmit="APP.handleAddDiary(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="diary-title">篇名 / 主題</label>
+            <input type="text" id="diary-title" class="form-control" placeholder="例：告別金六結，那些年我們一起跑的大越野" required>
+          </div>
+          <div class="form-group">
+            <label for="diary-content">心得內文 (莒光園地)</label>
+            <textarea id="diary-content" class="form-control" style="min-height: 140px;" placeholder="寫下這段軍旅日子的體悟、對鄰兵的感謝，或結訓的心情..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="APP.closeModal('modal-add-diary')">取消</button>
+          <button type="submit" class="btn-primary">送交輔導長批閱 (發布)</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+
+  <!-- 6. 弟兄名片詳情彈窗 (Member Detail Modal) -->
+  <div class="modal-overlay" id="modal-member-detail">
+    <div class="modal-card" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3 id="detail-modal-title">弟兄檔案卡</h3>
+        <button class="modal-close-btn" onclick="APP.closeModal('modal-member-detail')">&times;</button>
+      </div>
+      <div class="modal-body" id="detail-modal-body">
+        <!-- 動態渲染弟兄卡片 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       訊息通知佇列 (Toast Container)
+       ========================================================================== -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- 載入核心腳本 (循序載入) -->
+  <script src="js/config.js"></script>
+  <script src="js/mockData.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

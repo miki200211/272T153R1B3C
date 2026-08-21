@@ -1,0 +1,314 @@
+/**
+ * 272梯 陸軍步兵第153旅 步1營第3連 (153R 1B3C) 紀念冊系統
+ * Google Apps Script API 通訊模組 api.js
+ */
+
+const API = {
+  // 初始化本機快取資料庫（當尚未連接 GAS 或離線時使用）
+  initLocalStore(forceReset = false) {
+    const versionKey = '153r1b3c_data_v6_clean_legends_diaries';
+    const isVersionMatch = localStorage.getItem(versionKey) === 'true';
+
+    if (!localStorage.getItem(CONFIG.STORAGE_KEYS.MEMBERS_CACHE) || forceReset || !isVersionMatch) {
+      const initialMembers = MOCK_DATA.getInitialMembers();
+      localStorage.setItem(CONFIG.STORAGE_KEYS.MEMBERS_CACHE, JSON.stringify(initialMembers));
+      localStorage.setItem(versionKey, 'true');
+    }
+    if (!localStorage.getItem(CONFIG.STORAGE_KEYS.CADRES_CACHE) || forceReset || !isVersionMatch) {
+      const initialCadres = MOCK_DATA.getInitialCadres();
+      localStorage.setItem(CONFIG.STORAGE_KEYS.CADRES_CACHE, JSON.stringify(initialCadres));
+    }
+    if (!localStorage.getItem(CONFIG.STORAGE_KEYS.LEGENDS_CACHE) || forceReset || !isVersionMatch) {
+      localStorage.setItem(CONFIG.STORAGE_KEYS.LEGENDS_CACHE, JSON.stringify(MOCK_DATA.legends || []));
+    }
+    if (!localStorage.getItem(CONFIG.STORAGE_KEYS.DIARIES_CACHE) || forceReset || !isVersionMatch) {
+      localStorage.setItem(CONFIG.STORAGE_KEYS.DIARIES_CACHE, JSON.stringify(MOCK_DATA.diaries || []));
+    }
+  },
+
+  // 發送請求到 GAS Web App
+  async sendGasRequest(action, payload = {}) {
+    const apiUrl = CONFIG.getGasApiUrl();
+    if (!apiUrl) {
+      // 未設定 GAS 網址，走本機 LocalStorage 模擬模式
+      return this.handleLocalAction(action, payload);
+    }
+
+    const requestData = { action, ...payload };
+
+    try {
+      // 使用 text/plain 發送 POST 以避免 GAS Web App 的 CORS preflight OPTIONS 攔截
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP 錯誤: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.warn(`[API] GAS 請求失敗 (${action})，切換為本機儲存資料:`, error);
+      // 降級為 LocalStorage 操作
+      return this.handleLocalAction(action, payload);
+    }
+  },
+
+  // 本機 LocalStorage 模擬邏輯 (離線與 Demo 支援)
+  handleLocalAction(action, payload) {
+    this.initLocalStore();
+
+    switch (action) {
+      case 'login': {
+        const { id, password } = payload;
+        const cleanId = String(id).trim();
+        const cleanPwd = String(password).trim();
+        const isCadre = cleanId.toUpperCase().startsWith('1B3C');
+
+        if (isCadre) {
+          const cadres = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.CADRES_CACHE) || '[]');
+          const user = cadres.find(c => String(c.id).toUpperCase() === cleanId.toUpperCase());
+          if (!user) {
+            return { success: false, message: `查無此幹部帳號 (${cleanId})，請確認後重新輸入` };
+          }
+          if (String(user.password || user.id) !== cleanPwd) {
+            return { success: false, message: '密碼錯誤！預設密碼為幹部帳號，忘記請聯繫 13055' };
+          }
+          const safeUser = { ...user, is_cadre: true };
+          delete safeUser.password;
+          return { success: true, user: safeUser, message: '登入成功' };
+        } else {
+          const members = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.MEMBERS_CACHE) || '[]');
+          const user = members.find(m => String(m.id) === cleanId);
+          if (!user) {
+            return { success: false, message: '查無此學號，請確認後重新輸入' };
+          }
+          if (String(user.password || user.id) !== cleanPwd) {
+            return { success: false, message: '密碼錯誤！預設密碼為學號，忘記請聯繫 13055' };
+          }
+          const safeUser = { ...user, is_cadre: false };
+          delete safeUser.password;
+          return { success: true, user: safeUser, message: '登入成功' };
+        }
+      }
+
+      case 'getAllData': {
+        const members = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.MEMBERS_CACHE) || '[]');
+        const cadres = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.CADRES_CACHE) || '[]');
+        const legends = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.LEGENDS_CACHE) || '[]');
+        const diaries = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.DIARIES_CACHE) || '[]');
+        return {
+          success: true,
+          data: {
+            members: members.map(m => {
+              const copy = { ...m };
+              delete copy.password;
+              return copy;
+            }),
+            cadres: cadres.map(c => {
+              const copy = { ...c, is_cadre: true };
+              delete copy.password;
+              return copy;
+            }),
+            legends,
+            diaries
+          }
+        };
+      }
+
+      case 'updateProfile': {
+        const { id, name, nickname, rank_level, duty, enlist_date, interests, dream, ig, line, bio, avatarMilitaryBase64, avatarCivilianBase64, newPassword } = payload;
+        const cleanId = String(id).trim();
+        const isCadre = cleanId.toUpperCase().startsWith('1B3C');
+
+        if (isCadre) {
+          const cadres = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.CADRES_CACHE) || '[]');
+          const index = cadres.findIndex(c => String(c.id).toUpperCase() === cleanId.toUpperCase());
+          if (index === -1) {
+            return { success: false, message: `找不到該幹部資料 (${cleanId})` };
+          }
+
+          if (name !== undefined) cadres[index].name = name;
+          if (nickname !== undefined) cadres[index].nickname = nickname;
+          if (rank_level !== undefined) cadres[index].rank_level = rank_level;
+          if (duty !== undefined) cadres[index].duty = duty;
+          if (enlist_date !== undefined) cadres[index].enlist_date = enlist_date;
+          if (interests !== undefined) cadres[index].interests = interests;
+          if (dream !== undefined) cadres[index].dream = dream;
+          if (ig !== undefined) cadres[index].ig = ig;
+          if (line !== undefined) cadres[index].line = line;
+          if (bio !== undefined) cadres[index].bio = bio;
+          if (newPassword) cadres[index].password = String(newPassword).trim();
+          
+          if (avatarMilitaryBase64) {
+            cadres[index].avatar_military = avatarMilitaryBase64;
+          }
+          if (avatarCivilianBase64) {
+            cadres[index].avatar_civilian = avatarCivilianBase64;
+          }
+          cadres[index].updated_at = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+          localStorage.setItem(CONFIG.STORAGE_KEYS.CADRES_CACHE, JSON.stringify(cadres));
+
+          const updatedCadre = { ...cadres[index], is_cadre: true };
+          delete updatedCadre.password;
+          return { success: true, user: updatedCadre, message: '幹部個人資料與照片更新成功！' };
+        } else {
+          const members = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.MEMBERS_CACHE) || '[]');
+          const index = members.findIndex(m => String(m.id) === cleanId);
+
+          if (index === -1) {
+            return { success: false, message: '找不到該成員資料' };
+          }
+
+          if (name !== undefined) members[index].name = name;
+          if (nickname !== undefined) members[index].nickname = nickname;
+          if (duty !== undefined) members[index].duty = duty;
+          if (interests !== undefined) members[index].interests = interests;
+          if (dream !== undefined) members[index].dream = dream;
+          if (ig !== undefined) members[index].ig = ig;
+          if (line !== undefined) members[index].line = line;
+          if (bio !== undefined) members[index].bio = bio;
+          if (newPassword) members[index].password = String(newPassword).trim();
+          
+          if (avatarMilitaryBase64) {
+            members[index].avatar_military = avatarMilitaryBase64;
+            members[index].avatar_url = avatarMilitaryBase64;
+          }
+          if (avatarCivilianBase64) {
+            members[index].avatar_civilian = avatarCivilianBase64;
+          }
+
+          members[index].updated_at = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+          localStorage.setItem(CONFIG.STORAGE_KEYS.MEMBERS_CACHE, JSON.stringify(members));
+
+          const updatedUser = { ...members[index], is_cadre: false };
+          delete updatedUser.password;
+          return { success: true, user: updatedUser, message: '個人資料與照片更新成功！' };
+        }
+      }
+
+      case 'getLegends': {
+        const legends = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.LEGENDS_CACHE) || '[]');
+        return { success: true, data: legends };
+      }
+
+      case 'addLegend': {
+        const { target_id, author_id, title, content } = payload;
+        const legends = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.LEGENDS_CACHE) || '[]');
+        const now = new Date();
+        const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        
+        const newLegend = {
+          legend_id: legends.length > 0 ? Math.max(...legends.map(l => Number(l.legend_id) || 0)) + 1 : 1,
+          target_id: String(target_id),
+          author_id: String(author_id),
+          title: title.trim(),
+          content: content.trim(),
+          created_at: formattedDate
+        };
+
+        legends.unshift(newLegend);
+        localStorage.setItem(CONFIG.STORAGE_KEYS.LEGENDS_CACHE, JSON.stringify(legends));
+        return { success: true, data: newLegend, message: '傳奇事蹟發布成功！' };
+      }
+
+      case 'getDiaries': {
+        const diaries = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.DIARIES_CACHE) || '[]');
+        return { success: true, data: diaries };
+      }
+
+      case 'addDiary': {
+        const { author_id, title, content } = payload;
+        const diaries = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.DIARIES_CACHE) || '[]');
+        const now = new Date();
+        const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        
+        const newDiary = {
+          diary_id: diaries.length > 0 ? Math.max(...diaries.map(d => Number(d.diary_id) || 0)) + 1 : 1,
+          author_id: String(author_id),
+          title: title.trim(),
+          content: content.trim(),
+          created_at: formattedDate
+        };
+
+        diaries.unshift(newDiary);
+        localStorage.setItem(CONFIG.STORAGE_KEYS.DIARIES_CACHE, JSON.stringify(diaries));
+        return { success: true, data: newDiary, message: '大兵日記發布成功！' };
+      }
+
+      case 'resetPassword': {
+        const { admin_id, target_id } = payload;
+        if (String(admin_id) !== '13055') {
+          return { success: false, message: '權限不足！只有 13055 管理員可重設密碼。' };
+        }
+        const cleanTarget = String(target_id).trim();
+        const isCadre = cleanTarget.toUpperCase().startsWith('1B3C');
+
+        if (isCadre) {
+          const cadres = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.CADRES_CACHE) || '[]');
+          const index = cadres.findIndex(c => String(c.id).toUpperCase() === cleanTarget.toUpperCase());
+          if (index === -1) {
+            return { success: false, message: `查無帳號 ${cleanTarget} 的幹部資料` };
+          }
+          cadres[index].password = cleanTarget;
+          localStorage.setItem(CONFIG.STORAGE_KEYS.CADRES_CACHE, JSON.stringify(cadres));
+          return { success: true, message: `已成功將幹部帳號 ${cleanTarget} 的密碼恢復為預設！` };
+        } else {
+          const members = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.MEMBERS_CACHE) || '[]');
+          const index = members.findIndex(m => String(m.id) === cleanTarget);
+          if (index === -1) {
+            return { success: false, message: `查無學號 ${cleanTarget} 的弟兄資料` };
+          }
+          members[index].password = cleanTarget;
+          localStorage.setItem(CONFIG.STORAGE_KEYS.MEMBERS_CACHE, JSON.stringify(members));
+          return { success: true, message: `已成功將學號 ${cleanTarget} 的密碼恢復為預設學號！` };
+        }
+      }
+
+      default:
+        return { success: false, message: `未知的操作類型: ${action}` };
+    }
+  },
+
+  // 封裝的高階 API 方法
+  async login(id, password) {
+    return this.sendGasRequest('login', { id, password });
+  },
+
+  async getAllData() {
+    return this.sendGasRequest('getAllData');
+  },
+
+  async updateProfile(profileData) {
+    return this.sendGasRequest('updateProfile', profileData);
+  },
+
+  async resetPassword(targetId, adminId) {
+    return this.sendGasRequest('resetPassword', { target_id: targetId, admin_id: adminId });
+  },
+
+  async getLegends() {
+    return this.sendGasRequest('getLegends');
+  },
+
+  async addLegend(legendData) {
+    return this.sendGasRequest('addLegend', legendData);
+  },
+
+  async getDiaries() {
+    return this.sendGasRequest('getDiaries');
+  },
+
+  async addDiary(diaryData) {
+    return this.sendGasRequest('addDiary', diaryData);
+  }
+};
+
+window.API = API;
