@@ -5,7 +5,7 @@
 
 const CONFIG = {
   // 系統基本資訊
-  UNIT_TITLE: '272T 陸軍153旅 1B3C (宜蘭金六結)',
+  UNIT_TITLE: '272梯 陸軍153旅 1B3C (宜蘭金六結)',
   UNIT_SUBTITLE: '步兵第一營第三連 結訓紀念冊',
   ADMIN_CONTACT_ID: '13055', // 忘記密碼聯繫窗口
   
