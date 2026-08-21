@@ -373,6 +373,33 @@ const APP = {
     this.openRoomSelector();
   },
 
+  openSquadSelector() {
+    const grid = document.getElementById('squad-selector-grid');
+    if (grid) {
+      const squads = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+      grid.innerHTML = squads.map(num => {
+        const isActive = (this.currentView === 'squad' && this.selectedSquad === num);
+        const leader = MOCK_DATA.squadLeaders[num] || { name: '帶班班長', rank: '帶班幹部' };
+        const leaderText = `🎖️ 班長：${leader.rank || ''} ${leader.name || ''}`;
+        const countText = (num === 8) ? '10 人滿編' : '11 人滿編';
+        return `
+          <div class="selector-card-item ${isActive ? 'active' : ''}" onclick="APP.selectSquad(${num})">
+            <div class="selector-card-title">👥 第 ${this.toChineseNum(num)} 班</div>
+            <div class="selector-card-subtitle" style="font-size:0.75rem;">${this.escapeHtml(leaderText)}</div>
+            <div class="selector-card-badge">${countText}</div>
+          </div>
+        `;
+      }).join('');
+    }
+    const modal = document.getElementById('modal-select-squad');
+    if (modal) modal.classList.add('active');
+  },
+
+  selectSquad(squadNum) {
+    this.closeModal('modal-select-squad');
+    this.navigate('squad', squadNum);
+  },
+
   openRoomSelector() {
     const grid = document.getElementById('room-selector-grid');
     if (grid) {
@@ -1261,7 +1288,9 @@ const APP = {
       container.innerHTML = `
         <div class="user-status-bar">
           <div class="user-avatar-mini">${avatarHtml}</div>
-          <span>目前登入：<strong>${this.currentUser.id}</strong> (${this.escapeHtml(displayName)}) ${adminBadgeHtml}</span>
+          <div class="user-status-text">
+            <span class="user-status-prefix">目前登入：</span><strong class="user-status-id">#${this.currentUser.id}</strong><span class="user-status-name"> (${this.escapeHtml(displayName)})</span> ${adminBadgeHtml}
+          </div>
           <button class="btn-logout" onclick="APP.handleLogout()">登出</button>
         </div>
       `;

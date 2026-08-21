@@ -2472,6 +2472,130 @@ textarea.form-control {
 }
 
 @media (max-width: 768px) {
+  .site-header {
+    padding: 0;
+  }
+
+  .header-container {
+    padding: 0.45rem 0.65rem !important;
+    gap: 0.45rem !important;
+  }
+
+  .brand-section {
+    gap: 0.4rem;
+    flex-shrink: 1;
+    min-width: 0;
+    cursor: pointer;
+  }
+
+  .brand-badge {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  .brand-badge svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .brand-text {
+    min-width: 0;
+  }
+
+  .brand-text h1 {
+    font-size: 0.88rem !important;
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .brand-tag {
+    font-size: 0.62rem !important;
+    padding: 1px 5px !important;
+    flex-shrink: 0;
+  }
+
+  .brand-text p {
+    display: none !important;
+  }
+
+  .header-actions {
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  /* 手機端將「同步最新」收縮為簡潔圓形旋轉圖示按鈕 */
+  .btn-refresh-data {
+    padding: 0.4rem;
+    width: 32px;
+    height: 32px;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .btn-refresh-data span {
+    display: none;
+  }
+
+  /* 手機端登入狀態膠囊緊湊化 */
+  .user-status-bar {
+    padding: 0.2rem 0.45rem;
+    gap: 0.35rem;
+    font-size: 0.74rem;
+    max-width: 155px;
+  }
+
+  .user-avatar-mini {
+    width: 20px;
+    height: 20px;
+    font-size: 0.65rem;
+    flex-shrink: 0;
+  }
+
+  .user-status-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-status-prefix,
+  .user-status-name {
+    display: none;
+  }
+
+  .user-status-id {
+    font-weight: 800;
+    color: var(--gold-light);
+  }
+
+  .btn-logout {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.68rem;
+    flex-shrink: 0;
+  }
+
+  .btn-auth {
+    padding: 0.3rem 0.65rem;
+    font-size: 0.76rem;
+  }
+
+  .mobile-menu-toggle {
+    padding: 0.35rem;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  .mobile-menu-toggle svg {
+    width: 18px;
+    height: 18px;
+  }
+
   .mobile-bottom-nav {
     display: flex;
   }
@@ -2508,18 +2632,6 @@ textarea.form-control {
 }
 
 @media (max-width: 480px) {
-  .header-container {
-    padding: 0.6rem 0.85rem;
-  }
-
-  .brand-text h1 {
-    font-size: 0.98rem;
-  }
-
-  .brand-text p {
-    display: none;
-  }
-
   .hero-title {
     font-size: 1.35rem;
   }
