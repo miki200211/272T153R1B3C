@@ -2559,41 +2559,47 @@ textarea.form-control {
     display: none;
   }
 
-  /* 手機端登入狀態膠囊緊湊化 */
+  /* 手機端登入狀態膠囊：僅顯示號碼 (#13005)，不顯示前綴文字與姓名 */
   .user-status-bar {
-    padding: 0.2rem 0.45rem;
-    gap: 0.35rem;
-    font-size: 0.74rem;
-    max-width: 155px;
+    padding: 0.22rem 0.55rem;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    max-width: none;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(212, 175, 55, 0.35);
   }
 
   .user-avatar-mini {
-    width: 20px;
-    height: 20px;
-    font-size: 0.65rem;
+    width: 22px;
+    height: 22px;
+    font-size: 0.68rem;
     flex-shrink: 0;
   }
 
   .user-status-text {
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: inline-flex;
+    align-items: center;
   }
 
   .user-status-prefix,
-  .user-status-name {
-    display: none;
+  .user-status-name,
+  .admin-badge-header {
+    display: none !important;
   }
 
   .user-status-id {
-    font-weight: 800;
-    color: var(--gold-light);
+    font-weight: 900 !important;
+    color: var(--gold-light) !important;
+    font-size: 0.86rem !important;
+    letter-spacing: 0.5px;
   }
 
   .btn-logout {
-    padding: 0.15rem 0.4rem;
-    font-size: 0.68rem;
+    padding: 0.16rem 0.45rem;
+    font-size: 0.7rem;
     flex-shrink: 0;
+    border-radius: var(--radius-sm);
   }
 
   .btn-auth {

@@ -1286,14 +1286,15 @@ const APP = {
         ? `<img src="${userPhoto}" alt="${this.escapeHtml(displayName)}" onerror="this.onerror=null; this.parentElement.innerHTML='${initials}'">` 
         : initials;
 
-      const adminBadgeHtml = this.isAdmin() ? '<span class="badge-admin">👑 管理員</span>' : '';
+      const adminBadgeHtml = this.isAdmin() ? '<span class="badge-admin admin-badge-header">👑 管理員</span>' : '';
 
       container.innerHTML = `
         <div class="user-status-bar">
           <div class="user-avatar-mini">${avatarHtml}</div>
           <div class="user-status-text">
-            <span class="user-status-prefix">目前登入：</span><strong class="user-status-id">#${this.currentUser.id}</strong><span class="user-status-name"> (${this.escapeHtml(displayName)})</span> ${adminBadgeHtml}
+            <span class="user-status-prefix">目前登入：</span><strong class="user-status-id">#${this.currentUser.id}</strong><span class="user-status-name"> (${this.escapeHtml(displayName)})</span>
           </div>
+          ${adminBadgeHtml}
           <button class="btn-logout" onclick="APP.handleLogout()">登出</button>
         </div>
       `;
