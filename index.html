@@ -714,26 +714,6 @@
             <label for="profile-bio" id="label-profile-bio">自我介紹與期勉感言</label>
             <textarea id="profile-bio" class="form-control" placeholder="寫下給三連弟兄的期勉、祝福或近況..."></textarea>
           </div>
-
-          <!-- 自訂新密碼設定區 -->
-          <div style="background: #fdfbf7; border: 1.5px solid var(--gold); border-radius: var(--radius-md); padding: 0.85rem; margin-top: 0.25rem;">
-            <div style="font-size: 0.85rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
-              <span>🔒 設定新密碼 (首次登入請務必修改)</span>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-              <div class="form-group">
-                <label for="profile-new-password" style="font-size: 0.78rem;">新密碼</label>
-                <input type="password" id="profile-new-password" class="form-control" placeholder="若不變更請留空" autocomplete="new-password">
-              </div>
-              <div class="form-group">
-                <label for="profile-confirm-password" style="font-size: 0.78rem;">確認新密碼</label>
-                <input type="password" id="profile-confirm-password" class="form-control" placeholder="再次輸入新密碼" autocomplete="new-password">
-              </div>
-            </div>
-            <span class="form-hint" style="color: #b45309; font-size: 0.72rem; margin-top: 0.35rem; display: block;">
-              💡 預設密碼為學號。設定新密碼後，下次登入請使用此新密碼。
-            </span>
-          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn-secondary" onclick="APP.closeModal('modal-edit-profile')">取消</button>

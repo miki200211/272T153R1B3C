@@ -1385,11 +1385,6 @@ const APP = {
     document.getElementById('profile-military-file').value = '';
     document.getElementById('profile-civilian-file').value = '';
 
-    const newPwdEl = document.getElementById('profile-new-password');
-    const confirmPwdEl = document.getElementById('profile-confirm-password');
-    if (newPwdEl) newPwdEl.value = '';
-    if (confirmPwdEl) confirmPwdEl.value = '';
-
     const modal = document.getElementById('modal-edit-profile');
     if (modal) modal.classList.add('active');
   },
@@ -1464,23 +1459,6 @@ const APP = {
 
     const enlistDateInput = document.getElementById('profile-enlist-date');
     const enlist_date = (isCadre && enlistDateInput) ? enlistDateInput.value.trim() : '';
-
-    // 密碼變更檢查
-    const newPwdInput = document.getElementById('profile-new-password');
-    const confirmPwdInput = document.getElementById('profile-confirm-password');
-    const newPassword = newPwdInput ? newPwdInput.value.trim() : '';
-    const confirmPassword = confirmPwdInput ? confirmPwdInput.value.trim() : '';
-
-    if (newPassword) {
-      if (newPassword.length < 4) {
-        this.showToast('新密碼長度建議至少 4 個字元', 'error');
-        return;
-      }
-      if (newPassword !== confirmPassword) {
-        this.showToast('兩次輸入的新密碼不一致，請重新檢查！', 'error');
-        return;
-      }
-    }
 
     const saveBtn = document.getElementById('btn-save-profile');
     const originalSaveText = saveBtn ? saveBtn.textContent : '儲存更新';
