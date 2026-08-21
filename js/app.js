@@ -1209,7 +1209,9 @@ const APP = {
       }, 350);
 
     } else {
-      this.showToast(result ? result.message : '登入失敗，請確認學號密碼', 'error');
+      const errCode = (result && result.code) || 'ERR-AUTH-FAILED';
+      const errMsg = (result && result.message) || '登入失敗，請確認學號密碼';
+      this.showToast(`❌ [${errCode}] ${errMsg}`, 'error');
     }
   },
 
@@ -1245,17 +1247,17 @@ const APP = {
     const confirmPassword = confirmPwdInput ? confirmPwdInput.value.trim() : '';
 
     if (newPassword.length < 4) {
-      this.showToast('新密碼長度至少需要 4 個字元！', 'error');
+      this.showToast('❌ [ERR-PWD-LEN] 新密碼長度至少需要 4 個字元！', 'error');
       return;
     }
 
     if (newPassword.toUpperCase() === String(this.currentUser.id).trim().toUpperCase()) {
-      this.showToast('新密碼不能與原本的預設學號/帳號相同，請自訂專屬密碼！', 'error');
+      this.showToast('❌ [ERR-PWD-SAME] 新密碼不能與原本的預設學號/帳號相同，請自訂專屬密碼！', 'error');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      this.showToast('兩次輸入的新密碼不一致，請重新檢查！', 'error');
+      this.showToast('❌ [ERR-PWD-MISMATCH] 兩次輸入的新密碼不一致，請重新檢查！', 'error');
       return;
     }
 
@@ -1303,11 +1305,14 @@ const APP = {
           }, 800);
         }
       } else {
-        this.showToast(result ? result.message : '設定失敗，請稍後重試', 'error');
+        const errCode = (result && result.code) || 'ERR-PWD-FAILED';
+        const errMsg = (result && result.message) || '設定失敗，請稍後重試';
+        this.showToast(`❌ [${errCode}] ${errMsg}`, 'error');
       }
     } catch (err) {
-      console.error('設定新密碼異常:', err);
-      this.showToast('設定異常，請稍後重試', 'error');
+      console.error('[ERR-JS-PWD] 設定新密碼異常:', err);
+      const errDetail = err && err.message ? err.message : String(err);
+      this.showToast(`❌ [ERR-JS-PWD] 設定異常 (${errDetail})，請稍後重試`, 'error');
     } finally {
       this.isSubmitting = false;
       if (submitBtn) {
@@ -1484,7 +1489,6 @@ const APP = {
         ig,
         line,
         bio,
-        newPassword: newPassword || undefined,
         avatarMilitaryBase64: this.tempMilitaryAvatarBase64,
         avatarCivilianBase64: this.tempCivilianAvatarBase64
       };
@@ -1513,18 +1517,16 @@ const APP = {
 
         this.updateAuthUI();
         this.closeModal('modal-edit-profile');
-        
-        if (newPassword) {
-          this.showToast('✨ 個人資料、雙照片與新密碼已成功設定！請牢記您的新密碼。', 'success');
-        } else {
-          this.showToast('✨ 個人資料與雙照片已成功儲存！', 'success');
-        }
+        this.showToast('✨ 個人資料與雙面照片已成功儲存同步！', 'success');
       } else {
-        this.showToast(result ? result.message : '更新失敗，請稍後再試', 'error');
+        const errCode = (result && result.code) || 'ERR-SAVE-FAILED';
+        const errMsg = (result && result.message) || '儲存失敗，請稍後再試';
+        this.showToast(`❌ [${errCode}] ${errMsg}`, 'error');
       }
     } catch (err) {
-      console.error('儲存個人檔案異常:', err);
-      this.showToast('儲存異常，請稍後重試', 'error');
+      console.error('[ERR-JS-SAVE] 儲存個人檔案異常:', err);
+      const errDetail = err && err.message ? err.message : String(err);
+      this.showToast(`❌ [ERR-JS-SAVE] 儲存異常 (${errDetail})，請稍後重試`, 'error');
     } finally {
       this.isSubmitting = false;
       if (saveBtn) {
@@ -1601,11 +1603,14 @@ const APP = {
         this.showToast('✨ 傳奇事蹟發布成功！', 'success');
         this.renderLegendsView();
       } else {
-        this.showToast(result ? result.message : '發布失敗，請稍後重試', 'error');
+        const errCode = (result && result.code) || 'ERR-LEGEND-FAIL';
+        const errMsg = (result && result.message) || '發布失敗，請稍後重試';
+        this.showToast(`❌ [${errCode}] ${errMsg}`, 'error');
       }
     } catch (err) {
-      console.error('發布傳奇異常:', err);
-      this.showToast('發布異常，請稍後重試', 'error');
+      console.error('[ERR-JS-LEGEND] 發布傳奇異常:', err);
+      const errDetail = err && err.message ? err.message : String(err);
+      this.showToast(`❌ [ERR-JS-LEGEND] 發布異常 (${errDetail})，請稍後重試`, 'error');
     } finally {
       this.isSubmitting = false;
       if (submitBtn) {
@@ -1640,7 +1645,7 @@ const APP = {
     const content = document.getElementById('diary-content').value.trim();
 
     if (!title || !content) {
-      this.showToast('請填寫篇名與心得內文', 'error');
+      this.showToast('❌ [ERR-DIARY-EMPTY] 請填寫篇名與心得內文', 'error');
       return;
     }
 
@@ -1679,11 +1684,14 @@ const APP = {
         this.showToast('✨ 大兵日記已送交輔導長批閱！', 'success');
         this.renderDiariesView();
       } else {
-        this.showToast(result ? result.message : '發布失敗，請稍後重試', 'error');
+        const errCode = (result && result.code) || 'ERR-DIARY-FAIL';
+        const errMsg = (result && result.message) || '發布失敗，請稍後重試';
+        this.showToast(`❌ [${errCode}] ${errMsg}`, 'error');
       }
     } catch (err) {
-      console.error('發布日記異常:', err);
-      this.showToast('發布異常，請稍後重試', 'error');
+      console.error('[ERR-JS-DIARY] 發布日記異常:', err);
+      const errDetail = err && err.message ? err.message : String(err);
+      this.showToast(`❌ [ERR-JS-DIARY] 發布異常 (${errDetail})，請稍後重試`, 'error');
     } finally {
       this.isSubmitting = false;
       if (submitBtn) {
@@ -1868,7 +1876,9 @@ const APP = {
       this.showToast(result.message || `已成功恢復帳號 #${targetId} 密碼為預設！`, 'success');
       this.closeModal('modal-member-detail');
     } else {
-      this.showToast(result ? result.message : '重設失敗，請稍後再試', 'error');
+      const errCode = (result && result.code) || 'ERR-ADMIN-RESET-FAIL';
+      const errMsg = (result && result.message) || '重設失敗，請稍後再試';
+      this.showToast(`❌ [${errCode}] ${errMsg}`, 'error');
     }
   },
 

@@ -26,7 +26,7 @@ const API = {
     }
   },
 
-  // 發送請求到 GAS Web App
+  // 發送請求到 GAS Web App (含 25 秒超時控制與標準化錯誤代碼回傳)
   async sendGasRequest(action, payload = {}) {
     const apiUrl = CONFIG.getGasApiUrl();
     if (!apiUrl) {
@@ -35,6 +35,8 @@ const API = {
     }
 
     const requestData = { action, ...payload };
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
 
     try {
       // 使用 text/plain 發送 POST 以避免 GAS Web App 的 CORS preflight OPTIONS 攔截
@@ -43,19 +45,50 @@ const API = {
         headers: {
           'Content-Type': 'text/plain;charset=utf-8',
         },
-        body: JSON.stringify(requestData)
+        body: JSON.stringify(requestData),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error(`HTTP 錯誤: ${response.status}`);
+        return {
+          success: false,
+          code: `ERR-HTTP-${response.status}`,
+          message: `[ERR-HTTP-${response.status}] 雲端伺服器回應異常 (HTTP ${response.status})`
+        };
       }
 
       const result = await response.json();
       return result;
     } catch (error) {
-      console.warn(`[API] GAS 請求失敗 (${action})，切換為本機儲存資料:`, error);
-      // 降級為 LocalStorage 操作
-      return this.handleLocalAction(action, payload);
+      clearTimeout(timeoutId);
+      console.warn(`[API-ERR] GAS 請求失敗 (${action}):`, error);
+
+      if (error.name === 'AbortError') {
+        return {
+          success: false,
+          code: 'ERR-NET-TIMEOUT',
+          message: '[ERR-NET-TIMEOUT] 雲端伺服器請求超時 (逾 25 秒)，請確認網路連線'
+        };
+      }
+
+      // 嘗試本機降級並附帶警告資訊
+      const fallbackResult = this.handleLocalAction(action, payload);
+      if (fallbackResult && fallbackResult.success) {
+        return {
+          ...fallbackResult,
+          code: 'WARN-LOCAL-FALLBACK',
+          message: `${fallbackResult.message || '操作成功'} (已先暫存於本機瀏覽器)`
+        };
+      }
+
+      const errMessage = error && error.message ? error.message : String(error);
+      return {
+        success: false,
+        code: 'ERR-NET-FAIL',
+        message: `[ERR-NET-FAIL] 網路連線或跨域請求異常 (${errMessage})`
+      };
     }
   },
 

@@ -128,11 +128,11 @@ function getDatabaseSpreadsheet() {
 function handleLogin(data) {
   const { id, password } = data;
   if (!id || !password) {
-    return { success: false, message: '請輸入帳號/學號與密碼' };
+    return { success: false, code: 'ERR-AUTH-EMPTY', message: '[ERR-AUTH-EMPTY] 請輸入帳號/學號與密碼' };
   }
 
   const ss = getDatabaseSpreadsheet();
-  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+  if (!ss) return { success: false, code: 'ERR-DB-CONNECT', message: '[ERR-DB-CONNECT] 無法連接試算表資料庫' };
 
   const cleanId = String(id).trim();
   const cleanPwd = String(password).trim();
@@ -143,7 +143,7 @@ function handleLogin(data) {
   const sheet = ss.getSheetByName(targetSheetName);
 
   if (!sheet) {
-    return { success: false, message: `${targetSheetName} 資料表不存在` };
+    return { success: false, code: 'ERR-DB-NOTFOUND', message: `[ERR-DB-NOTFOUND] ${targetSheetName} 資料表不存在` };
   }
 
   const values = sheet.getDataRange().getValues();
@@ -163,12 +163,12 @@ function handleLogin(data) {
         userObj.needs_password_change = Boolean(storedPwd.toUpperCase() === cleanId.toUpperCase());
         return { success: true, user: userObj, message: '登入成功' };
       } else {
-        return { success: false, message: '密碼錯誤！忘記密碼請聯繫 13055' };
+        return { success: false, code: 'ERR-AUTH-PWD', message: '[ERR-AUTH-PWD] 密碼錯誤！忘記密碼請聯繫 13055' };
       }
     }
   }
 
-  return { success: false, message: `查無此帳號 (${cleanId})，請確認後重新輸入` };
+  return { success: false, code: 'ERR-AUTH-NOUSER', message: `[ERR-AUTH-NOUSER] 查無此帳號 (${cleanId})，請確認後重新輸入` };
 }
 
 /**
@@ -231,21 +231,21 @@ function handleGetAllData() {
  */
 function handleUpdateProfile(data) {
   const { id, name, nickname, rank_level, duty, enlist_date, interests, dream, ig, line, bio, avatarMilitaryBase64, avatarCivilianBase64, newPassword } = data;
-  if (!id) return { success: false, message: '缺少帳號 id' };
+  if (!id) return { success: false, code: 'ERR-PROFILE-NOID', message: '[ERR-PROFILE-NOID] 缺少帳號 id' };
 
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(15000); // 等待最多 15 秒鎖定，防範 100 人同時寫入碰撞
 
     const ss = getDatabaseSpreadsheet();
-    if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+    if (!ss) return { success: false, code: 'ERR-DB-CONNECT', message: '[ERR-DB-CONNECT] 無法連接試算表資料庫' };
 
     const cleanId = String(id).trim();
     const isCadreId = cleanId.toUpperCase().startsWith('1B3C');
     const targetSheetName = isCadreId ? 'Cadres' : 'Members';
     const sheet = ss.getSheetByName(targetSheetName);
 
-    if (!sheet) return { success: false, message: `${targetSheetName} 資料表不存在` };
+    if (!sheet) return { success: false, code: 'ERR-DB-NOTFOUND', message: `[ERR-DB-NOTFOUND] ${targetSheetName} 資料表不存在` };
 
     const values = sheet.getDataRange().getValues();
     const headers = values[0];
@@ -260,7 +260,7 @@ function handleUpdateProfile(data) {
     }
 
     if (rowIndex === -1) {
-      return { success: false, message: `查無此帳號 (${cleanId})` };
+      return { success: false, code: 'ERR-PROFILE-NOUSER', message: `[ERR-PROFILE-NOUSER] 查無此帳號 (${cleanId})` };
     }
 
     // 軍裝照上傳 Drive
@@ -321,9 +321,9 @@ function handleUpdateProfile(data) {
     delete userObj.password;
     userObj.is_cadre = isCadreId;
 
-    return { success: true, user: userObj, message: '個人資料、照片與密碼設定更新成功！' };
+    return { success: true, user: userObj, message: '個人資料、照片與設定更新成功！' };
   } catch (err) {
-    return { success: false, message: '伺服器繁忙，請稍後再試: ' + err.toString() };
+    return { success: false, code: 'ERR-PROFILE-LOCK', message: '[ERR-PROFILE-LOCK] 伺服器並發繁忙: ' + err.toString() };
   } finally {
     lock.releaseLock();
   }
