@@ -64,6 +64,78 @@ const APP = {
     }
   },
 
+  // 輔助函式：格式化檔案大小 (KB / MB)
+  formatFileSize(bytes) {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  },
+
+  // 智慧圖片等比縮圖與壓縮機制 (Canvas Resizer & Compressor)
+  // 將任意大圖 (例如手機拍的 5~20MB 照片) 自動等比縮圖至最適證件照尺寸 (預設寬 600px, 高 800px)
+  // 並壓縮為高品質 JPEG (品質 0.82)，大幅縮小檔案大小 (~60KB~120KB) 同時保有清晰畫質，徹底解決上傳過大問題！
+  compressImage(file, maxWidth = 600, maxHeight = 800, quality = 0.82) {
+    return new Promise((resolve, reject) => {
+      if (!file || !file.type || !file.type.startsWith('image/')) {
+        return reject(new Error('請選擇有效的圖片檔案 (JPG, PNG, WebP)'));
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          // 計算等比例縮放尺寸 (維持原圖長寬比)
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+
+          // 開啟高品質雙線性平滑縮放
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+
+          // 繪製縮圖
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // 導出輕量化 JPEG Base64
+          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+          
+          // 計算壓縮後近似位元組大小
+          const approxCompressedSize = Math.round((compressedBase64.length * 3) / 4);
+
+          resolve({
+            base64: compressedBase64,
+            originalSize: file.size,
+            compressedSize: approxCompressedSize,
+            width,
+            height
+          });
+        };
+        img.onerror = () => reject(new Error('圖片載入失敗，檔案可能已損毀或格式不支援'));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error('檔案讀取失敗'));
+      reader.readAsDataURL(file);
+    });
+  },
+
   // 狀態變數
   currentUser: null,
   currentView: 'home',
@@ -985,37 +1057,53 @@ const APP = {
     if (modal) modal.classList.add('active');
   },
 
-  handleMilitaryAvatarSelect(input) {
+  async handleMilitaryAvatarSelect(input) {
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      if (file.size > 3 * 1024 * 1024) {
-        this.showToast('圖片過大，請選擇 3MB 以下的軍裝照', 'error');
-        return;
+      const preview = document.getElementById('profile-military-avatar-preview');
+      if (preview) {
+        preview.innerHTML = `<span style="font-size:0.72rem; color:#0369a1; font-weight:700; text-align:center; padding:2px;">縮圖優化中...</span>`;
       }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.tempMilitaryAvatarBase64 = e.target.result;
-        const preview = document.getElementById('profile-military-avatar-preview');
-        if (preview) preview.innerHTML = `<img src="${e.target.result}" alt="軍裝照預覽">`;
-      };
-      reader.readAsDataURL(file);
+
+      try {
+        const result = await this.compressImage(file, 600, 800, 0.82);
+        this.tempMilitaryAvatarBase64 = result.base64;
+        if (preview) {
+          preview.innerHTML = `<img src="${result.base64}" alt="軍裝照預覽">`;
+        }
+        this.showToast(`✨ 軍裝照智慧壓縮完成 (${this.formatFileSize(result.originalSize)} ➔ ${this.formatFileSize(result.compressedSize)})`, 'success');
+      } catch (err) {
+        console.error('軍裝照處理失敗:', err);
+        this.showToast(err.message || '照片處理失敗，請重試', 'error');
+        if (preview) {
+          preview.innerHTML = `<span>🪖</span>`;
+        }
+      }
     }
   },
 
-  handleCivilianAvatarSelect(input) {
+  async handleCivilianAvatarSelect(input) {
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      if (file.size > 3 * 1024 * 1024) {
-        this.showToast('圖片過大，請選擇 3MB 以下的私人照', 'error');
-        return;
+      const preview = document.getElementById('profile-civilian-avatar-preview');
+      if (preview) {
+        preview.innerHTML = `<span style="font-size:0.72rem; color:#0369a1; font-weight:700; text-align:center; padding:2px;">縮圖優化中...</span>`;
       }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.tempCivilianAvatarBase64 = e.target.result;
-        const preview = document.getElementById('profile-civilian-avatar-preview');
-        if (preview) preview.innerHTML = `<img src="${e.target.result}" alt="私人照預覽">`;
-      };
-      reader.readAsDataURL(file);
+
+      try {
+        const result = await this.compressImage(file, 600, 800, 0.82);
+        this.tempCivilianAvatarBase64 = result.base64;
+        if (preview) {
+          preview.innerHTML = `<img src="${result.base64}" alt="私人照預覽">`;
+        }
+        this.showToast(`✨ 私人照智慧壓縮完成 (${this.formatFileSize(result.originalSize)} ➔ ${this.formatFileSize(result.compressedSize)})`, 'success');
+      } catch (err) {
+        console.error('私人照處理失敗:', err);
+        this.showToast(err.message || '照片處理失敗，請重試', 'error');
+        if (preview) {
+          preview.innerHTML = `<span>🕶️</span>`;
+        }
+      }
     }
   },
 
