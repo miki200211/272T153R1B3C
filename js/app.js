@@ -891,7 +891,7 @@ const APP = {
                 <span class="tag-target" onclick="APP.showMemberDetail('${l.target_id}')" style="cursor: pointer;" title="查看傳奇主角檔案">
                   🎯 傳奇主角: @${l.target_id} ${this.escapeHtml(targetName)}
                 </span>
-                <span class="tag-author">✍️ 爆料者: #${l.author_id} (${this.escapeHtml(authorName)})</span>
+                <span class="tag-author">✍️ 爆料者: #${l.author_id}</span>
               </div>
             </div>
             <span class="legend-date">📅 ${this.formatDateDisplay(l.created_at)}</span>
