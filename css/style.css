@@ -1810,6 +1810,169 @@ textarea.form-control {
   .main-content {
     padding: 1.5rem 1.5rem 4rem 1.5rem;
   }
+/* ==========================================================================
+   班級與寢室快捷切換條 (Quick Selector Pill Bar)
+   ========================================================================== */
+.quick-selector-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  background: #fff;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.quick-pill-scroll {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex: 1;
+  padding: 2px 0;
+}
+
+.quick-pill-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.quick-pill-item {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.quick-pill-item:hover {
+  background: #e2e8f0;
+  color: var(--primary-dark);
+}
+
+.quick-pill-item.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary-dark);
+  box-shadow: 0 2px 6px rgba(43, 62, 50, 0.25);
+}
+
+.quick-pill-item.active .pill-badge {
+  background: var(--gold);
+  color: var(--primary-dark);
+}
+
+.pill-badge {
+  font-size: 0.7rem;
+  padding: 1px 5px;
+  background: rgba(0,0,0,0.08);
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.btn-popup-picker {
+  flex-shrink: 0;
+  background: var(--gold);
+  color: var(--primary-dark);
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.btn-popup-picker:hover {
+  background: var(--gold-light);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   班級與寢室選擇彈窗 (Selector Modal / Bottom Sheet)
+   ========================================================================== */
+.selector-modal-card {
+  max-width: 540px;
+}
+
+.selector-modal-body {
+  padding: 1rem;
+}
+
+.selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.75rem;
+}
+
+.selector-card-item {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 0.85rem 0.65rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.selector-card-item:hover {
+  background: #f1f5f9;
+  border-color: var(--primary-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.selector-card-item.active {
+  background: linear-gradient(135deg, rgba(43, 62, 50, 0.08) 0%, rgba(92, 118, 90, 0.12) 100%);
+  border-color: var(--primary);
+  border-width: 2px;
+  box-shadow: 0 4px 12px rgba(43, 62, 50, 0.15);
+}
+
+.selector-card-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+
+.selector-card-subtitle {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.selector-card-badge {
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--camo-tan);
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.selector-card-item.active .selector-card-badge {
+  background: var(--gold);
+  color: var(--primary-dark);
 }
 
 @media (max-width: 768px) {
@@ -1867,5 +2030,22 @@ textarea.form-control {
 
   .section-header-title h2 {
     font-size: 1.25rem;
+  }
+
+  .selector-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .selector-card-item {
+    padding: 0.65rem 0.5rem;
+  }
+
+  .selector-card-title {
+    font-size: 0.88rem;
+  }
+
+  .selector-card-subtitle {
+    font-size: 0.68rem;
   }
 }

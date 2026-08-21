@@ -361,6 +361,85 @@ const APP = {
   },
 
   // =========================================================================
+  // 手機版與快速選單：班級與寢室彈出選擇清單 (Squad & Room Selectors)
+  // =========================================================================
+
+  handleMobileSquadNav() {
+    this.openSquadSelector();
+  },
+
+  handleMobileRoomNav() {
+    this.openRoomSelector();
+  },
+
+  openSquadSelector() {
+    const grid = document.getElementById('squad-selector-grid');
+    if (grid) {
+      const squadRanges = {
+        1: '13001 ~ 13011 (11人)',
+        2: '13012 ~ 13022 (11人)',
+        3: '13023 ~ 13033 (11人)',
+        4: '13034 ~ 13044 (11人)',
+        5: '13045 ~ 13055 (11人)',
+        6: '13056 ~ 13066 (11人)',
+        7: '13067 ~ 13077 (11人)',
+        8: '13078 ~ 13087 (10人)',
+        9: '13088 ~ 13098 (11人)'
+      };
+
+      grid.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
+        const isActive = (this.currentView === 'squad' && this.selectedSquad === num);
+        const leader = MOCK_DATA.squadLeaders[num] || { name: '帶班幹部' };
+        return `
+          <div class="selector-card-item ${isActive ? 'active' : ''}" onclick="APP.selectSquad(${num})">
+            <div class="selector-card-title">👥 第 ${this.toChineseNum(num)} 班</div>
+            <div class="selector-card-subtitle">${squadRanges[num]}</div>
+            <div class="selector-card-badge">🎖️ ${leader.name}</div>
+          </div>
+        `;
+      }).join('');
+    }
+    const modal = document.getElementById('modal-select-squad');
+    if (modal) modal.classList.add('active');
+  },
+
+  selectSquad(squadNum) {
+    this.closeModal('modal-select-squad');
+    this.navigate('squad', squadNum);
+  },
+
+  openRoomSelector() {
+    const grid = document.getElementById('room-selector-grid');
+    if (grid) {
+      grid.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(num => {
+        const isActive = (this.currentView === 'room' && this.selectedRoom === num);
+        const leader = MOCK_DATA.squadLeaders[num] || { name: '帶班幹部' };
+        const capacityText = num === 11 ? '9人 (含班長)' : '10人 (含班長)';
+        return `
+          <div class="selector-card-item ${isActive ? 'active' : ''}" onclick="APP.selectRoom(${num})">
+            <div class="selector-card-title">🛏️ 第 ${this.toChineseNum(num)} 寢</div>
+            <div class="selector-card-subtitle">${capacityText}</div>
+            <div class="selector-card-badge">🎖️ ${leader.name}</div>
+          </div>
+        `;
+      }).join('');
+    }
+    const modal = document.getElementById('modal-select-room');
+    if (modal) modal.classList.add('active');
+  },
+
+  selectRoom(roomNum) {
+    this.closeModal('modal-select-room');
+    this.navigate('room', roomNum);
+  },
+
+  handleSelectorOverlayClick(event, modalId) {
+    if (event.target.id === modalId) {
+      this.closeModal(modalId);
+    }
+  },
+
+  // =========================================================================
   // 畫面渲染邏輯 (View Renderers)
   // =========================================================================
 
@@ -565,6 +644,22 @@ const APP = {
     const titleEl = document.getElementById('squad-view-title');
     if (titleEl) titleEl.textContent = `第 ${this.toChineseNum(squadNum)} 班 成員名冊`;
 
+    // 渲染班級快捷切換橫條 (膠囊按鈕)
+    const squadPillBar = document.getElementById('squad-quick-pill-bar');
+    if (squadPillBar) {
+      squadPillBar.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
+        const isActive = (num === squadNum);
+        return `
+          <button class="quick-pill-item ${isActive ? 'active' : ''}" onclick="APP.navigate('squad', ${num})" title="切換至第${this.toChineseNum(num)}班">
+            <span>第${this.toChineseNum(num)}班</span>
+            <span class="pill-badge">${num === 8 ? '10人' : '11人'}</span>
+          </button>
+        `;
+      }).join('');
+      const activePill = squadPillBar.querySelector('.quick-pill-item.active');
+      if (activePill) activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+
     // 更新帶班班長資訊
     const leaderInfo = MOCK_DATA.squadLeaders[squadNum] || { name: '帶班班長', rank: '帶班幹部', quote: '（待幹部填寫帶班期勉）' };
     const rankEl = document.getElementById('squad-leader-rank');
@@ -761,6 +856,22 @@ const APP = {
     const roomNum = this.selectedRoom;
     const titleEl = document.getElementById('room-view-title');
     if (titleEl) titleEl.textContent = `第 ${this.toChineseNum(roomNum)} 寢 床位配置圖 (10人標準房)`;
+
+    // 渲染寢室快捷切換橫條 (膠囊按鈕)
+    const roomPillBar = document.getElementById('room-quick-pill-bar');
+    if (roomPillBar) {
+      roomPillBar.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(num => {
+        const isActive = (num === roomNum);
+        return `
+          <button class="quick-pill-item ${isActive ? 'active' : ''}" onclick="APP.navigate('room', ${num})" title="切換至第${this.toChineseNum(num)}寢">
+            <span>第${this.toChineseNum(num)}寢</span>
+            <span class="pill-badge">${num === 11 ? '9人' : '10人'}</span>
+          </button>
+        `;
+      }).join('');
+      const activePill = roomPillBar.querySelector('.quick-pill-item.active');
+      if (activePill) activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
 
     // 取得該寢室 9 位弟兄
     const roomMembers = this.allMembers.filter(m => Number(m.room) === roomNum);

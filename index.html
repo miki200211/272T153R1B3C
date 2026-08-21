@@ -354,7 +354,9 @@
       <section id="view-squad" class="view-section">
         <div class="section-header">
           <div class="section-header-title">
-            <h2 id="squad-view-title">第一班 成員名冊</h2>
+            <h2 id="squad-view-title" onclick="APP.openSquadSelector()" style="cursor: pointer;" title="點擊切換班級">
+              第一班 成員名冊
+            </h2>
             <span class="tag" id="squad-member-count-tag">11 人</span>
           </div>
           <div class="toolbar-actions">
@@ -367,6 +369,16 @@
               <input type="text" id="member-search-input" placeholder="搜尋學號、姓名、公差、綽號..." oninput="APP.handleSearch(this.value)">
             </div>
           </div>
+        </div>
+
+        <!-- 班級快捷切換橫條 (手機與桌面通用) -->
+        <div class="quick-selector-wrapper">
+          <div class="quick-pill-scroll" id="squad-quick-pill-bar">
+            <!-- 由 JS 動態渲染一到九班快捷膠囊按鈕 -->
+          </div>
+          <button class="btn-popup-picker" onclick="APP.openSquadSelector()" title="開啟完整班級選單">
+            <span>📋 全班級 ▾</span>
+          </button>
         </div>
 
         <!-- 帶班班長資訊橫幅 -->
@@ -390,7 +402,9 @@
       <section id="view-room" class="view-section">
         <div class="section-header">
           <div class="section-header-title">
-            <h2 id="room-view-title">第一寢 床位配置圖</h2>
+            <h2 id="room-view-title" onclick="APP.openRoomSelector()" style="cursor: pointer;" title="點擊切換寢室">
+              第一寢 床位配置圖
+            </h2>
             <span class="tag">10人房標準雙層鋼床</span>
           </div>
           <div class="room-legend">
@@ -407,6 +421,16 @@
               <span>弟兄上鋪 (Upper)</span>
             </div>
           </div>
+        </div>
+
+        <!-- 寢室快捷切換橫條 (手機與桌面通用) -->
+        <div class="quick-selector-wrapper">
+          <div class="quick-pill-scroll" id="room-quick-pill-bar">
+            <!-- 由 JS 動態渲染一到十一寢快捷膠囊按鈕 -->
+          </div>
+          <button class="btn-popup-picker" onclick="APP.openRoomSelector()" title="開啟完整寢室選單">
+            <span>🛏️ 全寢室 ▾</span>
+          </button>
         </div>
 
         <!-- 寢室床位藍圖 -->
@@ -462,11 +486,11 @@
       <span class="bottom-icon">⭐</span>
       <span class="bottom-label">幹部</span>
     </button>
-    <button class="mobile-bottom-btn" data-bottom-nav="squad" onclick="APP.navigate('squad', 1)">
+    <button class="mobile-bottom-btn" data-bottom-nav="squad" onclick="APP.handleMobileSquadNav()">
       <span class="bottom-icon">👥</span>
       <span class="bottom-label">班級</span>
     </button>
-    <button class="mobile-bottom-btn" data-bottom-nav="room" onclick="APP.navigate('room', 1)">
+    <button class="mobile-bottom-btn" data-bottom-nav="room" onclick="APP.handleMobileRoomNav()">
       <span class="bottom-icon">🛏️</span>
       <span class="bottom-label">寢室</span>
     </button>
@@ -479,6 +503,48 @@
   <!-- ==========================================================================
        模態彈窗 (Modals)
        ========================================================================== -->
+
+  <!-- 0.1 選擇班級彈窗 (Squad Selector Modal / Bottom Sheet) -->
+  <div class="modal-overlay selector-modal-overlay" id="modal-select-squad">
+    <div class="modal-card selector-modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1.3rem;">👥</span>
+          <div>
+            <h3 style="margin: 0; font-size: 1.05rem;">選擇班級名冊</h3>
+            <p style="margin: 0; font-size: 0.75rem; opacity: 0.85;">全連共九個建制班級 (13001 ~ 13098)</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="APP.closeModal('modal-select-squad')">&times;</button>
+      </div>
+      <div class="modal-body selector-modal-body">
+        <div class="selector-grid" id="squad-selector-grid">
+          <!-- 1~9 班選項由 JS 動態渲染 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 0.2 選擇寢室彈窗 (Room Selector Modal / Bottom Sheet) -->
+  <div class="modal-overlay selector-modal-overlay" id="modal-select-room">
+    <div class="modal-card selector-modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1.3rem;">🛏️</span>
+          <div>
+            <h3 style="margin: 0; font-size: 1.05rem;">選擇寢室配置圖</h3>
+            <p style="margin: 0; font-size: 0.75rem; opacity: 0.85;">全連共十一間標準寢室 (雙層鋼床空間)</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="APP.closeModal('modal-select-room')">&times;</button>
+      </div>
+      <div class="modal-body selector-modal-body">
+        <div class="selector-grid" id="room-selector-grid">
+          <!-- 1~11 寢選項由 JS 動態渲染 -->
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- 1. 登入彈窗 (Login Modal) -->
   <div class="modal-overlay" id="modal-login">
