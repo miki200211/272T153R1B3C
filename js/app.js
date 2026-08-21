@@ -169,28 +169,68 @@ const APP = {
     });
   },
 
+  // 資料型別安全正規化處理 (確保 id 為字串、squad/room 為數字，避免 GAS 數值型別導致呼叫 substring 錯誤)
+  normalizeMembers(rawMembers) {
+    return (rawMembers || []).map(m => ({
+      ...m,
+      id: String(m.id ?? '').trim(),
+      name: String(m.name ?? '').trim(),
+      nickname: String(m.nickname ?? '').trim(),
+      squad: Number(m.squad) || 1,
+      room: Number(m.room) || 1,
+      duty: String(m.duty ?? '一般兵').trim(),
+      interests: String(m.interests ?? '').trim(),
+      dream: String(m.dream ?? '').trim(),
+      ig: String(m.ig ?? '').trim(),
+      line: String(m.line ?? '').trim(),
+      bio: String(m.bio ?? '').trim(),
+      avatar_military: String(m.avatar_military ?? m.avatar_url ?? '').trim(),
+      avatar_civilian: String(m.avatar_civilian ?? '').trim()
+    }));
+  },
+
+  normalizeCadres(rawCadres) {
+    return (rawCadres || []).map(c => ({
+      ...c,
+      id: String(c.id ?? '').trim(),
+      name: String(c.name ?? '').trim(),
+      nickname: String(c.nickname ?? '').trim(),
+      rank_level: String(c.rank_level ?? c.rank ?? '').trim(),
+      duty: String(c.duty ?? '連隊幹部').trim(),
+      enlist_date: String(c.enlist_date ?? '').trim(),
+      interests: String(c.interests ?? '').trim(),
+      dream: String(c.dream ?? '').trim(),
+      ig: String(c.ig ?? '').trim(),
+      line: String(c.line ?? '').trim(),
+      bio: String(c.bio ?? '').trim(),
+      avatar_military: String(c.avatar_military ?? c.avatar_url ?? c.photo_url ?? '').trim(),
+      avatar_civilian: String(c.avatar_civilian ?? '').trim(),
+      is_cadre: true
+    }));
+  },
+
   // 載入所有資料庫資料
   async loadAllData() {
     try {
       const response = await API.getAllData();
       if (response && response.success && response.data) {
-        this.allMembers = response.data.members || [];
-        this.cadres = response.data.cadres || [];
+        this.allMembers = this.normalizeMembers(response.data.members);
+        this.cadres = this.normalizeCadres(response.data.cadres);
         this.legends = response.data.legends || [];
         this.diaries = response.data.diaries || [];
       } else {
         // 降級為 MOCK_DATA
-        this.allMembers = MOCK_DATA.getInitialMembers();
-        this.cadres = MOCK_DATA.getInitialCadres();
-        this.legends = MOCK_DATA.legends;
-        this.diaries = MOCK_DATA.diaries;
+        this.allMembers = this.normalizeMembers(MOCK_DATA.getInitialMembers());
+        this.cadres = this.normalizeCadres(MOCK_DATA.getInitialCadres());
+        this.legends = MOCK_DATA.legends || [];
+        this.diaries = MOCK_DATA.diaries || [];
       }
     } catch (e) {
       console.warn('載入資料異常，啟用預設資料庫:', e);
-      this.allMembers = MOCK_DATA.getInitialMembers();
-      this.cadres = MOCK_DATA.getInitialCadres();
-      this.legends = MOCK_DATA.legends;
-      this.diaries = MOCK_DATA.diaries;
+      this.allMembers = this.normalizeMembers(MOCK_DATA.getInitialMembers());
+      this.cadres = this.normalizeCadres(MOCK_DATA.getInitialCadres());
+      this.legends = MOCK_DATA.legends || [];
+      this.diaries = MOCK_DATA.diaries || [];
     }
 
     // 更新首頁統計數字
@@ -374,11 +414,15 @@ const APP = {
   },
 
   createCadreCardHtml(cadre) {
-    const isMe = Boolean(this.currentUser && String(this.currentUser.id).toUpperCase() === String(cadre.id).toUpperCase());
+    const cleanCadreId = String(cadre.id ?? '').trim();
+    const isMe = Boolean(this.currentUser && String(this.currentUser.id).trim().toUpperCase() === cleanCadreId.toUpperCase());
     const isAdmin = this.isAdmin();
-    const hasName = Boolean(cadre.name && cadre.name.trim());
-    const displayName = hasName ? cadre.name : `幹部 #${cadre.id}`;
-    const initials = hasName ? cadre.name.substring(cadre.name.length - 2) : cadre.id.substring(4);
+    const cadreName = String(cadre.name ?? '').trim();
+    const hasName = Boolean(cadreName);
+    const displayName = hasName ? cadreName : `幹部 #${cleanCadreId}`;
+    const initials = hasName 
+      ? cadreName.substring(Math.max(0, cadreName.length - 2)) 
+      : cleanCadreId.substring(Math.max(0, cleanCadreId.length - 2));
 
     // 正面：軍裝照
     const milPhoto = cadre.avatar_military || cadre.avatar_url || cadre.photo_url;
@@ -533,11 +577,15 @@ const APP = {
 
   // 建立成員卡片 (含 3D 雙照片翻轉結構)
   createMemberCardHtml(member) {
-    const isMe = Boolean(this.currentUser && String(this.currentUser.id) === String(member.id));
+    const cleanId = String(member.id ?? '').trim();
+    const isMe = Boolean(this.currentUser && String(this.currentUser.id).trim() === cleanId);
     const isAdmin = this.isAdmin();
-    const hasName = Boolean(member.name && member.name.trim());
-    const displayName = hasName ? member.name : `弟兄 #${member.id}`;
-    const initials = hasName ? member.name.substring(member.name.length - 2) : member.id.substring(3);
+    const memberName = String(member.name ?? '').trim();
+    const hasName = Boolean(memberName);
+    const displayName = hasName ? memberName : `弟兄 #${cleanId}`;
+    const initials = hasName 
+      ? memberName.substring(Math.max(0, memberName.length - 2)) 
+      : cleanId.substring(Math.max(0, cleanId.length - 2));
 
     // 正面：大兵軍裝照
     const milPhoto = member.avatar_military || member.avatar_url;
@@ -1304,15 +1352,19 @@ const APP = {
   // =========================================================================
 
   showMemberDetail(memberId) {
-    const member = this.allMembers.find(m => String(m.id) === String(memberId));
+    const member = this.allMembers.find(m => String(m.id).trim() === String(memberId).trim());
     if (!member) return;
 
-    const hasName = Boolean(member.name && member.name.trim());
-    const displayName = hasName ? member.name : `弟兄 #${member.id}`;
-    const initials = hasName ? member.name.substring(member.name.length - 2) : member.id.substring(3);
+    const cleanId = String(member.id ?? '').trim();
+    const memberName = String(member.name ?? '').trim();
+    const hasName = Boolean(memberName);
+    const displayName = hasName ? memberName : `弟兄 #${cleanId}`;
+    const initials = hasName 
+      ? memberName.substring(Math.max(0, memberName.length - 2)) 
+      : cleanId.substring(Math.max(0, cleanId.length - 2));
 
     const titleEl = document.getElementById('detail-modal-title');
-    if (titleEl) titleEl.textContent = `弟兄檔案 #${member.id} ${displayName}`;
+    if (titleEl) titleEl.textContent = `弟兄檔案 #${cleanId} ${displayName}`;
 
     const bodyEl = document.getElementById('detail-modal-body');
     if (bodyEl) {
@@ -1325,15 +1377,15 @@ const APP = {
       bodyEl.innerHTML = `
         <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:0.75rem;">
           <!-- 3D 翻轉證件照容器 -->
-          <div class="avatar-flip-container" style="width:96px; height:128px;" onclick="APP.toggleCardFlip(this, event, 'detail-${member.id}')" title="點擊 3D 翻轉 (大兵 ⇋ 便服)">
-            <div class="avatar-flip-card" id="flip-card-detail-${member.id}">
+          <div class="avatar-flip-container" style="width:96px; height:128px;" onclick="APP.toggleCardFlip(this, event, 'detail-${cleanId}')" title="點擊 3D 翻轉 (大兵 ⇋ 便服)">
+            <div class="avatar-flip-card" id="flip-card-detail-${cleanId}">
               <div class="avatar-face avatar-face-front">${milHtml}</div>
               <div class="avatar-face avatar-face-back">${civHtml}</div>
             </div>
-            <span class="flip-tag-badge flip-tag-front" id="flip-tag-detail-${member.id}">🪖 大兵</span>
+            <span class="flip-tag-badge flip-tag-front" id="flip-tag-detail-${cleanId}">🪖 大兵</span>
           </div>
 
-          <div style="font-size:0.75rem; color:#64748b; cursor:pointer;" onclick="APP.toggleCardFlip(this.previousElementSibling, event, 'detail-${member.id}')">
+          <div style="font-size:0.75rem; color:#64748b; cursor:pointer;" onclick="APP.toggleCardFlip(this.previousElementSibling, event, 'detail-${cleanId}')">
             🔄 點擊證件照體驗 3D 翻轉 (大兵 ⇋ 便服)
           </div>
 
@@ -1374,15 +1426,19 @@ const APP = {
 
   // 長官幹部詳細名片彈窗 (Cadre Detail Modal)
   showCadreDetail(cadreId) {
-    const cadre = this.cadres.find(c => String(c.id).toUpperCase() === String(cadreId).toUpperCase());
+    const cadre = this.cadres.find(c => String(c.id).trim().toUpperCase() === String(cadreId).trim().toUpperCase());
     if (!cadre) return;
 
-    const hasName = Boolean(cadre.name && cadre.name.trim());
-    const displayName = hasName ? cadre.name : `幹部 #${cadre.id}`;
-    const initials = hasName ? cadre.name.substring(cadre.name.length - 2) : cadre.id.substring(4);
+    const cleanCadreId = String(cadre.id ?? '').trim();
+    const cadreName = String(cadre.name ?? '').trim();
+    const hasName = Boolean(cadreName);
+    const displayName = hasName ? cadreName : `幹部 #${cleanCadreId}`;
+    const initials = hasName 
+      ? cadreName.substring(Math.max(0, cadreName.length - 2)) 
+      : cleanCadreId.substring(Math.max(0, cleanCadreId.length - 2));
 
     const titleEl = document.getElementById('detail-modal-title');
-    if (titleEl) titleEl.textContent = `幹部檔案 #${cadre.id} ${displayName}`;
+    if (titleEl) titleEl.textContent = `幹部檔案 #${cleanCadreId} ${displayName}`;
 
     const bodyEl = document.getElementById('detail-modal-body');
     if (bodyEl) {
