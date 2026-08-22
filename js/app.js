@@ -642,7 +642,7 @@ const APP = {
     const endDate = new Date(2026, 11, 13);   // 2026-12-13 (11代表12月，光榮退伍)
 
     const msPerDay = 1000 * 60 * 60 * 24;
-    const totalDays = Math.max(1, Math.round((endDate - startDate) / msPerDay)); // 123 天
+    const totalDays = 124; // 8/12 ~ 12/13 總役期 124 天
 
     if (today < startDate) {
       const daysUntil = Math.ceil((startDate - today) / msPerDay);
@@ -670,7 +670,7 @@ const APP = {
     } else if (today >= startDate && today < phase2Date) {
       // 第一階段：宜蘭金六結新訓受訓中 (前兩個月 8/12 ~ 10/11)
       const daysServed = Math.max(1, Math.round((today - startDate) / msPerDay) + 1);
-      const daysRemaining = Math.max(0, Math.round((endDate - today) / msPerDay));
+      const daysRemaining = Math.max(0, totalDays - daysServed);
       const progressPercent = Math.min(100, Math.max(0, Math.round((daysServed / totalDays) * 100)));
 
       return {
@@ -697,7 +697,7 @@ const APP = {
     } else if (today >= phase2Date && today < endDate) {
       // 第二階段：下部隊專精戰訓實務 (後兩個月 10/12 ~ 12/12)
       const daysServed = Math.max(1, Math.round((today - startDate) / msPerDay) + 1);
-      const daysRemaining = Math.max(0, Math.round((endDate - today) / msPerDay));
+      const daysRemaining = Math.max(0, totalDays - daysServed);
       const progressPercent = Math.min(100, Math.max(0, Math.round((daysServed / totalDays) * 100)));
       const phase2DaysServed = Math.max(1, Math.round((today - phase2Date) / msPerDay) + 1);
 

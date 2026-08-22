@@ -3492,16 +3492,22 @@ textarea.form-control {
 @media (max-width: 768px) {
   .site-header {
     padding: 0;
+    overflow: hidden;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
   }
 
   .header-container {
-    padding: 0.45rem 0.65rem !important;
+    padding: 0.4rem 0.65rem !important;
     gap: 0.45rem !important;
+    height: 54px;
+    box-sizing: border-box;
   }
 
   .brand-section {
-    gap: 0.4rem;
-    flex-shrink: 1;
+    gap: 0.45rem;
+    flex-shrink: 0;
     min-width: 0;
     cursor: pointer;
   }
@@ -3519,16 +3525,18 @@ textarea.form-control {
 
   .brand-text {
     min-width: 0;
+    display: flex;
+    align-items: center;
   }
 
   .brand-text h1 {
     font-size: 1.15rem !important;
     white-space: nowrap !important;
     overflow: hidden;
-    text-overflow: ellipsis;
     display: flex;
     align-items: center;
-    gap: 0.3rem;
+    margin: 0;
+    line-height: 1;
   }
 
   .brand-title-desktop {
@@ -3542,10 +3550,11 @@ textarea.form-control {
     letter-spacing: 0.8px;
   }
 
-  .brand-tag {
-    display: none !important;
-  }
-
+  /* 手機端隱藏佔空間的頂部標籤 (首頁 Hero 區塊已完整展示) */
+  .tactical-code-badge,
+  .tactical-status-badge,
+  #header-tactical-status-badge,
+  .brand-tag,
   .brand-text p {
     display: none !important;
   }
@@ -3553,6 +3562,8 @@ textarea.form-control {
   .header-actions {
     gap: 0.35rem;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
   }
 
   /* 手機端將「同步最新」收縮為簡潔圓形旋轉圖示按鈕 */
@@ -3571,12 +3582,15 @@ textarea.form-control {
 
   /* 手機端登入狀態膠囊：僅顯示號碼 (#13005)，不顯示前綴文字與姓名 */
   .user-status-bar {
-    padding: 0.22rem 0.55rem;
-    gap: 0.4rem;
+    padding: 0.22rem 0.5rem;
+    gap: 0.35rem;
     font-size: 0.78rem;
     max-width: none;
     background: rgba(0, 0, 0, 0.45);
     border: 1px solid rgba(212, 175, 55, 0.35);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
   }
 
   .user-avatar-mini {
@@ -3603,6 +3617,13 @@ textarea.form-control {
     color: var(--gold-light) !important;
     font-size: 0.86rem !important;
     letter-spacing: 0.5px;
+  }
+
+  .btn-edit-header {
+    padding: 0.16rem 0.45rem;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
   }
 
   .btn-logout {
