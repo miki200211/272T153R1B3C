@@ -250,7 +250,7 @@ function handleGetAllData() {
  * 3. 更新個人資料 (含雙照片上傳 Drive，支援弟兄與幹部)
  */
 function handleUpdateProfile(data) {
-  const { id, name, nickname, rank_level, duty, enlist_date, interests, dream, ig, line, graduation_quote, bio, avatarMilitaryBase64, avatarCivilianBase64, newPassword } = data;
+  const { id, name, nickname, rank_level, duty, enlist_date, interests, dream, ig, line, bio, self_intro, graduation_quote, avatarMilitaryBase64, avatarCivilianBase64, newPassword } = data;
   if (!id) return { success: false, code: 'ERR-PROFILE-NOID', message: '[ERR-PROFILE-NOID] 缺少帳號 id' };
 
   const lock = LockService.getScriptLock();
@@ -327,8 +327,9 @@ function handleUpdateProfile(data) {
     if (dream !== undefined) updateCell('dream', dream);
     if (ig !== undefined) updateCell('ig', ig);
     if (line !== undefined) updateCell('line', line);
-    if (graduation_quote !== undefined) updateCell('graduation_quote', graduation_quote);
-    if (bio !== undefined) updateCell('bio', bio);
+    if (bio !== undefined) updateCell('bio', bio); // 💬 結訓感言 (原本的 bio 欄位)
+    if (graduation_quote !== undefined && bio === undefined) updateCell('bio', graduation_quote);
+    if (self_intro !== undefined) updateCell('self_intro', self_intro); // 📝 個人自我介紹 (新增在 Excel 的 self_intro 欄位)
     if (newPassword) updateCell('password', String(newPassword).trim()); // 更新登入密碼
     if (avatarMilUrl) {
       updateCell('avatar_military', avatarMilUrl);
@@ -694,7 +695,7 @@ function setupDatabase(targetSs) {
   let memberSheet = ss.getSheetByName('Members');
   if (!memberSheet) memberSheet = ss.insertSheet('Members');
   memberSheet.clear();
-  const memberHeaders = ['id', 'password', 'name', 'nickname', 'squad', 'room', 'duty', 'interests', 'dream', 'ig', 'line', 'graduation_quote', 'bio', 'avatar_military', 'avatar_civilian', 'updated_at'];
+  const memberHeaders = ['id', 'password', 'name', 'nickname', 'squad', 'room', 'duty', 'interests', 'dream', 'ig', 'line', 'bio', 'self_intro', 'avatar_military', 'avatar_civilian', 'updated_at'];
   memberSheet.appendRow(memberHeaders);
   formatHeaderRow(memberSheet);
 
@@ -714,7 +715,7 @@ function setupDatabase(targetSs) {
         inRoom = 0;
       }
 
-      // 全部空白，由弟兄登入後填寫與上傳雙照片 (含 interests, dream, graduation_quote, bio)
+      // 全部空白，由弟兄登入後填寫與上傳雙照片 (含 bio 結訓感言, self_intro 自我介紹)
       memberRows.push([id, id, '', '', sq, room, (i === 0) ? '班頭' : '一般兵', '', '', '', '', '', '', '', '', '']);
       idNum++;
     }
@@ -727,7 +728,7 @@ function setupDatabase(targetSs) {
   let cadreSheet = ss.getSheetByName('Cadres');
   if (!cadreSheet) cadreSheet = ss.insertSheet('Cadres');
   cadreSheet.clear();
-  const cadreHeaders = ['id', 'password', 'name', 'nickname', 'rank_level', 'duty', 'enlist_date', 'interests', 'dream', 'ig', 'line', 'graduation_quote', 'bio', 'avatar_military', 'avatar_civilian', 'updated_at'];
+  const cadreHeaders = ['id', 'password', 'name', 'nickname', 'rank_level', 'duty', 'enlist_date', 'interests', 'dream', 'ig', 'line', 'bio', 'self_intro', 'avatar_military', 'avatar_civilian', 'updated_at'];
   cadreSheet.appendRow(cadreHeaders);
   formatHeaderRow(cadreSheet);
 

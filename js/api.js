@@ -155,9 +155,11 @@ const API = {
       }
 
       case 'updateProfile': {
-        const { id, name, nickname, rank_level, duty, enlist_date, interests, dream, ig, line, graduation_quote, bio, avatarMilitaryBase64, avatarCivilianBase64, newPassword } = payload;
+        const { id, name, nickname, rank_level, duty, enlist_date, interests, dream, ig, line, bio, self_intro, graduation_quote, avatarMilitaryBase64, avatarCivilianBase64, newPassword } = payload;
         const cleanId = String(id).trim();
         const isCadre = cleanId.toUpperCase().startsWith('1B3C');
+
+        const finalBio = (bio !== undefined) ? bio : graduation_quote;
 
         if (isCadre) {
           const cadres = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.CADRES_CACHE) || '[]');
@@ -175,8 +177,8 @@ const API = {
           if (dream !== undefined) cadres[index].dream = dream;
           if (ig !== undefined) cadres[index].ig = ig;
           if (line !== undefined) cadres[index].line = line;
-          if (graduation_quote !== undefined) cadres[index].graduation_quote = graduation_quote;
-          if (bio !== undefined) cadres[index].bio = bio;
+          if (finalBio !== undefined) cadres[index].bio = finalBio;
+          if (self_intro !== undefined) cadres[index].self_intro = self_intro;
           if (newPassword) cadres[index].password = String(newPassword).trim();
           
           if (avatarMilitaryBase64) {
@@ -207,8 +209,8 @@ const API = {
           if (dream !== undefined) members[index].dream = dream;
           if (ig !== undefined) members[index].ig = ig;
           if (line !== undefined) members[index].line = line;
-          if (graduation_quote !== undefined) members[index].graduation_quote = graduation_quote;
-          if (bio !== undefined) members[index].bio = bio;
+          if (finalBio !== undefined) members[index].bio = finalBio;
+          if (self_intro !== undefined) members[index].self_intro = self_intro;
           if (newPassword) members[index].password = String(newPassword).trim();
           
           if (avatarMilitaryBase64) {

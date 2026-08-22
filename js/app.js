@@ -217,8 +217,8 @@ const APP = {
       dream: String(m.dream ?? '').trim(),
       ig: String(m.ig ?? '').trim(),
       line: String(m.line ?? '').trim(),
-      graduation_quote: String(m.graduation_quote ?? m.quote ?? m.graduation_message ?? '').trim(),
-      bio: String(m.bio ?? '').trim(),
+      bio: String(m.bio ?? m.graduation_quote ?? '').trim(), // 💬 結訓感言 (原本的 bio 欄位，外層卡片展示)
+      self_intro: String(m.self_intro ?? m.intro ?? m.dossier_bio ?? '').trim(), // 📝 個人自我介紹 (新增在 Excel 的 self_intro 欄位，點進檔案才展示)
       avatar_military: this.formatImageUrl(m.avatar_military || m.avatar_url || ''),
       avatar_civilian: this.formatImageUrl(m.avatar_civilian || '')
     }));
@@ -237,8 +237,8 @@ const APP = {
       dream: String(c.dream ?? '').trim(),
       ig: String(c.ig ?? '').trim(),
       line: String(c.line ?? '').trim(),
-      graduation_quote: String(c.graduation_quote ?? c.quote ?? c.graduation_message ?? '').trim(),
-      bio: String(c.bio ?? '').trim(),
+      bio: String(c.bio ?? c.graduation_quote ?? '').trim(), // 💬 幹部期勉座右銘 (原本的 bio 欄位，外層卡片展示)
+      self_intro: String(c.self_intro ?? c.intro ?? c.dossier_bio ?? '').trim(), // 📝 幹部自我介紹 (新增在 Excel 的 self_intro 欄位，點進檔案才展示)
       avatar_military: this.formatImageUrl(c.avatar_military || c.avatar_url || c.photo_url || ''),
       avatar_civilian: this.formatImageUrl(c.avatar_civilian || ''),
       is_cadre: true
@@ -1074,8 +1074,8 @@ const APP = {
         const duty = String(m.duty || '').toLowerCase();
         const interests = String(m.interests || '').toLowerCase();
         const dream = String(m.dream || '').toLowerCase();
-        const graduationQuote = String(m.graduation_quote || '').toLowerCase();
         const bio = String(m.bio || '').toLowerCase();
+        const selfIntro = String(m.self_intro || '').toLowerCase();
         const ig = String(m.ig || '').toLowerCase();
         const line = String(m.line || '').toLowerCase();
         const squadStr = `第${this.toChineseNum(m.squad)}班 ${m.squad}班`;
@@ -1087,8 +1087,8 @@ const APP = {
                duty.includes(query) ||
                interests.includes(query) ||
                dream.includes(query) ||
-               graduationQuote.includes(query) ||
                bio.includes(query) ||
+               selfIntro.includes(query) ||
                ig.includes(query) ||
                line.includes(query) ||
                squadStr.includes(query) ||
@@ -1373,10 +1373,10 @@ const APP = {
           </div>` : ''}
         </div>
 
-        <!-- Dossier Transcript / 結訓感言 (外層卡片只顯示結訓感言) -->
+        <!-- Dossier Transcript / 結訓感言 (外層卡片展示原本的 bio 欄位) -->
         <div class="member-bio dossier-transcript">
           <div class="transcript-tag">💬 TRANSCRIPT // 結訓感言</div>
-          <div class="transcript-body">${this.escapeHtml(member.graduation_quote || (member.name ? '金六結 153R 1B3C 結訓快樂！' : '（尚未填寫結訓感言...）'))}</div>
+          <div class="transcript-body">${this.escapeHtml(member.bio || (member.name ? '金六結 153R 1B3C 結訓快樂！' : '（尚未填寫結訓感言...）'))}</div>
         </div>
 
         <!-- Direct Action Buttons & View Dossier Drawer Trigger -->
@@ -1986,8 +1986,8 @@ const APP = {
         dream: String(result.user.dream ?? '').trim(),
         ig: String(result.user.ig ?? '').trim(),
         line: String(result.user.line ?? '').trim(),
-        graduation_quote: String(result.user.graduation_quote ?? result.user.quote ?? '').trim(),
-        bio: String(result.user.bio ?? '').trim(),
+        bio: String(result.user.bio ?? result.user.graduation_quote ?? '').trim(), // 💬 結訓感言 (原本的 bio 欄位)
+        self_intro: String(result.user.self_intro ?? result.user.intro ?? '').trim(), // 📝 自我介紹 (新增的 self_intro 欄位)
         is_cadre: Boolean(result.user.is_cadre || String(result.user.id).toUpperCase().startsWith('1B3C')),
         needs_password_change: Boolean(result.user.needs_password_change)
       };
@@ -2203,11 +2203,11 @@ const APP = {
     document.getElementById('profile-ig').value = member.ig || '';
     document.getElementById('profile-line').value = member.line || '';
     
-    const quoteInput = document.getElementById('profile-graduation-quote');
-    if (quoteInput) quoteInput.value = member.graduation_quote || '';
-    
     const bioInput = document.getElementById('profile-bio');
     if (bioInput) bioInput.value = member.bio || '';
+    
+    const selfIntroInput = document.getElementById('profile-self-intro');
+    if (selfIntroInput) selfIntroInput.value = member.self_intro || '';
 
     // 軍裝照片預覽
     const milPreview = document.getElementById('profile-military-avatar-preview');
@@ -2296,11 +2296,11 @@ const APP = {
     const ig = document.getElementById('profile-ig').value.trim();
     const line = document.getElementById('profile-line').value.trim();
     
-    const quoteInput = document.getElementById('profile-graduation-quote');
-    const graduation_quote = quoteInput ? quoteInput.value.trim() : '';
-    
     const bioInput = document.getElementById('profile-bio');
     const bio = bioInput ? bioInput.value.trim() : '';
+
+    const selfIntroInput = document.getElementById('profile-self-intro');
+    const self_intro = selfIntroInput ? selfIntroInput.value.trim() : '';
 
     const rankLevelInput = document.getElementById('profile-rank-level');
     const rank_level = rankLevelInput ? rankLevelInput.value.trim() : '';
@@ -2331,8 +2331,8 @@ const APP = {
         dream,
         ig,
         line,
-        graduation_quote,
         bio,
+        self_intro,
         avatarMilitaryBase64: this.tempMilitaryAvatarBase64,
         avatarCivilianBase64: this.tempCivilianAvatarBase64
       };
@@ -2635,19 +2635,19 @@ const APP = {
 
           <!-- 結訓感言與自我介紹 (點進去才看得到自我介紹) -->
           <div class="dossier-details-section" style="margin-top:1rem; display:flex; flex-direction:column; gap:0.75rem;">
-            <!-- 結訓感言 -->
+            <!-- 結訓感言 (原本的 bio 欄位) -->
             <div class="member-bio dossier-transcript">
               <div class="transcript-tag">💬 TRANSCRIPT // 結訓感言</div>
               <div class="transcript-body" style="font-size:0.92rem; line-height:1.6;">
-                ${this.escapeHtml(member.graduation_quote || (hasName ? '金六結 153R 1B3C 結訓快樂！江湖相見！' : '（尚未填寫結訓感言...）'))}
+                ${this.escapeHtml(member.bio || (hasName ? '金六結 153R 1B3C 結訓快樂！江湖相見！' : '（尚未填寫結訓感言...）'))}
               </div>
             </div>
 
-            <!-- 自我介紹 (點進來完整檔案才展示) -->
+            <!-- 個人自我介紹 (Excel 新增的 self_intro 欄位，點進來完整檔案才展示) -->
             <div class="member-bio dossier-transcript" style="border-left-color: var(--tactical-green-light); background: rgba(34, 197, 94, 0.07);">
               <div class="transcript-tag" style="color: var(--tactical-green-light);">📝 DOSSIER BIO // 個人自我介紹</div>
               <div class="transcript-body" style="font-size:0.92rem; line-height:1.6; color:#f1f5f2;">
-                ${this.escapeHtml(member.bio || '（尚未填寫個人自我介紹與詳細自傳...）')}
+                ${this.escapeHtml(member.self_intro || '（尚未填寫個人自我介紹與詳細自傳...）')}
               </div>
             </div>
           </div>
@@ -2730,14 +2730,14 @@ const APP = {
           <div class="member-bio dossier-transcript">
             <div class="transcript-tag">💬 MOTTO // 幹部期勉與座右銘</div>
             <div class="transcript-body" style="font-size:0.92rem; line-height:1.6;">
-              ${this.escapeHtml(cadre.graduation_quote || cadre.bio || (hasName ? '金六結 153R 1B3C 精實連隊！' : '（尚未填寫期勉感言...）'))}
+              ${this.escapeHtml(cadre.bio || (hasName ? '金六結 153R 1B3C 精實連隊！' : '（尚未填寫期勉感言...）'))}
             </div>
           </div>
 
           <div class="member-bio dossier-transcript" style="border-left-color: var(--tactical-green-light); background: rgba(34, 197, 94, 0.07);">
             <div class="transcript-tag" style="color: var(--tactical-green-light);">📝 DOSSIER BIO // 幹部詳細簡介</div>
             <div class="transcript-body" style="font-size:0.92rem; line-height:1.6; color:#f1f5f2;">
-              ${this.escapeHtml(cadre.bio || '（尚未填寫幹部詳細簡介...）')}
+              ${this.escapeHtml(cadre.self_intro || '（尚未填寫幹部詳細簡介...）')}
             </div>
           </div>
         </div>

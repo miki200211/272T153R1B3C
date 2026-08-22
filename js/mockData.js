@@ -39,8 +39,8 @@ const MOCK_DATA = {
         dream: '',
         ig: '',
         line: '',
-        graduation_quote: existing ? existing.bio : '',
-        bio: existing ? existing.bio : '',
+        bio: existing ? existing.bio : '', // 💬 幹部期勉座右銘 (原本的 bio 欄位，外層卡片展示)
+        self_intro: '',                   // 📝 幹部詳細簡介 (新增的 self_intro 欄位，點進檔案才展示)
         avatar_military: '',
         avatar_civilian: '',
         is_cadre: true,
@@ -170,8 +170,8 @@ const MOCK_DATA = {
           dream: '',     // 未來夢想/目標
           ig: '',
           line: '',
-          graduation_quote: '', // 結訓感言 (外層名冊卡片展示)
-          bio: '',              // 個人自介 (點進完整檔案才展示)
+          bio: '',        // 💬 結訓感言 (原本的 bio 欄位，外層名冊卡片展示)
+          self_intro: '', // 📝 個人自我介紹 (新增在 Excel 的 self_intro 欄位，點進完整檔案才展示)
           avatar_military: '', // 大兵軍裝照
           avatar_civilian: '', // 私人便服照
           updated_at: ''
