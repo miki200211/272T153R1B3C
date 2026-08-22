@@ -1,8 +1,8 @@
-# 🎖️ 272梯 陸軍步兵第153旅 步1營第3連 (153R 1B3C) 結訓數位紀念冊
+# 🎖️ 272梯 陸軍步兵第153旅 步兵第一營第三連 (153R 1B3C) 結訓數位紀念冊
 
 <div align="center">
 
-![Badge](https://img.shields.io/badge/陸軍步兵第153旅-步1營第3連-2d5a3c?style=for-the-badge&logo=shield)
+![Badge](https://img.shields.io/badge/陸軍步兵第153旅-步兵第一營第三連-2d5a3c?style=for-the-badge&logo=shield)
 ![Badge](https://img.shields.io/badge/宜蘭金六結-272梯結訓紀念-d4af37?style=for-the-badge)
 ![Badge](https://img.shields.io/badge/Google_Apps_Script-Serverless_Backend-4285F4?style=for-the-badge&logo=google)
 ![Badge](https://img.shields.io/badge/GitHub_Pages-Live_Deploy-181717?style=for-the-badge&logo=github)
@@ -128,7 +128,7 @@
 | `display_date` | 顯示日期 (MM/DD) | `08/12` |
 | `title` | 里程碑標題 | `入伍入營・金六結報到` |
 | `badge` | 標籤分類 | `入伍日` |
-| `description` | 詳細說明文字 | `272梯新兵抵達宜蘭金六結營區，步一營第三連正式成軍！` |
+| `description` | 詳細說明文字 | `272梯新兵抵達宜蘭金六結營區，步兵第一營第三連正式成軍！` |
 | `icon` | 圖示符號 | `🪖` |
 | `type` | 類型 (start / event / milestone / training / march / end) | `start` |
 
@@ -170,7 +170,7 @@
 ## 🎖️ 關於 272T 153R 1B3C
 
 * **服役地點**：宜蘭金六結營區（興安專案・南屏樓新建生活大樓）
-* **建制編組**：陸軍步兵第 153 旅 步兵第 1 營 第 3 連
+* **建制編組**：陸軍步兵第 153 旅 步兵第一營第三連
 * **役期時間**：2026 年 8 月 12 日 入伍 ～ 2026 年 12 月 13 日 結訓退伍
 * **連隊精神**：親愛精誠・忠誠精實・三連一家親！
 
@@ -178,7 +178,7 @@
 
 <div align="center">
 
-**陸軍步兵第153旅 步1營第3連 結訓紀念冊編審委員會 謹製**  
+**陸軍步兵第153旅 步兵第一營第三連 結訓紀念冊編審委員會 謹製**  
 *Copyright © 2026 272T 153R 1B3C. All rights reserved.*
 
 </div>
