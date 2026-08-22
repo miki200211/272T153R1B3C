@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.1.1">
+  <link rel="stylesheet" href="css/style.css?v=3.3.0">
 </head>
 <body>
 
@@ -32,7 +32,7 @@
             <span class="brand-title-desktop">272梯 陸軍153旅 1B3C</span>
             <span class="brand-title-mobile">1B3C</span>
             <span class="tactical-code-badge">[ 153R 1B 3C ]</span>
-            <span class="tactical-status-badge">[ 光榮退伍・任務達成 ]</span>
+            <span class="tactical-status-badge" id="header-tactical-status-badge">[ 宜蘭金六結・新訓受訓中 ]</span>
           </h1>
           <p>步兵第一營第三連 結訓同袍通訊錄</p>
         </div>
@@ -255,20 +255,20 @@
           <div class="hero-content">
             <div class="hero-tactical-badges">
               <span class="tactical-badge-unit">[ 153R 1B 3C ]</span>
-              <span class="tactical-badge-status"><span class="status-pulse-dot"></span>[ 光榮退伍・任務達成 ]</span>
-              <span class="tactical-badge-motto">🎖️ 陸軍272梯・金六結</span>
+              <span class="tactical-badge-status" id="hero-tactical-badge-status"><span class="status-pulse-dot"></span>[ 宜蘭金六結・新訓受訓中 ]</span>
+              <span class="tactical-badge-motto" id="hero-tactical-motto">🎖️ 陸軍272梯・第 11 天</span>
             </div>
-            <h2 class="hero-title">光榮退伍・任務達成</h2>
-            <div class="hero-dossier-code">ROCA 153R-1B-3C // TAIWAN ARMY GRADUATION YEARBOOK</div>
-            <p class="hero-desc">
-              紀念我們在宜蘭金六結共同揮灑汗水、鑑測行軍、打靶刺槍的迷彩歲月。<br>
-              四個月的革命情感，一輩子的真摯兄弟！結訓快樂，江湖再見！
+            <h2 class="hero-title" id="hero-main-title">精實鍛鍊・金六結新訓中</h2>
+            <div class="hero-dossier-code">ROCA 153R-1B-3C // TAIWAN ARMY ACTIVE SERVICE DOSSIER</div>
+            <p class="hero-desc" id="hero-main-desc">
+              目前正於宜蘭金六結營區進行第一階段新兵專長入伍訓練，同甘共苦、揮灑熱血汗水！<br>
+              四個月的革命情感，一輩子的真摯兄弟！
             </p>
             <div class="hero-stats-grid">
               <div class="hero-stat-card">
-                <div class="stat-num">124<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">天</span></div>
-                <div class="stat-label">役期總日數 (8/12~12/13)</div>
-                <div class="stat-sublabel">DAYS SERVED</div>
+                <div class="stat-num" id="hero-stat-days-num">11<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">/124天</span></div>
+                <div class="stat-label" id="hero-stat-days-label">役期進度 (剩 113 天)</div>
+                <div class="stat-sublabel" id="hero-stat-days-sub">SERVICE PROGRESS</div>
               </div>
               <div class="hero-stat-card">
                 <div class="stat-num">272<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">梯</span></div>
@@ -281,10 +281,15 @@
                 <div class="stat-sublabel">PLATOON COHORTS</div>
               </div>
               <div class="hero-stat-card">
-                <div class="stat-num">9</div>
-                <div class="stat-label">建制健全班級</div>
-                <div class="stat-sublabel">SQUADS (1~9班)</div>
+                <div class="stat-num" id="hero-stat-stage-num" style="font-size:1.15rem; color:var(--tactical-amber);">金六結新訓</div>
+                <div class="stat-label" id="hero-stat-stage-label">當前訓練階段</div>
+                <div class="stat-sublabel" id="hero-stat-stage-sub">PHASE 1 // JINLIUJIE</div>
               </div>
+            </div>
+
+            <!-- 役期兩階段視覺化戰術指示條 (金六結新訓 ➔ 下部隊 ➔ 光榮退伍) -->
+            <div class="hero-stage-tracker" id="hero-stage-tracker">
+              <!-- 由 JS updateServiceStatusUI 動態渲染 -->
             </div>
           </div>
         </div>
@@ -833,9 +838,9 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- 載入核心腳本 (循序載入) -->
-  <script src="js/config.js?v=3.1.1"></script>
-  <script src="js/mockData.js?v=3.1.1"></script>
-  <script src="js/api.js?v=3.1.1"></script>
-  <script src="js/app.js?v=3.1.1"></script>
+  <script src="js/config.js?v=3.3.0"></script>
+  <script src="js/mockData.js?v=3.3.0"></script>
+  <script src="js/api.js?v=3.3.0"></script>
+  <script src="js/app.js?v=3.3.0"></script>
 </body>
 </html>

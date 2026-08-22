@@ -181,12 +181,14 @@ const APP = {
     console.log('🎖️ 272T 153R 1B3C 紀念冊系統啟動中...');
     this.currentUser = CONFIG.getCurrentUser();
     this.updateAuthUI();
+    this.updateServiceStatusUI();
 
     // 載入資料 (優先從 API / LocalStorage 載入)
     await this.loadAllData();
 
     // 預設導航至首頁
     this.navigate('home');
+    this.updateServiceStatusUI();
 
     // 檢查目前登入者是否處於首次登入未修改密碼狀態 (強制要求設定密碼)
     if (this.currentUser && this.currentUser.needs_password_change) {
@@ -323,11 +325,12 @@ const APP = {
       this.timeline = this.normalizeTimeline(MOCK_DATA.timeline);
     }
 
-    // 更新首頁統計數字
+    // 更新首頁統計數字與役期階段狀態
     const memberCountEl = document.getElementById('stat-members-count');
     if (memberCountEl) memberCountEl.textContent = this.allMembers.length;
     const cadreCountEl = document.getElementById('stat-cadres-count');
     if (cadreCountEl) cadreCountEl.textContent = this.cadres.length;
+    this.updateServiceStatusUI();
   },
 
   // 手動 / 即時同步最新雲端資料庫
@@ -628,6 +631,205 @@ const APP = {
   // 畫面渲染邏輯 (View Renderers)
   // =========================================================================
 
+  // 役期兩階段與時間動態狀態計算 (8/12~10/11 金六結新訓前兩個月，10/12~12/12 下部隊後兩個月，12/13 光榮退伍)
+  getServiceStageData() {
+    const now = new Date();
+    // 歸零時分秒以進行準確日數比較
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const startDate = new Date(2026, 7, 12);  // 2026-08-12 (月從0起算，7代表8月)
+    const phase2Date = new Date(2026, 9, 12); // 2026-10-12 (9代表10月，下部隊)
+    const endDate = new Date(2026, 11, 13);   // 2026-12-13 (11代表12月，光榮退伍)
+
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const totalDays = Math.max(1, Math.round((endDate - startDate) / msPerDay)); // 123 天
+
+    if (today < startDate) {
+      const daysUntil = Math.ceil((startDate - today) / msPerDay);
+      return {
+        stageCode: 'PRE_ENLIST',
+        headerBadge: '[ 蓄勢待發・即將入伍 ]',
+        heroBadge: '[ 階段：入伍集結準備 ]',
+        badgeClass: 'stage-pre',
+        heroTitle: '蓄勢待發・金六結即將成軍',
+        heroDesc: '272梯 步兵第一營第三連即將成軍！準備迎接金六結精實淬鍊與迷彩青春！',
+        mottoTag: `🎖️ 陸軍272梯・倒數 ${daysUntil} 天入伍`,
+        stageName: '入伍準備期',
+        stageSublabel: 'PRE-ENLISTMENT',
+        daysServed: 0,
+        daysTotal: totalDays,
+        daysRemaining: totalDays,
+        progressPercent: 0,
+        statDaysValue: `${daysUntil}<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">天後</span>`,
+        statDaysLabel: '入伍倒數 (8/12報到)',
+        statDaysSub: 'COUNTDOWN',
+        statStageValue: '入伍準備',
+        statStageLabel: '當前訓練階段',
+        statStageSub: 'STAGE 0'
+      };
+    } else if (today >= startDate && today < phase2Date) {
+      // 第一階段：宜蘭金六結新訓受訓中 (前兩個月 8/12 ~ 10/11)
+      const daysServed = Math.max(1, Math.round((today - startDate) / msPerDay) + 1);
+      const daysRemaining = Math.max(0, Math.round((endDate - today) / msPerDay));
+      const progressPercent = Math.min(100, Math.max(0, Math.round((daysServed / totalDays) * 100)));
+
+      return {
+        stageCode: 'PHASE1_JINLIUJIE',
+        headerBadge: '[ 宜蘭金六結・新訓受訓中 ]',
+        heroBadge: '[ 階段一：金六結入伍受訓 ]',
+        badgeClass: 'stage-jinliujie',
+        heroTitle: '精實鍛鍊・金六結新訓中',
+        heroDesc: `目前正於宜蘭金六結營區進行第一階段新兵專長入伍訓練，揮灑汗水、同甘共苦！<br>四個月役期已完成 ${progressPercent}%（已服役 ${daysServed}/${totalDays} 天），距離 12/13 光榮退伍還有 ${daysRemaining} 天！`,
+        mottoTag: `🎖️ 金六結新訓・第 ${daysServed} 天`,
+        stageName: '金六結新訓 (前兩個月)',
+        stageSublabel: 'PHASE 1 // JINLIUJIE',
+        daysServed: daysServed,
+        daysTotal: totalDays,
+        daysRemaining: daysRemaining,
+        progressPercent: progressPercent,
+        statDaysValue: `${daysServed}<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">/${totalDays}天</span>`,
+        statDaysLabel: `役期進度 (剩 ${daysRemaining} 天)`,
+        statDaysSub: `PROGRESS ${progressPercent}%`,
+        statStageValue: '金六結新訓',
+        statStageLabel: '當前階段 (前兩個月)',
+        statStageSub: 'PHASE 1 // JINLIUJIE'
+      };
+    } else if (today >= phase2Date && today < endDate) {
+      // 第二階段：下部隊專精戰訓實務 (後兩個月 10/12 ~ 12/12)
+      const daysServed = Math.max(1, Math.round((today - startDate) / msPerDay) + 1);
+      const daysRemaining = Math.max(0, Math.round((endDate - today) / msPerDay));
+      const progressPercent = Math.min(100, Math.max(0, Math.round((daysServed / totalDays) * 100)));
+      const phase2DaysServed = Math.max(1, Math.round((today - phase2Date) / msPerDay) + 1);
+
+      return {
+        stageCode: 'PHASE2_TROOP',
+        headerBadge: '[ 下部隊實務・二階段戰訓中 ]',
+        heroBadge: '[ 階段二：下部隊實務戰訓 ]',
+        badgeClass: 'stage-troops',
+        heroTitle: '戰力堅強・下部隊實務階段',
+        heroDesc: `已圓滿完成金六結新兵訓練，目前進入第二階段下部隊實務戰訓，磨練精準戰技、同袍並肩作戰！<br>總役期已達成 ${progressPercent}%，倒數 ${daysRemaining} 天光榮退伍！`,
+        mottoTag: `🎖️ 下部隊實務・第 ${phase2DaysServed} 天`,
+        stageName: '下部隊實務 (後兩個月)',
+        stageSublabel: 'PHASE 2 // ACTIVE UNIT',
+        daysServed: daysServed,
+        daysTotal: totalDays,
+        daysRemaining: daysRemaining,
+        progressPercent: progressPercent,
+        statDaysValue: `${daysServed}<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">/${totalDays}天</span>`,
+        statDaysLabel: `役期進度 (剩 ${daysRemaining} 天)`,
+        statDaysSub: `PROGRESS ${progressPercent}%`,
+        statStageValue: '下部隊實務',
+        statStageLabel: '當前階段 (後兩個月)',
+        statStageSub: 'PHASE 2 // TROOPS'
+      };
+    } else {
+      // 結訓/光榮退伍 (>= 2026/12/13)
+      return {
+        stageCode: 'DISCHARGED',
+        headerBadge: '[ 光榮退伍・任務達成 ]',
+        heroBadge: '[ 任務圓滿達成・光榮退伍 ]',
+        badgeClass: 'stage-discharged',
+        heroTitle: '光榮退伍・任務達成',
+        heroDesc: '紀念我們在宜蘭金六結與部隊共同揮灑汗水、鑑測行軍、打靶刺槍的迷彩歲月。<br>四個月的革命情感，一輩子的真摯兄弟！結訓快樂，江湖再見！',
+        mottoTag: '🎖️ 陸軍272梯・全連結訓',
+        stageName: '光榮退伍',
+        stageSublabel: 'MISSION ACCOMPLISHED',
+        daysServed: totalDays,
+        daysTotal: totalDays,
+        daysRemaining: 0,
+        progressPercent: 100,
+        statDaysValue: `${totalDays}<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">天</span>`,
+        statDaysLabel: '役期總日數 (8/12~12/13)',
+        statDaysSub: 'MISSION ACCOMPLISHED',
+        statStageValue: '光榮退伍',
+        statStageLabel: '結訓任務狀態',
+        statStageSub: 'HONORABLE DISCHARGE'
+      };
+    }
+  },
+
+  // 動態更新頂部狀態列、英雄橫幅與統計數據
+  updateServiceStatusUI() {
+    const stage = this.getServiceStageData();
+
+    // 1. 頂部導覽列狀態徽章
+    const headerBadge = document.getElementById('header-tactical-status-badge');
+    if (headerBadge) {
+      headerBadge.textContent = stage.headerBadge;
+      headerBadge.className = `tactical-status-badge ${stage.badgeClass}`;
+    }
+
+    // 2. 英雄橫幅狀態徽章與標題
+    const heroBadge = document.getElementById('hero-tactical-badge-status');
+    if (heroBadge) {
+      heroBadge.innerHTML = `<span class="status-pulse-dot"></span>${stage.heroBadge}`;
+      heroBadge.className = `tactical-badge-status ${stage.badgeClass}`;
+    }
+
+    const heroMotto = document.getElementById('hero-tactical-motto');
+    if (heroMotto) heroMotto.textContent = stage.mottoTag;
+
+    const heroTitle = document.getElementById('hero-main-title');
+    if (heroTitle) heroTitle.textContent = stage.heroTitle;
+
+    const heroDesc = document.getElementById('hero-main-desc');
+    if (heroDesc) heroDesc.innerHTML = stage.heroDesc;
+
+    // 3. 統計卡片數值與標籤
+    const statDaysNum = document.getElementById('hero-stat-days-num');
+    if (statDaysNum) statDaysNum.innerHTML = stage.statDaysValue;
+
+    const statDaysLabel = document.getElementById('hero-stat-days-label');
+    if (statDaysLabel) statDaysLabel.textContent = stage.statDaysLabel;
+
+    const statDaysSub = document.getElementById('hero-stat-days-sub');
+    if (statDaysSub) statDaysSub.textContent = stage.statDaysSub;
+
+    const statStageNum = document.getElementById('hero-stat-stage-num');
+    if (statStageNum) statStageNum.textContent = stage.statStageValue;
+
+    const statStageLabel = document.getElementById('hero-stat-stage-label');
+    if (statStageLabel) statStageLabel.textContent = stage.statStageLabel;
+
+    const statStageSub = document.getElementById('hero-stat-stage-sub');
+    if (statStageSub) statStageSub.textContent = stage.statStageSub;
+
+    // 4. 役期兩階段視覺化戰術指示條
+    const trackerContainer = document.getElementById('hero-stage-tracker');
+    if (trackerContainer) {
+      const isP1Active = stage.stageCode === 'PHASE1_JINLIUJIE';
+      const isP1Done = stage.stageCode === 'PHASE2_TROOP' || stage.stageCode === 'DISCHARGED';
+      
+      const isP2Active = stage.stageCode === 'PHASE2_TROOP';
+      const isP2Done = stage.stageCode === 'DISCHARGED';
+
+      const isDischarged = stage.stageCode === 'DISCHARGED';
+
+      trackerContainer.innerHTML = `
+        <div class="stage-tracker-header">
+          <span>⚡ 役期兩階段戰訓歷程 (總役期 124 天)</span>
+          <span style="color:var(--tactical-amber); font-weight:700;">當前進度：${stage.progressPercent}%</span>
+        </div>
+        <div class="stage-tracker-steps">
+          <div class="stage-step-pill ${isP1Done ? 'completed' : (isP1Active ? 'active' : 'upcoming')}">
+            <span>${isP1Done ? '✅' : (isP1Active ? '🪖' : '⏳')}</span>
+            <span>前2個月・金六結新訓<br><small style="opacity:0.8; font-size:0.7rem;">(08/12 ~ 10/11)</small></span>
+          </div>
+          <div class="stage-arrow">➔</div>
+          <div class="stage-step-pill ${isP2Done ? 'completed' : (isP2Active ? 'active' : 'upcoming')}">
+            <span>${isP2Done ? '✅' : (isP2Active ? '⚔️' : '⏳')}</span>
+            <span>後2個月・下部隊實務<br><small style="opacity:0.8; font-size:0.7rem;">(10/12 ~ 12/12)</small></span>
+          </div>
+          <div class="stage-arrow">➔</div>
+          <div class="stage-step-pill ${isDischarged ? 'completed active' : 'upcoming'}">
+            <span>${isDischarged ? '🎖️' : '🏁'}</span>
+            <span>光榮退伍・領結訓令<br><small style="opacity:0.8; font-size:0.7rem;">(12/13 任務達成)</small></span>
+          </div>
+        </div>
+      `;
+    }
+  },
+
   // 0. 軍旅役期時光軸渲染 (入伍 8/12 ~ 退伍 12/13，懇親日 8/21，支援後台 Google Sheet / Excel 同步自訂)
   renderTimeline() {
     const container = document.getElementById('military-timeline-section');
@@ -764,6 +966,9 @@ const APP = {
 
   // 1. 首頁渲染 (含時光軸、人氣按讚最高傳奇與最高大兵日記排版)
   renderHomeView() {
+    // 更新首頁與頂部役期階段動態狀態
+    this.updateServiceStatusUI();
+
     // 渲染軍旅役期時光軸
     this.renderTimeline();
 

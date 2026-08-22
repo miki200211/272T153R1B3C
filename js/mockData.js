@@ -105,12 +105,12 @@ const MOCK_DATA = {
     },
     {
       id: 4,
-      date: '2026-10-10',
-      display_date: '10/10',
-      title: '專長訓練・第二階段',
-      badge: '二階段訓',
-      description: '專業兵科戰術與部隊實務操作，精進戰技同甘共苦！',
-      icon: '⚡',
+      date: '2026-10-12',
+      display_date: '10/12',
+      title: '下部隊實務・二階段戰訓',
+      badge: '下部隊',
+      description: '前兩個月金六結新訓結業！後兩個月進入下部隊實兵專精與實務戰訓！',
+      icon: '⚔️',
       type: 'training'
     },
     {

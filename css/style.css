@@ -872,6 +872,121 @@ body::before {
   margin-top: 0.1rem;
 }
 
+/* 役期兩階段戰術進度指示條 (金六結前兩個月 ➔ 下部隊後兩個月 ➔ 光榮退伍) */
+.hero-stage-tracker {
+  margin-top: 1.25rem;
+  padding: 0.85rem 1.1rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--tactical-olive-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.stage-tracker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  color: var(--camo-tan);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.stage-tracker-steps {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 640px) {
+  .stage-tracker-steps {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+  .stage-arrow {
+    display: none;
+  }
+}
+
+.stage-step-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.35;
+  transition: var(--transition);
+}
+
+.stage-step-pill.active {
+  background: rgba(229, 169, 60, 0.18);
+  border-color: var(--tactical-amber);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(229, 169, 60, 0.25);
+}
+
+.stage-step-pill.completed {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(74, 222, 128, 0.5);
+  color: var(--tactical-green-light);
+}
+
+.stage-step-pill.upcoming {
+  opacity: 0.65;
+}
+
+.stage-arrow {
+  color: var(--tactical-olive-border);
+  font-weight: 900;
+  font-size: 0.9rem;
+}
+
+/* 狀態徽章主題色系變形 */
+.tactical-status-badge.stage-jinliujie,
+.tactical-badge-status.stage-jinliujie {
+  background: rgba(229, 169, 60, 0.18);
+  color: var(--tactical-amber-light);
+  border-color: var(--tactical-amber);
+  box-shadow: 0 0 10px rgba(229, 169, 60, 0.25);
+}
+.tactical-status-badge.stage-jinliujie .status-pulse-dot,
+.tactical-badge-status.stage-jinliujie .status-pulse-dot {
+  background: var(--tactical-amber);
+  box-shadow: 0 0 8px var(--tactical-amber);
+}
+
+.tactical-status-badge.stage-troops,
+.tactical-badge-status.stage-troops {
+  background: rgba(56, 189, 248, 0.18);
+  color: #7dd3fc;
+  border-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+}
+.tactical-status-badge.stage-troops .status-pulse-dot,
+.tactical-badge-status.stage-troops .status-pulse-dot {
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
+}
+
+.tactical-status-badge.stage-discharged,
+.tactical-badge-status.stage-discharged {
+  background: rgba(34, 197, 94, 0.18);
+  color: var(--tactical-green-light);
+  border-color: rgba(74, 222, 128, 0.6);
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.3);
+}
+
 /* ==========================================================================
    軍旅役期時光軸 (Military Timeline - 8/12入伍 ~ 12/13退伍)
    ========================================================================== */
