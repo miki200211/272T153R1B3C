@@ -105,7 +105,8 @@
 | `dream` | 未來夢想/目標 | `環遊世界` |
 | `ig` | Instagram 帳號 | `xiaoming_272` |
 | `line` | LINE ID | `xiaoming123` |
-| `bio` | 結訓感言/個人自介 | `四個月很快，感謝三連兄弟！` |
+| `graduation_quote` | 結訓感言 (顯示於外層卡片) | `四個月很快，感謝三連兄弟！` |
+| `bio` | 個人自我介紹 (點入完整檔案才展示) | `畢業於XX大學，平時喜歡健身打球...` |
 | `avatar_military` | 軍裝大頭照 Drive 連結 | `https://drive.google.com/uc?id=...` |
 | `avatar_civilian` | 便服生活照 Drive 連結 | `https://drive.google.com/uc?id=...` |
 | `updated_at` | 最後更新時間 | `2026-08-22 10:30` |
@@ -118,7 +119,8 @@
 | `name` | 幹部姓名 | `鄧兆凱` |
 | `rank_level` | 階級/職等 | `士官長` |
 | `duty` | 建制職務 | `三排 第七班 班長` |
-| `bio` | 帶兵座右銘/期許 | `三排榮譽，第七班精益求精！` |
+| `graduation_quote` | 帶兵座右銘/期勉 (外層卡片展示) | `三排榮譽，第七班精益求精！` |
+| `bio` | 幹部自我介紹/詳細簡介 (點入檔案才展示) | `負責三排帶隊與訓練管理...` |
 
 ### 3. `Timeline`（軍旅時光軸）
 | 欄位名稱 | 說明 | 範例 |

@@ -39,6 +39,7 @@ const MOCK_DATA = {
         dream: '',
         ig: '',
         line: '',
+        graduation_quote: existing ? existing.bio : '',
         bio: existing ? existing.bio : '',
         avatar_military: '',
         avatar_civilian: '',
@@ -169,7 +170,8 @@ const MOCK_DATA = {
           dream: '',     // 未來夢想/目標
           ig: '',
           line: '',
-          bio: '',
+          graduation_quote: '', // 結訓感言 (外層名冊卡片展示)
+          bio: '',              // 個人自介 (點進完整檔案才展示)
           avatar_military: '', // 大兵軍裝照
           avatar_civilian: '', // 私人便服照
           updated_at: ''

@@ -155,7 +155,7 @@ const API = {
       }
 
       case 'updateProfile': {
-        const { id, name, nickname, rank_level, duty, enlist_date, interests, dream, ig, line, bio, avatarMilitaryBase64, avatarCivilianBase64, newPassword } = payload;
+        const { id, name, nickname, rank_level, duty, enlist_date, interests, dream, ig, line, graduation_quote, bio, avatarMilitaryBase64, avatarCivilianBase64, newPassword } = payload;
         const cleanId = String(id).trim();
         const isCadre = cleanId.toUpperCase().startsWith('1B3C');
 
@@ -175,6 +175,7 @@ const API = {
           if (dream !== undefined) cadres[index].dream = dream;
           if (ig !== undefined) cadres[index].ig = ig;
           if (line !== undefined) cadres[index].line = line;
+          if (graduation_quote !== undefined) cadres[index].graduation_quote = graduation_quote;
           if (bio !== undefined) cadres[index].bio = bio;
           if (newPassword) cadres[index].password = String(newPassword).trim();
           
@@ -206,6 +207,7 @@ const API = {
           if (dream !== undefined) members[index].dream = dream;
           if (ig !== undefined) members[index].ig = ig;
           if (line !== undefined) members[index].line = line;
+          if (graduation_quote !== undefined) members[index].graduation_quote = graduation_quote;
           if (bio !== undefined) members[index].bio = bio;
           if (newPassword) members[index].password = String(newPassword).trim();
           
