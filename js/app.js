@@ -1047,14 +1047,15 @@ const APP = {
     `;
   },
 
-  // 3. 班級名冊渲染
-  // 3. 班級名冊渲染 (支援全連 1~9 班 98 位弟兄跨班級即時搜尋)
+  // 3. 班級名冊渲染 (支援全連 1~9 班 98 位弟兄跨班級即時搜尋 & 公差職位快速篩選)
   renderSquadView() {
     const isSearching = Boolean(this.searchQuery && this.searchQuery.length > 0);
     const query = (this.searchQuery || '').toLowerCase();
+    const currentDuty = this.selectedDuty || 'ALL';
     const titleEl = document.getElementById('squad-view-title');
     const squadNum = this.selectedSquad;
     const squadPillBar = document.getElementById('squad-quick-pill-bar');
+    const dutyFilterBar = document.getElementById('duty-filter-bar');
     const leaderBannerEl = document.getElementById('squad-leader-banner');
     const countTag = document.getElementById('squad-member-count-tag');
     const membersGrid = document.getElementById('squad-members-grid');
@@ -1076,7 +1077,7 @@ const APP = {
         const squadStr = `第${this.toChineseNum(m.squad)}班 ${m.squad}班`;
         const roomStr = `第${this.toChineseNum(m.room)}寢 ${m.room}寢`;
 
-        return id.includes(query) ||
+        const matchQuery = id.includes(query) ||
                name.includes(query) ||
                nickname.includes(query) ||
                duty.includes(query) ||
@@ -1087,10 +1088,16 @@ const APP = {
                line.includes(query) ||
                squadStr.includes(query) ||
                roomStr.includes(query);
+
+        if (!matchQuery) return false;
+        if (currentDuty !== 'ALL') {
+          return duty.includes(currentDuty.toLowerCase());
+        }
+        return true;
       });
 
       if (titleEl) {
-        titleEl.innerHTML = `🔍 全連搜尋結果：「<span style="color:var(--gold-dark);">${this.escapeHtml(this.searchQuery)}</span>」`;
+        titleEl.innerHTML = `🔍 全連搜尋：「<span style="color:var(--tactical-amber);">${this.escapeHtml(this.searchQuery)}</span>」`;
       }
 
       if (countTag) {
@@ -1101,18 +1108,26 @@ const APP = {
         leaderBannerEl.innerHTML = `
           <div class="squad-leader-info" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; width: 100%;">
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-              <span class="badge" style="background:var(--primary-dark); color:var(--gold); padding: 3px 8px; border-radius: 4px; font-weight:800;">🌐 全連跨班級搜尋模式</span>
-              <strong style="color:var(--primary-dark);">已為您搜尋第 1 ~ 9 班全部 98 位弟兄資料</strong>
+              <span class="badge" style="background:var(--tactical-charcoal-dark); color:var(--tactical-amber); padding: 3px 8px; border-radius: 4px; font-weight:800; font-family:var(--font-mono);">🌐 全連跨班級搜尋模式</span>
+              <strong style="color:#ffffff;">已為您搜尋第 1 ~ 9 班全部 98 位同袍資料</strong>
             </div>
-            <button onclick="APP.clearSquadSearch()" style="background:#ef4444; color:#fff; border:none; border-radius:4px; padding:4px 10px; font-size:0.75rem; font-weight:800; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.15);" title="清除搜尋並返回班級名冊">
+            <button onclick="APP.clearSquadSearch()" style="background:#ef4444; color:#fff; border:none; border-radius:4px; padding:4px 10px; font-size:0.75rem; font-weight:800; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3);" title="清除搜尋並返回班級名冊">
               ✖ 清除搜尋
             </button>
           </div>
         `;
       }
     } else {
-      // 正常指定班級瀏覽模式
-      displayMembers = this.allMembers.filter(m => Number(m.squad) === squadNum);
+      // 正常指定班級瀏覽模式 (結合公差職位篩選)
+      displayMembers = this.allMembers.filter(m => {
+        const inSquad = Number(m.squad) === squadNum;
+        if (!inSquad) return false;
+        if (currentDuty !== 'ALL') {
+          const dutyStr = String(m.duty || '一般兵').toLowerCase();
+          return dutyStr.includes(currentDuty.toLowerCase());
+        }
+        return true;
+      });
 
       if (titleEl) {
         titleEl.textContent = `第 ${this.toChineseNum(squadNum)} 班 成員名冊`;
@@ -1125,25 +1140,49 @@ const APP = {
       const leader = MOCK_DATA.squadLeaders[squadNum] || { name: '帶班班長', rank: '帶班幹部', quote: '（待幹部填寫帶班期勉）' };
       if (leaderBannerEl) {
         let leaderInfoHtml = `
-          <span class="badge" style="background:#b45309; color:#fff; padding: 2px 7px; border-radius: 4px;">🎖️ ${this.escapeHtml(leader.rank || '帶班幹部')}</span>
-          <strong>班長：${this.escapeHtml(leader.name || '帶班班長')}</strong>
+          <span class="badge" style="background:var(--tactical-amber); color:var(--tactical-charcoal-dark); padding: 2px 7px; border-radius: 4px; font-weight:900;">🎖️ ${this.escapeHtml(leader.rank || '帶班幹部')}</span>
+          <strong style="color:#ffffff;">班長：${this.escapeHtml(leader.name || '帶班班長')}</strong>
         `;
         if (leader.assistant) {
           leaderInfoHtml += `
             <span style="display: inline-block; width: 12px;"></span>
-            <span class="badge" style="background:#0284c7; color:#fff; padding: 2px 7px; border-radius: 4px;">⚔️ ${this.escapeHtml(leader.assistant.rank || '副班長')}</span>
-            <strong>副班長：${this.escapeHtml(leader.assistant.name || '帶班幹部')}</strong>
+            <span class="badge" style="background:#0284c7; color:#fff; padding: 2px 7px; border-radius: 4px; font-weight:800;">⚔️ ${this.escapeHtml(leader.assistant.rank || '副班長')}</span>
+            <strong style="color:#ffffff;">副班長：${this.escapeHtml(leader.assistant.name || '帶班幹部')}</strong>
           `;
         }
         leaderBannerEl.innerHTML = `
           <div class="squad-leader-info" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             ${leaderInfoHtml}
           </div>
-          <div class="squad-leader-quote" style="margin-top: 0.25rem;">
+          <div class="squad-leader-quote" style="margin-top: 0.25rem; color:#cbd5cb;">
             ${this.escapeHtml(leader.quote || '（待幹部填寫帶班期勉）')}
           </div>
         `;
       }
+    }
+
+    // 職位/公差快速篩選橫條更新 (Duty Filter Chips)
+    if (dutyFilterBar) {
+      const dutyList = [
+        { key: 'ALL', label: '全部職位 (ALL)' },
+        { key: '班頭', label: '🎖️ 班頭' },
+        { key: '射擊', label: '🎯 射擊手' },
+        { key: '器材', label: '📦 器材班' },
+        { key: '軍械', label: '🔫 軍械班' },
+        { key: '打飯', label: '🍚 打飯班' },
+        { key: '福委', label: '💳 福委' },
+        { key: '查哨', label: '🔦 查哨' },
+        { key: '一般兵', label: '🪖 一般兵' }
+      ];
+
+      dutyFilterBar.innerHTML = dutyList.map(item => {
+        const isActive = (currentDuty === item.key);
+        return `
+          <button class="duty-chip ${isActive ? 'active' : ''}" onclick="APP.setDutyFilter('${item.key}')" title="篩選職位：${item.label}">
+            <span>${item.label}</span>
+          </button>
+        `;
+      }).join('');
     }
 
     // 班級快捷橫條更新
@@ -1166,17 +1205,25 @@ const APP = {
     if (membersGrid) {
       if (displayMembers.length === 0) {
         membersGrid.innerHTML = `
-          <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 1.5rem; background:#fff; border-radius:var(--radius-md); border:1.5px dashed #cbd5e1;">
+          <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 1.5rem; background:var(--tactical-charcoal-card); border-radius:var(--radius-md); border:1.5px dashed var(--tactical-olive-border);">
             <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🔍</div>
-            <p style="font-size: 1.15rem; font-weight: 800; color: var(--primary-dark);">查無符合條件之弟兄資料</p>
-            <p style="font-size: 0.85rem; color: #64748b; margin-top: 0.35rem;">請嘗試搜尋其他學號、姓名關鍵字、綽號、公差或興趣</p>
-            ${isSearching ? `<button onclick="APP.clearSquadSearch()" class="btn-primary" style="margin-top:1rem; padding:6px 14px; font-size:0.85rem; cursor:pointer;">✖ 清除搜尋條件</button>` : ''}
+            <p style="font-size: 1.15rem; font-weight: 800; color: #ffffff;">查無符合條件之弟兄同袍資料</p>
+            <p style="font-size: 0.85rem; color: #cbd5cb; margin-top: 0.35rem;">請嘗試調整公差職位篩選或搜尋其他學號、姓名關鍵字</p>
+            <div style="display:flex; gap:0.5rem; justify-content:center; margin-top:1rem; flex-wrap:wrap;">
+              ${(currentDuty !== 'ALL') ? `<button onclick="APP.setDutyFilter('ALL')" class="btn-secondary" style="padding:6px 14px; font-size:0.85rem; cursor:pointer;">重設公差篩選</button>` : ''}
+              ${isSearching ? `<button onclick="APP.clearSquadSearch()" class="btn-primary" style="padding:6px 14px; font-size:0.85rem; cursor:pointer;">✖ 清除搜尋關鍵字</button>` : ''}
+            </div>
           </div>
         `;
       } else {
         membersGrid.innerHTML = displayMembers.map(m => this.createMemberCardHtml(m)).join('');
       }
     }
+  },
+
+  setDutyFilter(duty) {
+    this.selectedDuty = duty || 'ALL';
+    this.renderSquadView();
   },
 
   handleSearch(query) {
@@ -1241,13 +1288,13 @@ const APP = {
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
           </svg>
-          <span>編輯我的個人檔案與雙照片</span>
+          <span>編輯個人檔案</span>
         </button>` 
       : '';
 
     const adminResetBtn = (isAdmin && !isMe)
       ? `<button class="btn-admin-reset" onclick="APP.handleAdminResetPassword('${member.id}')" title="管理員權限：將此弟兄密碼恢復為預設學號">
-          <span>🔑 恢復預設密碼</span>
+          <span>🔑 恢復密碼</span>
          </button>`
       : '';
 
@@ -1266,12 +1313,18 @@ const APP = {
             <span class="dossier-squad-chip">SQD 0${member.squad}・第${this.toChineseNum(member.squad)}班</span>
             <span class="dossier-room-chip">RM 0${member.room}・第${this.toChineseNum(member.room)}寢</span>
           </div>
-          <span class="dossier-verify-chip">RECORD // VERIFIED</span>
+          <span class="dossier-duty-tag">🎖️ ${this.escapeHtml(member.duty || '一般兵')}</span>
         </div>
 
         <div class="member-card-header">
-          <!-- 3D 翻轉頭像容器 -->
+          <!-- 3D 翻轉頭像容器 (包含四角戰術十字標 Crosshairs +) -->
           <div class="avatar-flip-container tactical-avatar-frame" onclick="APP.toggleCardFlip(this, event, '${member.id}')" title="點擊 3D 翻轉切換照片 (大兵 ⇋ 便服)">
+            <!-- 4 Corner Tactical Crosshairs (+) -->
+            <span class="tactical-crosshair crosshair-tl">+</span>
+            <span class="tactical-crosshair crosshair-tr">+</span>
+            <span class="tactical-crosshair crosshair-bl">+</span>
+            <span class="tactical-crosshair crosshair-br">+</span>
+
             <div class="avatar-flip-card" id="flip-card-${member.id}">
               <div class="avatar-face avatar-face-front">${milAvatarHtml}</div>
               <div class="avatar-face avatar-face-back">${civAvatarHtml}</div>
@@ -1317,6 +1370,20 @@ const APP = {
         <div class="member-bio dossier-transcript">
           <div class="transcript-tag">TRANSCRIPT // 結訓感言</div>
           <div class="transcript-body">${this.escapeHtml(member.bio || (member.name ? '金六結 153R 1B3C 結訓快樂！' : '（尚未填寫自我介紹與感言...）'))}</div>
+        </div>
+
+        <!-- Direct Action Buttons & View Dossier Drawer Trigger -->
+        <div class="member-dossier-action-bar">
+          <button class="btn-view-dossier" onclick="APP.showMemberDetail('${member.id}')" title="開啟完整同袍戰術檔案 (Bottom Sheet / Drawer)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>檢視完整檔案 (View Dossier)</span>
+          </button>
         </div>
 
         <!-- Social Actions Deck -->
@@ -2450,7 +2517,7 @@ const APP = {
       : cleanId.substring(Math.max(0, cleanId.length - 2));
 
     const titleEl = document.getElementById('detail-modal-title');
-    if (titleEl) titleEl.textContent = `弟兄檔案 #${cleanId} ${displayName}`;
+    if (titleEl) titleEl.innerHTML = `<span style="font-family:var(--font-mono); color:var(--tactical-amber);">DOSSIER //</span> #${cleanId} ${this.escapeHtml(displayName)}`;
 
     const bodyEl = document.getElementById('detail-modal-body');
     if (bodyEl) {
@@ -2458,50 +2525,79 @@ const APP = {
       const milHtml = milPhoto ? `<img src="${milPhoto}" alt="大兵照">` : `<span>🪖 ${initials}</span>`;
 
       const civPhoto = member.avatar_civilian;
-      const civHtml = civPhoto ? `<img src="${civPhoto}" alt="私人照">` : `<span>🕶️ ${initials}</span>`;
+      const civHtml = civPhoto ? `<img src="${civPhoto}" alt="便服照">` : `<span>🕶️ ${initials}</span>`;
 
       bodyEl.innerHTML = `
-        <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:0.75rem;">
-          <!-- 3D 翻轉證件照容器 -->
-          <div class="avatar-flip-container" style="width:96px; height:128px;" onclick="APP.toggleCardFlip(this, event, 'detail-${cleanId}')" title="點擊 3D 翻轉 (大兵 ⇋ 便服)">
-            <div class="avatar-flip-card" id="flip-card-detail-${cleanId}">
-              <div class="avatar-face avatar-face-front">${milHtml}</div>
-              <div class="avatar-face avatar-face-back">${civHtml}</div>
+        <div class="bottom-sheet-dossier-wrapper">
+          <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:0.65rem;">
+            <!-- 3D 翻轉證件照容器 (含四角十字標) -->
+            <div class="avatar-flip-container tactical-avatar-frame" style="width:105px; height:140px;" onclick="APP.toggleCardFlip(this, event, 'detail-${cleanId}')" title="點擊 3D 翻轉切換照片 (大兵 ⇋ 便服)">
+              <span class="tactical-crosshair crosshair-tl">+</span>
+              <span class="tactical-crosshair crosshair-tr">+</span>
+              <span class="tactical-crosshair crosshair-bl">+</span>
+              <span class="tactical-crosshair crosshair-br">+</span>
+
+              <div class="avatar-flip-card" id="flip-card-detail-${cleanId}">
+                <div class="avatar-face avatar-face-front">${milHtml}</div>
+                <div class="avatar-face avatar-face-back">${civHtml}</div>
+              </div>
+              <span class="flip-tag-badge flip-tag-front" id="flip-tag-detail-${cleanId}">🪖 大兵</span>
             </div>
-            <span class="flip-tag-badge flip-tag-front" id="flip-tag-detail-${cleanId}">🪖 大兵</span>
-          </div>
 
-          <div style="font-size:0.75rem; color:#64748b; cursor:pointer;" onclick="APP.toggleCardFlip(this.previousElementSibling, event, 'detail-${cleanId}')">
-            🔄 點擊證件照體驗 3D 翻轉 (大兵 ⇋ 便服)
-          </div>
-
-          <div>
-            <h3 style="font-size:1.3rem; font-weight:800;">${this.escapeHtml(displayName)}</h3>
-            <div style="font-size:0.85rem; color:#64748b;">綽號：${this.escapeHtml(member.nickname || '未填寫')}</div>
-          </div>
-
-          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center;">
-            <span class="tag" style="background:var(--primary-light); color:#fff; padding:3px 8px; border-radius:4px; font-size:0.75rem;">第 ${this.toChineseNum(member.squad)} 班</span>
-            <span class="tag" style="background:var(--primary-accent); color:#fff; padding:3px 8px; border-radius:4px; font-size:0.75rem;">第 ${this.toChineseNum(member.room)} 寢</span>
-            <span class="tag" style="background:var(--gold); color:var(--primary-dark); font-weight:800; padding:3px 8px; border-radius:4px; font-size:0.75rem;">🎖️ ${this.escapeHtml(member.duty || '一般兵')}</span>
-          </div>
-
-          ${(member.interests || member.dream) ? `
-            <div style="display:flex; flex-direction:column; gap:0.35rem; width:100%; margin-top:0.4rem; text-align:left; background:#fff; border:1px solid #e2e8f0; border-radius:var(--radius-sm); padding:0.65rem 0.85rem; font-size:0.82rem;">
-              ${member.interests ? `<div><strong style="color:var(--primary-dark);">🎨 個人興趣：</strong>${this.escapeHtml(member.interests)}</div>` : ''}
-              ${member.dream ? `<div><strong style="color:#b45309;">🌟 未來夢想：</strong>${this.escapeHtml(member.dream)}</div>` : ''}
+            <div class="flip-hint-text" style="cursor:pointer;" onclick="APP.toggleCardFlip(this.previousElementSibling, event, 'detail-${cleanId}')">
+              <span>🔄 點擊照片體驗 3D 翻轉 (大兵 ⇋ 便服)</span>
             </div>
-          ` : ''}
-        </div>
 
-        <div style="margin-top:1rem; background:#f8faf9; border-left:3px solid var(--primary-accent); padding:0.85rem; border-radius:var(--radius-sm); font-size:0.88rem; color:#334155; line-height:1.5;">
-          ${this.escapeHtml(member.bio || (hasName ? '結訓快樂！' : '（尚未填寫自我介紹與感言...）'))}
-        </div>
+            <div style="margin-top:0.25rem;">
+              <h3 style="font-size:1.45rem; font-weight:900; color:#ffffff; letter-spacing:0.5px;">${this.escapeHtml(displayName)}</h3>
+              <div class="member-callsign-box" style="margin-top:0.25rem; display:inline-flex;">
+                <span class="callsign-label">CALLSIGN // 綽號:</span>
+                <strong class="callsign-val">${this.escapeHtml(member.nickname || '未填寫')}</strong>
+              </div>
+            </div>
 
-        <div style="margin-top:1rem; display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
-          ${member.ig ? `<button class="btn-social btn-ig" onclick="APP.openInstagram('${this.escapeHtml(member.ig)}')">📸 IG: @${this.escapeHtml(member.ig)}</button>` : ''}
-          ${member.line ? `<button class="btn-social btn-line" onclick="APP.copyToClipboard('${this.escapeHtml(member.line)}', 'LINE ID')">💬 複製 LINE ID</button>` : ''}
-          ${(this.isAdmin() && String(member.id) !== '13055') ? `<button class="btn-admin-reset" onclick="APP.handleAdminResetPassword('${member.id}')">🔑 恢復此弟兄密碼為預設 (學號)</button>` : ''}
+            <!-- 戰術中繼徽章 -->
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin-top:0.35rem;">
+              <span class="dossier-code-chip" style="font-size:0.75rem;">ID #${cleanId}</span>
+              <span class="dossier-squad-chip" style="font-size:0.75rem;">SQD 0${member.squad}・第${this.toChineseNum(member.squad)}班</span>
+              <span class="dossier-room-chip" style="font-size:0.75rem;">RM 0${member.room}・第${this.toChineseNum(member.room)}寢</span>
+              <span class="dossier-duty-tag" style="font-size:0.75rem;">🎖️ ${this.escapeHtml(member.duty || '一般兵')}</span>
+            </div>
+
+            <!-- Bento Specs -->
+            <div class="dossier-bento-grid" style="width:100%; margin-top:0.6rem;">
+              <div class="bento-cell bento-duty">
+                <span class="bento-cell-label">🎖️ RANK / DUTY 職責</span>
+                <span class="bento-cell-val">${this.escapeHtml(member.duty || '一般兵')}</span>
+              </div>
+              ${member.interests ? `
+              <div class="bento-cell bento-interests">
+                <span class="bento-cell-label">🎨 SPECS 專長興趣</span>
+                <span class="bento-cell-val">${this.escapeHtml(member.interests)}</span>
+              </div>` : ''}
+              ${member.dream ? `
+              <div class="bento-cell bento-dream">
+                <span class="bento-cell-label">🌟 TARGET 未來目標</span>
+                <span class="bento-cell-val">${this.escapeHtml(member.dream)}</span>
+              </div>` : ''}
+            </div>
+          </div>
+
+          <!-- 自傳與結訓感言 -->
+          <div class="member-bio dossier-transcript" style="margin-top:1rem;">
+            <div class="transcript-tag">TRANSCRIPT // 結訓感言與個人簡介</div>
+            <div class="transcript-body" style="font-size:0.95rem; line-height:1.6;">
+              ${this.escapeHtml(member.bio || (hasName ? '金六結 153R 1B3C 結訓快樂！江湖相見！' : '（尚未填寫自我介紹與感言...）'))}
+            </div>
+          </div>
+
+          <!-- 社群聯絡與動作 -->
+          <div style="margin-top:1.15rem; display:grid; grid-template-columns:1fr 1fr; gap:0.6rem;">
+            ${member.ig ? `<button class="btn-social btn-ig" onclick="APP.openInstagram('${this.escapeHtml(member.ig)}')">📸 IG: @${this.escapeHtml(member.ig)}</button>` : `<button class="btn-social btn-ig" style="opacity:0.45; cursor:not-allowed;">📸 未填寫 IG</button>`}
+            ${member.line ? `<button class="btn-social btn-line" onclick="APP.copyToClipboard('${this.escapeHtml(member.line)}', 'LINE ID')">💬 複製 LINE ID</button>` : `<button class="btn-social btn-line" style="opacity:0.45; cursor:not-allowed;">💬 未填寫 LINE</button>`}
+            ${(this.currentUser && String(this.currentUser.id) === String(cleanId)) ? `<button class="btn-primary" style="grid-column:1/-1; padding:0.6rem;" onclick="APP.closeModal('modal-member-detail'); APP.openEditProfileModal();">✏️ 編輯我的個人檔案與照片</button>` : ''}
+            ${(this.isAdmin() && String(member.id) !== '13055') ? `<button class="btn-admin-reset" style="grid-column:1/-1;" onclick="APP.handleAdminResetPassword('${member.id}')">🔑 管理員重設此弟兄密碼</button>` : ''}
+          </div>
         </div>
       `;
     }

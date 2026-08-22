@@ -7,16 +7,16 @@
   <meta name="description" content="272梯 陸軍步兵第153旅 步兵第一營第三連 (宜蘭金六結) 官方結訓數位紀念冊與通訊錄">
   <!-- Favicon / 國軍徽章風格圖示 -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎖️</text></svg>">
-  <!-- Google Fonts: Share Tech Mono 戰術中繼資料專用字型 -->
+  <!-- Google Fonts: JetBrains Mono (戰術中繼資料) & Noto Sans TC (清晰繁體中文) & Share Tech Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.0.0">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=3.1.0">
 </head>
 <body>
 
   <!-- ==========================================================================
-       頂部導覽列 (Site Header)
+       頂部導覽列 (Site Header - 戰術固定狀態條)
        ========================================================================== -->
   <header class="site-header">
     <div class="header-container">
@@ -31,8 +31,8 @@
           <h1>
             <span class="brand-title-desktop">272梯 陸軍153旅 1B3C</span>
             <span class="brand-title-mobile">1B3C</span>
-            <span class="tactical-code-badge">[UNIT: 153R-1B-3C]</span>
-            <span class="tactical-status-badge">[STATUS: MISSION ACCOMPLISHED]</span>
+            <span class="tactical-code-badge">[ 153R 1B 3C ]</span>
+            <span class="tactical-status-badge">[ 光榮退伍・任務達成 ]</span>
           </h1>
           <p>步兵第一營第三連 結訓同袍通訊錄</p>
         </div>
@@ -254,36 +254,36 @@
 
           <div class="hero-content">
             <div class="hero-tactical-badges">
-              <span class="tactical-badge-unit">[UNIT: 153R-1B-3C]</span>
-              <span class="tactical-badge-status"><span class="status-pulse-dot"></span>[MISSION ACCOMPLISHED]</span>
-              <span class="tactical-badge-motto">🎖️ 親愛精誠</span>
+              <span class="tactical-badge-unit">[ 153R 1B 3C ]</span>
+              <span class="tactical-badge-status"><span class="status-pulse-dot"></span>[ 光榮退伍・任務達成 ]</span>
+              <span class="tactical-badge-motto">🎖️ 陸軍272梯・金六結</span>
             </div>
-            <h2 class="hero-title">陸軍步兵第153旅 步兵第一營第三連</h2>
-            <div class="hero-dossier-code">DOSSIER // MODERN MILITARY GRADUATION DIRECTORY</div>
+            <h2 class="hero-title">光榮退伍・任務達成</h2>
+            <div class="hero-dossier-code">ROCA 153R-1B-3C // TAIWAN ARMY GRADUATION YEARBOOK</div>
             <p class="hero-desc">
               紀念我們在宜蘭金六結共同揮灑汗水、鑑測行軍、打靶刺槍的迷彩歲月。<br>
               四個月的革命情感，一輩子的真摯兄弟！結訓快樂，江湖再見！
             </p>
             <div class="hero-stats-grid">
               <div class="hero-stat-card">
+                <div class="stat-num">124<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">天</span></div>
+                <div class="stat-label">役期總日數 (8/12~12/13)</div>
+                <div class="stat-sublabel">DAYS SERVED</div>
+              </div>
+              <div class="hero-stat-card">
+                <div class="stat-num">272<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">梯</span></div>
+                <div class="stat-label">常備兵役梯次</div>
+                <div class="stat-sublabel">COHORT BATCH</div>
+              </div>
+              <div class="hero-stat-card">
                 <div class="stat-num" id="stat-members-count">98</div>
-                <div class="stat-label">三連弟兄總數</div>
-                <div class="stat-sublabel">TOTAL MEMBERS</div>
+                <div class="stat-label">三連弟兄同袍</div>
+                <div class="stat-sublabel">PLATOON COHORTS</div>
               </div>
               <div class="hero-stat-card">
                 <div class="stat-num">9</div>
                 <div class="stat-label">建制健全班級</div>
-                <div class="stat-sublabel">ACTIVE SQUADS</div>
-              </div>
-              <div class="hero-stat-card">
-                <div class="stat-num">11</div>
-                <div class="stat-label">現代化寢室</div>
-                <div class="stat-sublabel">LIVING ROOMS</div>
-              </div>
-              <div class="hero-stat-card">
-                <div class="stat-num" id="stat-cadres-count">100</div>
-                <div class="stat-label">長官幹部群</div>
-                <div class="stat-sublabel">OFFICERS & CADRES</div>
+                <div class="stat-sublabel">SQUADS (1~9班)</div>
               </div>
             </div>
           </div>
@@ -373,7 +373,7 @@
         </div>
       </section>
 
-      <!-- 3. 班級名冊專區 (Squad View) -->
+      <!-- 3. 班級名冊專區 (Squad View - 行動優先通訊錄) -->
       <section id="view-squad" class="view-section">
         <div class="section-header">
           <div class="section-header-title">
@@ -392,6 +392,11 @@
               <input type="text" id="member-search-input" placeholder="🔍 跨班級全連搜尋：學號、姓名、公差、綽號、興趣..." oninput="APP.handleSearch(this.value)">
             </div>
           </div>
+        </div>
+
+        <!-- 職位/公差快速篩選橫條 (Duty / Rank Quick Filter) -->
+        <div class="duty-filter-bar" id="duty-filter-bar">
+          <!-- 由 JS renderSquadView 動態產生公差膠囊 -->
         </div>
 
         <!-- 班級快捷切換橫條 (手機與桌面通用) -->
@@ -799,15 +804,16 @@
 
 
 
-  <!-- 6. 弟兄名片詳情彈窗 (Member Detail Modal) -->
-  <div class="modal-overlay" id="modal-member-detail">
-    <div class="modal-card" style="max-width: 420px;">
+  <!-- 6. 弟兄名片詳情彈窗 / 手機版平滑戰術抽屜 (Member Detail Bottom Sheet / Drawer) -->
+  <div class="modal-overlay bottom-sheet-overlay" id="modal-member-detail" onclick="if(event.target===this) APP.closeModal('modal-member-detail')">
+    <div class="modal-card bottom-sheet-card">
+      <div class="bottom-sheet-drag-handle"></div>
       <div class="modal-header">
-        <h3 id="detail-modal-title">弟兄檔案卡</h3>
+        <h3 id="detail-modal-title">📄 同袍戰術檔案 (DOSSIER)</h3>
         <button class="modal-close-btn" onclick="APP.closeModal('modal-member-detail')">&times;</button>
       </div>
       <div class="modal-body" id="detail-modal-body">
-        <!-- 動態渲染弟兄卡片 -->
+        <!-- 動態渲染弟兄詳細檔案卡 -->
       </div>
     </div>
   </div>
@@ -818,9 +824,9 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- 載入核心腳本 (循序載入) -->
-  <script src="js/config.js?v=3.0.0"></script>
-  <script src="js/mockData.js?v=3.0.0"></script>
-  <script src="js/api.js?v=3.0.0"></script>
-  <script src="js/app.js?v=3.0.0"></script>
+  <script src="js/config.js?v=3.1.0"></script>
+  <script src="js/mockData.js?v=3.1.0"></script>
+  <script src="js/api.js?v=3.1.0"></script>
+  <script src="js/app.js?v=3.1.0"></script>
 </body>
 </html>

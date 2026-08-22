@@ -1,64 +1,71 @@
 /* 
  * 272梯 陸軍步兵第153旅 步兵第一營第三連 (153R 1B3C) 紀念冊系統
- * 樣式表 style.css - 現代軍事戰術同袍檔案風格 (Modern Military Tactical Dossier Theme)
+ * 樣式表 style.css - 國軍數位迷彩與現代戰術 HUD 同袍通訊錄 (Taiwan Digital Camo & Tactical HUD)
  */
 
 :root {
-  /* 核心戰術暗黑配色 (Dark Military Tactical Palette) */
-  --tactical-charcoal-dark: #0a0c0b;
-  --tactical-charcoal: #0f1110;
-  --tactical-charcoal-card: #151816;
-  --tactical-charcoal-elevated: #1b201d;
-  --tactical-charcoal-border: #273129;
+  /* 國軍數位迷彩核心配色 (Taiwan Digital Camouflage Palette) */
+  --camo-base: #141a15;              /* Deep Night Green 底色 */
+  --camo-pixel-dark: #2e3d30;       /* 數位迷彩暗綠 */
+  --camo-pixel-mid: #4a5844;        /* 數位迷彩草綠 */
+  --camo-pixel-khaki: #5e5a4d;      /* 數位迷彩卡其泥灰 */
   
-  --tactical-olive: #2d3e2f;
-  --tactical-olive-dark: #1b261d;
-  --tactical-olive-light: #3d5440;
-  --tactical-olive-border: #425845;
+  /* 戰術 HUD 結構色彩 (Modern Tactical HUD Colors) */
+  --tactical-charcoal-dark: #0d120e;
+  --tactical-charcoal: #141a15;
+  --tactical-charcoal-card: #19211b;
+  --tactical-charcoal-elevated: #202b23;
+  --tactical-charcoal-border: #2f3e32;
   
-  --tactical-amber: #e5a93c;
-  --tactical-amber-light: #f5b74c;
-  --tactical-amber-dark: #b87c1f;
-  --tactical-amber-glow: rgba(229, 169, 60, 0.4);
-  --tactical-amber-bg: rgba(229, 169, 60, 0.12);
+  --tactical-olive: #2e3d30;
+  --tactical-olive-dark: #19211b;
+  --tactical-olive-light: #4a5844;
+  --tactical-olive-border: #4a5844;
+  
+  /* 戰術琥珀金 (Tactical Amber - Active Badges & Buttons) */
+  --tactical-amber: #ff9f1c;
+  --tactical-amber-light: #ffb84d;
+  --tactical-amber-dark: #cc7a00;
+  --tactical-amber-glow: rgba(255, 159, 28, 0.45);
+  --tactical-amber-bg: rgba(255, 159, 28, 0.15);
   
   --tactical-green: #22c55e;
   --tactical-green-light: #4ade80;
   --tactical-green-glow: rgba(74, 222, 128, 0.3);
 
   /* 傳統主題向後相容映射 */
-  --primary-dark: #0f1110;
-  --primary: #1b261d;
-  --primary-light: #2d3e2f;
-  --primary-accent: #3d5440;
-  --camo-deep: #141f16;
-  --camo-green: #2b4231;
-  --camo-olive: #435b49;
-  --camo-khaki: #857a60;
+  --primary-dark: #141a15;
+  --primary: #19211b;
+  --primary-light: #2e3d30;
+  --primary-accent: #4a5844;
+  --camo-deep: #141a15;
+  --camo-green: #2e3d30;
+  --camo-olive: #4a5844;
+  --camo-khaki: #5e5a4d;
   --camo-tan: #cfc29e;
   --camo-tan-light: #e8e0cc;
-  --camo-brown: #5c4d3c;
-  --camo-earth: #382e25;
+  --camo-brown: #5e5a4d;
+  --camo-earth: #24221d;
   
   --gold: var(--tactical-amber);
   --gold-light: var(--tactical-amber-light);
   --gold-dark: var(--tactical-amber-dark);
   
-  --bg-main: var(--tactical-charcoal);
+  --bg-main: var(--camo-base);
   --bg-card: var(--tactical-charcoal-card);
-  --bg-sidebar: #0b0e0c;
+  --bg-sidebar: #0f1510;
   --text-main: #f1f5f2;
   --text-muted: #95a798;
   --text-light: #f8fafc;
-  --border-color: rgba(45, 62, 47, 0.75);
-  --border-dark: #1e2820;
-  --border-camo: #3d5440;
+  --border-color: rgba(74, 88, 68, 0.7);
+  --border-dark: #202b23;
+  --border-camo: #4a5844;
   
-  --badge-duty: rgba(45, 62, 47, 0.6);
+  --badge-duty: rgba(46, 61, 48, 0.65);
   --badge-duty-text: var(--tactical-amber-light);
-  --red-seal: #dc2626;
-  --jukuang-green: #1b4332;
-  --jukuang-bg: #131714;
+  --red-seal: #ef4444;
+  --jukuang-green: #193822;
+  --jukuang-bg: #141a15;
   --jukuang-line: #223225;
   --jukuang-margin: #ef4444;
   
@@ -66,9 +73,9 @@
   --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.4);
   
-  /* 字型定義 */
-  --font-mono: 'Share Tech Mono', 'Courier New', 'Consolas', monospace;
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  /* 字型定義: JetBrains Mono / Share Tech Mono (戰術中繼資料) & Noto Sans TC (繁中) */
+  --font-mono: 'JetBrains Mono', 'Share Tech Mono', 'Courier New', 'Consolas', monospace;
+  --font-sans: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif;
   
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -85,17 +92,18 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--tactical-charcoal);
+  background-color: var(--camo-base);
   color: var(--text-main);
-  /* 戰術雷達網格背景 (Tactical HUD Grid) */
+  /* 國軍數位迷彩像素紋理 + 現代戰術 HUD 網格 */
   background-image: 
-    linear-gradient(rgba(45, 62, 47, 0.22) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(45, 62, 47, 0.22) 1px, transparent 1px),
-    radial-gradient(ellipse at 50% 0%, rgba(229, 169, 60, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse at 10% 90%, rgba(45, 62, 47, 0.3) 0%, transparent 50%),
-    radial-gradient(ellipse at 90% 90%, rgba(27, 38, 29, 0.35) 0%, transparent 50%);
-  background-size: 32px 32px, 32px 32px, 100% 100%, 100% 100%, 100% 100%;
-  background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+    linear-gradient(rgba(74, 88, 68, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 88, 68, 0.18) 1px, transparent 1px),
+    radial-gradient(circle at 15% 15%, rgba(46, 61, 48, 0.5) 0%, transparent 45%),
+    radial-gradient(circle at 85% 25%, rgba(94, 90, 77, 0.35) 0%, transparent 40%),
+    radial-gradient(circle at 25% 85%, rgba(74, 88, 68, 0.4) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 0%, rgba(255, 159, 28, 0.08) 0%, transparent 60%);
+  background-size: 24px 24px, 24px 24px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
   line-height: 1.6;
   min-height: 100vh;
   display: flex;
@@ -112,12 +120,12 @@ body::before {
   width: 100%;
   height: 100%;
   background: 
-    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%),
-    linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.01));
+    linear-gradient(rgba(20, 26, 21, 0) 50%, rgba(0, 0, 0, 0.2) 50%),
+    linear-gradient(90deg, rgba(255, 159, 28, 0.005), rgba(74, 222, 128, 0.005));
   background-size: 100% 4px, 6px 100%;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 /* ==========================================================================
@@ -1270,9 +1278,62 @@ body::before {
   font-style: italic;
 }
 
+/* 職位/公差快速篩選橫條 (Duty Quick Filter Bar) */
+.duty-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--tactical-amber) transparent;
+  padding: 0.35rem 0.15rem 0.65rem 0.15rem;
+  margin-bottom: 0.85rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.duty-filter-bar::-webkit-scrollbar {
+  height: 3px;
+}
+.duty-filter-bar::-webkit-scrollbar-thumb {
+  background: var(--tactical-olive-light);
+  border-radius: 4px;
+}
+
+.duty-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.8rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: #cbd5cb;
+  border: 1px solid var(--tactical-olive-border);
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  user-select: none;
+  font-family: var(--font-mono);
+}
+
+.duty-chip:hover {
+  background: rgba(255, 159, 28, 0.15);
+  color: #ffffff;
+  border-color: var(--tactical-amber);
+}
+
+.duty-chip.active {
+  background: var(--tactical-amber);
+  color: var(--tactical-charcoal-dark);
+  border-color: var(--tactical-amber-light);
+  font-weight: 900;
+  box-shadow: 0 0 12px rgba(255, 159, 28, 0.4);
+}
+
 .members-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.25rem;
 }
 
@@ -1293,16 +1354,16 @@ body::before {
 }
 
 .member-card:hover, .tactical-dossier-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   border-color: var(--tactical-amber);
-  box-shadow: 0 8px 24px rgba(229, 169, 60, 0.15), 0 4px 14px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 24px rgba(255, 159, 28, 0.2), 0 4px 14px rgba(0, 0, 0, 0.6);
 }
 
 .member-card.is-current-user {
   border: 2px solid var(--tactical-amber);
   border-top: 4.5px solid var(--tactical-amber) !important;
-  background: linear-gradient(180deg, rgba(229, 169, 60, 0.06) 0%, var(--tactical-charcoal-card) 100%);
-  box-shadow: 0 0 20px rgba(229, 169, 60, 0.25);
+  background: linear-gradient(180deg, rgba(255, 159, 28, 0.08) 0%, var(--tactical-charcoal-card) 100%);
+  box-shadow: 0 0 20px rgba(255, 159, 28, 0.3);
 }
 
 /* HUD Corner Accents on Card */
@@ -1330,7 +1391,7 @@ body::before {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 0.5rem;
-  border-bottom: 1px dashed rgba(45, 62, 47, 0.6);
+  border-bottom: 1px dashed rgba(74, 88, 68, 0.6);
   font-family: var(--font-mono);
   font-size: 0.72rem;
   gap: 0.4rem;
@@ -1344,20 +1405,22 @@ body::before {
 }
 
 .dossier-code-chip {
-  background: rgba(229, 169, 60, 0.15);
+  background: rgba(255, 159, 28, 0.15);
   color: var(--tactical-amber);
-  border: 1px solid rgba(229, 169, 60, 0.35);
+  border: 1px solid rgba(255, 159, 28, 0.4);
   padding: 1px 6px;
   border-radius: 3px;
   font-weight: 700;
+  font-family: var(--font-mono);
 }
 
 .dossier-squad-chip {
-  background: rgba(45, 62, 47, 0.6);
+  background: rgba(46, 61, 48, 0.65);
   color: #cbd5cb;
-  border: 1px solid rgba(61, 84, 64, 0.7);
+  border: 1px solid rgba(74, 88, 68, 0.7);
   padding: 1px 6px;
   border-radius: 3px;
+  font-family: var(--font-mono);
 }
 
 .dossier-room-chip {
@@ -1366,13 +1429,17 @@ body::before {
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 1px 6px;
   border-radius: 3px;
+  font-family: var(--font-mono);
 }
 
-.dossier-verify-chip {
-  color: var(--tactical-green-light);
-  font-size: 0.68rem;
-  letter-spacing: 0.5px;
-  font-weight: 700;
+.dossier-duty-tag {
+  background: var(--tactical-amber);
+  color: var(--tactical-charcoal-dark);
+  font-size: 0.7rem;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
 }
 
 .member-card-header {
@@ -1383,13 +1450,43 @@ body::before {
 
 /* 3D 翻轉頭像容器 (長方形戰術相框 3:4 比例) */
 .avatar-flip-container {
-  width: 78px;
-  height: 104px;
+  width: 80px;
+  height: 106px;
   perspective: 1000px;
   cursor: pointer;
   position: relative;
   flex-shrink: 0;
   border-radius: var(--radius-sm);
+}
+
+/* 四角戰術十字標 (+) Tactical Corner Crosshairs */
+.tactical-avatar-frame {
+  position: relative;
+}
+
+.tactical-crosshair {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--tactical-amber);
+  line-height: 1;
+  pointer-events: none;
+  z-index: 12;
+  text-shadow: 0 0 6px rgba(255, 159, 28, 0.6);
+  opacity: 0.9;
+  transition: var(--transition);
+}
+
+.crosshair-tl { top: -6px; left: -6px; }
+.crosshair-tr { top: -6px; right: -6px; }
+.crosshair-bl { bottom: -6px; left: -6px; }
+.crosshair-br { bottom: -6px; right: -6px; }
+
+.tactical-avatar-frame:hover .tactical-crosshair {
+  color: var(--tactical-amber-light);
+  transform: scale(1.25);
+  opacity: 1;
 }
 
 .avatar-flip-card {
@@ -1419,7 +1516,7 @@ body::before {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   font-size: 0.95rem;
   font-weight: 800;
   padding: 2px;
@@ -1434,7 +1531,7 @@ body::before {
 }
 
 .avatar-face-front {
-  background: linear-gradient(145deg, #1b261d 0%, #0a0d0b 100%);
+  background: linear-gradient(145deg, #19211b 0%, #0d120e 100%);
   color: var(--tactical-amber-light);
   border: 2px solid var(--tactical-amber);
   z-index: 2;
@@ -1545,7 +1642,7 @@ body::before {
   color: var(--tactical-amber);
   font-size: 0.86rem;
   font-weight: 700;
-  text-shadow: 0 0 8px rgba(229, 169, 60, 0.35);
+  text-shadow: 0 0 8px rgba(255, 159, 28, 0.4);
 }
 
 /* Bento Grid 專長與目標方格 (Dossier Bento Grid) */
@@ -1556,8 +1653,8 @@ body::before {
 }
 
 .bento-cell {
-  background: rgba(10, 12, 11, 0.65);
-  border: 1px solid rgba(45, 62, 47, 0.55);
+  background: rgba(13, 18, 14, 0.7);
+  border: 1px solid rgba(74, 88, 68, 0.5);
   border-radius: var(--radius-sm);
   padding: 0.45rem 0.65rem;
   display: flex;
@@ -1581,9 +1678,9 @@ body::before {
 
 /* 結訓感言戰術記錄區塊 (Dossier Transcript) */
 .dossier-transcript {
-  background: rgba(10, 12, 11, 0.7);
-  border: 1px solid rgba(45, 62, 47, 0.5);
-  border-left: 3px solid var(--tactical-olive-border);
+  background: rgba(13, 18, 14, 0.75);
+  border: 1px solid rgba(74, 88, 68, 0.5);
+  border-left: 3px solid var(--tactical-amber);
   border-radius: var(--radius-sm);
   padding: 0.6rem 0.75rem;
 }
@@ -1603,12 +1700,43 @@ body::before {
   line-height: 1.5;
 }
 
+/* 檢視同袍完整戰術檔案按鈕 (View Dossier Action Bar) */
+.member-dossier-action-bar {
+  margin-top: 0.15rem;
+}
+
+.btn-view-dossier {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(255, 159, 28, 0.12) 0%, rgba(46, 61, 48, 0.35) 100%);
+  color: var(--tactical-amber-light);
+  border: 1px solid var(--tactical-amber);
+  border-radius: var(--radius-sm);
+  padding: 0.48rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+  transition: var(--transition);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-view-dossier:hover {
+  background: var(--tactical-amber);
+  color: var(--tactical-charcoal-dark);
+  box-shadow: 0 0 15px rgba(255, 159, 28, 0.4);
+  transform: translateY(-1px);
+}
+
 /* 社交帳號按鈕 (LINE / IG / 編輯) */
 .member-social-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
-  margin-top: 0.25rem;
+  margin-top: 0.15rem;
 }
 
 .btn-social {
@@ -1672,16 +1800,16 @@ body::before {
 
 .btn-edit-self:hover {
   background: var(--tactical-amber-light);
-  box-shadow: 0 0 12px rgba(229, 169, 60, 0.4);
+  box-shadow: 0 0 12px rgba(255, 159, 28, 0.4);
 }
 
 /* 管理員專屬重設密碼按鈕 */
 .btn-admin-reset {
   grid-column: span 2;
   margin-top: 0.35rem;
-  background: #fef2f2;
-  color: #b91c1c;
-  border: 1.5px dashed #f87171;
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1.5px dashed rgba(239, 68, 68, 0.5);
   padding: 0.4rem 0.6rem;
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
@@ -1690,13 +1818,14 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: var(--font-mono);
   gap: 0.35rem;
   transition: var(--transition);
 }
 
 .btn-admin-reset:hover {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.3);
+  color: #fff;
   border-style: solid;
 }
 
@@ -2440,10 +2569,64 @@ body::before {
   color: #ffffff;
 }
 
+/* 手機版平滑戰術抽屜 (Smooth Bottom Sheet / Drawer) */
+.bottom-sheet-overlay {
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-sheet-card {
+  transition: transform 0.35s cubic-bezier(0.32, 1, 0.23, 1), opacity 0.25s ease;
+}
+
+.bottom-sheet-drag-handle {
+  display: none;
+}
+
+.bottom-sheet-dossier-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .bottom-sheet-overlay {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+
+  .bottom-sheet-card {
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 88vh !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    border-bottom: none !important;
+    border-left: 1px solid var(--tactical-olive-border) !important;
+    border-right: 1px solid var(--tactical-olive-border) !important;
+    border-top: 3.5px solid var(--tactical-amber) !important;
+    transform: translateY(100%);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.9) !important;
+  }
+
+  .bottom-sheet-overlay.active .bottom-sheet-card {
+    transform: translateY(0) !important;
+  }
+
+  .bottom-sheet-drag-handle {
+    display: block !important;
+    width: 48px;
+    height: 5px;
+    background: var(--tactical-amber);
+    border-radius: 4px;
+    margin: 10px auto 4px auto;
+    opacity: 0.85;
+    flex-shrink: 0;
+  }
+}
+
 .modal-header {
   background: 
-    radial-gradient(circle at 90% 10%, rgba(229, 169, 60, 0.15) 0%, transparent 40%),
-    linear-gradient(135deg, #090c0a 0%, #141c16 50%, #1e2a20 100%);
+    radial-gradient(circle at 90% 10%, rgba(255, 159, 28, 0.15) 0%, transparent 40%),
+    linear-gradient(135deg, #0d120e 0%, #19211b 50%, #202b23 100%);
   color: #fff;
   padding: 1rem 1.25rem;
   display: flex;
@@ -3249,12 +3432,24 @@ textarea.form-control {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .members-grid, .cadres-grid {
-    grid-template-columns: 1fr;
-  }
-
   .bunks-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* 平板尺寸 (640px ~ 1024px) 雙欄排版 */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .members-grid, .cadres-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+  }
+}
+
+/* 手機尺寸 (w < 640px) 單欄排版 (Mobile First Roster Grid) */
+@media (max-width: 640px) {
+  .members-grid, .cadres-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.85rem !important;
   }
 }
 
