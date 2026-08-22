@@ -251,6 +251,13 @@ const APP = {
 
     return rawTimeline.map((item, idx) => {
       let dateStr = String(item.date || item.date_str || '').trim();
+      if (dateStr.includes('T')) {
+        const dObj = new Date(dateStr);
+        const y = dObj.getFullYear();
+        const m = String(dObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dObj.getDate()).padStart(2, '0');
+        dateStr = `${y}-${m}-${d}`;
+      }
       if (dateStr && !dateStr.includes('-') && !dateStr.includes('/')) {
         dateStr = `2026-${dateStr}`;
       }
@@ -259,7 +266,15 @@ const APP = {
         dateStr = `2026-${dateStr}`;
       }
 
-      const displayDate = String(item.display_date || '').trim() || (dateStr.length >= 10 ? dateStr.substring(5).replace('-', '/') : dateStr);
+      let displayDate = String(item.display_date || '').trim();
+      if (!displayDate || displayDate.includes('T') || displayDate.length > 8) {
+        if (dateStr.length >= 10) {
+          displayDate = dateStr.substring(5).replace('-', '/');
+        } else {
+          displayDate = dateStr;
+        }
+      }
+
       const title = String(item.title || item.name || `軍旅里程碑 #${idx + 1}`).trim();
       const badge = String(item.badge || item.category || '重要日程').trim();
       const description = String(item.description || item.desc || '').trim();
