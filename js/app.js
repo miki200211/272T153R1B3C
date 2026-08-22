@@ -439,10 +439,133 @@ const APP = {
   },
 
   // =========================================================================
+  // 傳奇榜與大兵日記按讚系統 (Likes & Ranking System)
+  // =========================================================================
+
+  // 取得裝置或登入者唯一辨識 ID (用於按讚去重)
+  getVisitorId() {
+    if (this.currentUser && this.currentUser.id) return String(this.currentUser.id).trim();
+    let visitorId = localStorage.getItem('153r1b3c_visitor_id');
+    if (!visitorId) {
+      visitorId = 'visitor_' + Math.random().toString(36).substring(2, 10);
+      localStorage.setItem('153r1b3c_visitor_id', visitorId);
+    }
+    return visitorId;
+  },
+
+  // 取得傳奇項目唯一 Key
+  getLegendKey(legend) {
+    if (!legend) return '';
+    if (legend.legend_id) return `legend_${legend.legend_id}`;
+    return `legend_${String(legend.target_id || '').trim()}_${String(legend.author_id || '').trim()}_${String(legend.title || '').trim()}`;
+  },
+
+  // 取得大兵日記項目唯一 Key
+  getDiaryKey(diary) {
+    if (!diary) return '';
+    if (diary.diary_id) return `diary_${diary.diary_id}`;
+    return `diary_${String(diary.author_id || '').trim()}_${String(diary.title || '').trim()}`;
+  },
+
+  // 取得傳奇按讚數與當前使用者是否已讚
+  getLegendLikes(legend) {
+    const key = this.getLegendKey(legend);
+    const likesMap = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.LEGEND_LIKES) || '{}');
+    const item = likesMap[key] || { count: 0, userIds: [] };
+    const visitorId = this.getVisitorId();
+    const isLiked = Array.isArray(item.userIds) && item.userIds.includes(visitorId);
+    return { count: Number(item.count) || 0, isLiked, key };
+  },
+
+  // 取得日記按讚數與當前使用者是否已讚
+  getDiaryLikes(diary) {
+    const key = this.getDiaryKey(diary);
+    const likesMap = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.DIARY_LIKES) || '{}');
+    const item = likesMap[key] || { count: 0, userIds: [] };
+    const visitorId = this.getVisitorId();
+    const isLiked = Array.isArray(item.userIds) && item.userIds.includes(visitorId);
+    return { count: Number(item.count) || 0, isLiked, key };
+  },
+
+  // 傳奇按讚 / 收回讚
+  async toggleLikeLegend(key, event) {
+    if (event) event.stopPropagation();
+    const visitorId = this.getVisitorId();
+    const likesMap = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.LEGEND_LIKES) || '{}');
+    if (!likesMap[key]) {
+      likesMap[key] = { count: 0, userIds: [] };
+    }
+    if (!Array.isArray(likesMap[key].userIds)) {
+      likesMap[key].userIds = [];
+    }
+    const idx = likesMap[key].userIds.indexOf(visitorId);
+    let isLiked = false;
+    if (idx >= 0) {
+      likesMap[key].userIds.splice(idx, 1);
+      likesMap[key].count = Math.max(0, (likesMap[key].count || 1) - 1);
+      isLiked = false;
+      this.showToast('已收回對這篇傳奇的讚 👍', 'info');
+    } else {
+      likesMap[key].userIds.push(visitorId);
+      likesMap[key].count = (likesMap[key].count || 0) + 1;
+      isLiked = true;
+      this.showToast('🔥 弟兄狂讚！已為這篇傳奇灌入 1 票！', 'success');
+    }
+    localStorage.setItem(CONFIG.STORAGE_KEYS.LEGEND_LIKES, JSON.stringify(likesMap));
+
+    try {
+      API.likeLegend(key, visitorId);
+    } catch (e) {}
+
+    if (this.currentView === 'home') {
+      this.renderHomeView();
+    } else if (this.currentView === 'legends') {
+      this.renderLegendsView();
+    }
+  },
+
+  // 大兵日記按讚 / 收回讚
+  async toggleLikeDiary(key, event) {
+    if (event) event.stopPropagation();
+    const visitorId = this.getVisitorId();
+    const likesMap = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.DIARY_LIKES) || '{}');
+    if (!likesMap[key]) {
+      likesMap[key] = { count: 0, userIds: [] };
+    }
+    if (!Array.isArray(likesMap[key].userIds)) {
+      likesMap[key].userIds = [];
+    }
+    const idx = likesMap[key].userIds.indexOf(visitorId);
+    let isLiked = false;
+    if (idx >= 0) {
+      likesMap[key].userIds.splice(idx, 1);
+      likesMap[key].count = Math.max(0, (likesMap[key].count || 1) - 1);
+      isLiked = false;
+      this.showToast('已收回對這篇日記的讚 ❤️', 'info');
+    } else {
+      likesMap[key].userIds.push(visitorId);
+      likesMap[key].count = (likesMap[key].count || 0) + 1;
+      isLiked = true;
+      this.showToast('❤️ 讚賞心得！輔導長與全連弟兄感謝你的真摯點讚！', 'success');
+    }
+    localStorage.setItem(CONFIG.STORAGE_KEYS.DIARY_LIKES, JSON.stringify(likesMap));
+
+    try {
+      API.likeDiary(key, visitorId);
+    } catch (e) {}
+
+    if (this.currentView === 'home') {
+      this.renderHomeView();
+    } else if (this.currentView === 'diaries') {
+      this.renderDiariesView();
+    }
+  },
+
+  // =========================================================================
   // 畫面渲染邏輯 (View Renderers)
   // =========================================================================
 
-  // 1. 首頁渲染
+  // 1. 首頁渲染 (含人氣按讚最高傳奇與最高大兵日記排版)
   renderHomeView() {
     const homeCadresGrid = document.getElementById('home-cadres-grid');
     if (homeCadresGrid) {
@@ -450,26 +573,60 @@ const APP = {
       homeCadresGrid.innerHTML = topCadres.map(c => this.createCadreCardHtml(c)).join('');
     }
 
-    // 最新傳奇預覽
+    // 依按讚數高低排序傳奇（若按讚數相同則依最新時間排序）
     const latestLegendEl = document.getElementById('home-latest-legend');
     if (latestLegendEl) {
-      if (this.legends && this.legends.length > 0) {
-        const topLegend = this.legends[0];
+      const seenLegendKeys = new Set();
+      const uniqueLegends = [];
+      for (const l of this.legends) {
+        const key = `${String(l.target_id).trim()}_${String(l.author_id).trim()}_${String(l.title).trim()}_${String(l.content).trim()}`;
+        if (!seenLegendKeys.has(key)) {
+          seenLegendKeys.add(key);
+          uniqueLegends.push(l);
+        }
+      }
+
+      uniqueLegends.sort((a, b) => {
+        const likesA = this.getLegendLikes(a).count;
+        const likesB = this.getLegendLikes(b).count;
+        if (likesB !== likesA) return likesB - likesA;
+        return (b.legend_id || 0) - (a.legend_id || 0);
+      });
+
+      if (uniqueLegends.length > 0) {
+        const topLegend = uniqueLegends[0];
+        const likesInfo = this.getLegendLikes(topLegend);
         const targetMember = this.allMembers.find(m => String(m.id) === String(topLegend.target_id));
-        const targetName = targetMember && targetMember.name ? `${targetMember.name}` : `#${topLegend.target_id}`;
+        const targetName = targetMember && targetMember.name ? `${targetMember.name} (第${this.toChineseNum(targetMember.squad)}班)` : `#${topLegend.target_id}`;
+
         latestLegendEl.innerHTML = `
-          <div class="legend-card" style="height: 100%;">
-            <div class="legend-header">
-              <div class="legend-title-group">
-                <h3>⚡ 最新傳奇：${this.escapeHtml(topLegend.title)}</h3>
-                <div class="legend-tags">
-                  <span class="tag-target">主角: @${topLegend.target_id} ${targetName}</span>
-                  <span class="tag-author">爆料: #${topLegend.author_id}</span>
+          <div class="legend-card top-legend-home-card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div class="legend-header">
+                <div class="legend-title-group">
+                  <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
+                    <span class="top-ranked-badge">🏆 弟兄狂讚榜首</span>
+                    <h3 style="margin-bottom: 0;">⚡ ${this.escapeHtml(topLegend.title)}</h3>
+                  </div>
+                  <div class="legend-tags">
+                    <span class="tag-target" onclick="APP.showMemberDetail('${topLegend.target_id}')" style="cursor: pointer;" title="查看傳奇主角檔案">
+                      🎯 主角: @${topLegend.target_id} ${this.escapeHtml(targetName)}
+                    </span>
+                    <span class="tag-author">✍️ 爆料: #${topLegend.author_id}</span>
+                  </div>
                 </div>
+                <span class="legend-date">📅 ${this.formatDateDisplay(topLegend.created_at)}</span>
               </div>
-              <span class="legend-date">${topLegend.created_at || ''}</span>
+              <div class="legend-content">${this.escapeHtml(topLegend.content)}</div>
             </div>
-            <div class="legend-content">${this.escapeHtml(topLegend.content)}</div>
+            <div class="legend-card-footer">
+              <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">🔥 全連獲讚第一名傳奇</span>
+              <button class="btn-like-action ${likesInfo.isLiked ? 'is-liked' : ''}" onclick="APP.toggleLikeLegend('${likesInfo.key}', event)" title="為這篇傳奇點讚">
+                <span class="like-icon">${likesInfo.isLiked ? '🔥' : '👍'}</span>
+                <span class="like-label">${likesInfo.isLiked ? '已狂讚' : '狂讚'}</span>
+                <span class="like-count">(${likesInfo.count})</span>
+              </button>
+            </div>
           </div>
         `;
       } else {
@@ -483,25 +640,56 @@ const APP = {
       }
     }
 
-    // 最新大兵日記預覽
+    // 依按讚數高低排序大兵日記（若按讚數相同則依最新時間排序）
     const latestDiaryEl = document.getElementById('home-latest-diary');
     if (latestDiaryEl) {
-      if (this.diaries && this.diaries.length > 0) {
-        const topDiary = this.diaries[0];
+      const seenDiaryKeys = new Set();
+      const uniqueDiaries = [];
+      for (const d of this.diaries) {
+        const key = `${String(d.author_id).trim()}_${String(d.title).trim()}_${String(d.content).trim()}`;
+        if (!seenDiaryKeys.has(key)) {
+          seenDiaryKeys.add(key);
+          uniqueDiaries.push(d);
+        }
+      }
+
+      uniqueDiaries.sort((a, b) => {
+        const likesA = this.getDiaryLikes(a).count;
+        const likesB = this.getDiaryLikes(b).count;
+        if (likesB !== likesA) return likesB - likesA;
+        return (b.diary_id || 0) - (a.diary_id || 0);
+      });
+
+      if (uniqueDiaries.length > 0) {
+        const topDiary = uniqueDiaries[0];
+        const likesInfo = this.getDiaryLikes(topDiary);
         const authorMember = this.allMembers.find(m => String(m.id) === String(topDiary.author_id));
         const authorName = authorMember && authorMember.name ? authorMember.name : `弟兄 #${topDiary.author_id}`;
+
         latestDiaryEl.innerHTML = `
-          <div class="jukuang-notebook-card" style="height: 100%;">
-            <div class="jukuang-header">
-              <span class="jukuang-title-badge">📖 莒光精選：${this.escapeHtml(topDiary.title)}</span>
-              <span class="jukuang-meta">${topDiary.created_at || ''}</span>
-            </div>
-            <div class="jukuang-page" style="max-height: 140px; overflow: hidden;">
-              <p class="jukuang-entry-content">${this.escapeHtml(topDiary.content)}</p>
+          <div class="jukuang-notebook-card top-diary-home-card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div class="jukuang-header">
+                <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                  <span class="top-ranked-badge" style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);">🏆 莒光熱門第一</span>
+                  <span class="jukuang-title-badge">📖 莒光精選：${this.escapeHtml(topDiary.title)}</span>
+                </div>
+                <span class="jukuang-meta">📅 ${this.formatDateDisplay(topDiary.created_at)}</span>
+              </div>
+              <div class="jukuang-page" style="max-height: 140px; overflow: hidden;">
+                <p class="jukuang-entry-content">${this.escapeHtml(topDiary.content)}</p>
+              </div>
             </div>
             <div class="jukuang-footer">
-              <span class="jukuang-author-info">✍️ 作者：#${topDiary.author_id} (${authorName})</span>
-              <div class="official-seal"><span>連長</span><span>閱</span></div>
+              <span class="jukuang-author-info">✍️ 作者：#${topDiary.author_id} (${this.escapeHtml(authorName)})</span>
+              <div style="display: flex; align-items: center; gap: 0.65rem;">
+                <button class="btn-like-action ${likesInfo.isLiked ? 'is-liked' : ''}" onclick="APP.toggleLikeDiary('${likesInfo.key}', event)" title="為這篇日記點讚">
+                  <span class="like-icon">${likesInfo.isLiked ? '❤️' : '🤍'}</span>
+                  <span class="like-label">${likesInfo.isLiked ? '已點讚' : '點讚'}</span>
+                  <span class="like-count">(${likesInfo.count})</span>
+                </button>
+                <div class="official-seal"><span>連長</span><span>閱</span></div>
+              </div>
             </div>
           </div>
         `;
@@ -1149,7 +1337,7 @@ const APP = {
     `;
   },
 
-  // 5. 傳奇版渲染 (自動前端去重與日期美化)
+  // 5. 傳奇版渲染 (依讚數排行榜呈現，含點讚互動)
   renderLegendsView() {
     const listContainer = document.getElementById('legends-list-container');
     if (!listContainer) return;
@@ -1165,6 +1353,14 @@ const APP = {
       }
     }
 
+    // 依讚數高低降序排列 (若讚數相同則依最新時間排序)
+    uniqueLegends.sort((a, b) => {
+      const likesA = this.getLegendLikes(a).count;
+      const likesB = this.getLegendLikes(b).count;
+      if (likesB !== likesA) return likesB - likesA;
+      return (b.legend_id || 0) - (a.legend_id || 0);
+    });
+
     if (uniqueLegends.length === 0) {
       listContainer.innerHTML = `
         <div style="text-align: center; padding: 3.5rem 1.5rem; background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
@@ -1176,18 +1372,31 @@ const APP = {
       return;
     }
 
-    listContainer.innerHTML = uniqueLegends.map(l => {
+    listContainer.innerHTML = uniqueLegends.map((l, index) => {
+      const likesInfo = this.getLegendLikes(l);
       const targetMember = this.allMembers.find(m => String(m.id) === String(l.target_id));
       const targetName = targetMember && targetMember.name ? `${targetMember.name} (第${this.toChineseNum(targetMember.squad)}班)` : `#${l.target_id}`;
 
       const authorMember = this.allMembers.find(m => String(m.id) === String(l.author_id));
       const authorName = authorMember && authorMember.name ? authorMember.name : `#${l.author_id}`;
 
+      let rankBadgeHtml = '';
+      if (index === 0 && likesInfo.count > 0) {
+        rankBadgeHtml = `<span class="top-ranked-badge rank-badge-top1">🥇 狂讚榜首</span>`;
+      } else if (index === 1 && likesInfo.count > 0) {
+        rankBadgeHtml = `<span class="top-ranked-badge rank-badge-top2">🥈 人氣亞軍</span>`;
+      } else if (index === 2 && likesInfo.count > 0) {
+        rankBadgeHtml = `<span class="top-ranked-badge rank-badge-top3">🥉 人氣季軍</span>`;
+      }
+
       return `
         <div class="legend-card" id="legend-${l.legend_id}">
           <div class="legend-header">
             <div class="legend-title-group">
-              <h3>⚡ ${this.escapeHtml(l.title)}</h3>
+              <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
+                ${rankBadgeHtml}
+                <h3 style="margin-bottom: 0;">⚡ ${this.escapeHtml(l.title)}</h3>
+              </div>
               <div class="legend-tags">
                 <span class="tag-target" onclick="APP.showMemberDetail('${l.target_id}')" style="cursor: pointer;" title="查看傳奇主角檔案">
                   🎯 傳奇主角: @${l.target_id} ${this.escapeHtml(targetName)}
@@ -1200,12 +1409,22 @@ const APP = {
           <div class="legend-content">
             ${this.escapeHtml(l.content)}
           </div>
+          <div class="legend-card-footer">
+            <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">
+              ${likesInfo.count > 0 ? `🔥 獲得 ${likesInfo.count} 位弟兄狂讚認證` : '💬 覺得很神？快點擊狂讚！'}
+            </span>
+            <button class="btn-like-action ${likesInfo.isLiked ? 'is-liked' : ''}" onclick="APP.toggleLikeLegend('${likesInfo.key}', event)" title="為這篇傳奇點讚">
+              <span class="like-icon">${likesInfo.isLiked ? '🔥' : '👍'}</span>
+              <span class="like-label">${likesInfo.isLiked ? '已狂讚' : '狂讚'}</span>
+              <span class="like-count">(${likesInfo.count})</span>
+            </button>
+          </div>
         </div>
       `;
     }).join('');
   },
 
-  // 6. 大兵日記渲染 (莒光作文簿風格，自動前端去重與日期美化)
+  // 6. 大兵日記渲染 (莒光作文簿風格，依讚數排行榜呈現，含點讚互動)
   renderDiariesView() {
     const listContainer = document.getElementById('diaries-list-container');
     if (!listContainer) return;
@@ -1221,6 +1440,14 @@ const APP = {
       }
     }
 
+    // 依讚數高低降序排列
+    uniqueDiaries.sort((a, b) => {
+      const likesA = this.getDiaryLikes(a).count;
+      const likesB = this.getDiaryLikes(b).count;
+      if (likesB !== likesA) return likesB - likesA;
+      return (b.diary_id || 0) - (a.diary_id || 0);
+    });
+
     if (uniqueDiaries.length === 0) {
       listContainer.innerHTML = `
         <div style="text-align: center; padding: 3.5rem 1.5rem; background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
@@ -1232,19 +1459,32 @@ const APP = {
       return;
     }
 
-    listContainer.innerHTML = uniqueDiaries.map(d => {
+    listContainer.innerHTML = uniqueDiaries.map((d, index) => {
+      const likesInfo = this.getDiaryLikes(d);
       const authorMember = this.allMembers.find(m => String(m.id) === String(d.author_id));
       const authorName = authorMember && authorMember.name ? `${authorMember.name} (第${this.toChineseNum(authorMember.squad)}班)` : `弟兄 #${d.author_id}`;
+
+      let rankBadgeHtml = '';
+      if (index === 0 && likesInfo.count > 0) {
+        rankBadgeHtml = `<span class="top-ranked-badge" style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);">🥇 莒光榜首</span>`;
+      } else if (index === 1 && likesInfo.count > 0) {
+        rankBadgeHtml = `<span class="top-ranked-badge" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">🥈 熱門心得</span>`;
+      } else if (index === 2 && likesInfo.count > 0) {
+        rankBadgeHtml = `<span class="top-ranked-badge" style="background: linear-gradient(135deg, #d97706 0%, #b45309 100%);">🥉 弟兄精選</span>`;
+      }
 
       return `
         <div class="jukuang-notebook-card" id="diary-${d.diary_id}">
           <div class="jukuang-header">
-            <span class="jukuang-title-badge">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-              </svg>
-              國軍莒光作文簿・生活心得
-            </span>
+            <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+              ${rankBadgeHtml}
+              <span class="jukuang-title-badge">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                </svg>
+                國軍莒光作文簿・生活心得
+              </span>
+            </div>
             <span class="jukuang-meta">📅 發表時間：${this.formatDateDisplay(d.created_at)}</span>
           </div>
 
@@ -1257,9 +1497,16 @@ const APP = {
             <span class="jukuang-author-info">
               ✍️ 撰寫人：#${d.author_id} ${this.escapeHtml(authorName)}
             </span>
-            <div class="official-seal" title="輔導長 / 連長 官方評閱章">
-              <span>輔導長</span>
-              <span>批閱</span>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <button class="btn-like-action ${likesInfo.isLiked ? 'is-liked' : ''}" onclick="APP.toggleLikeDiary('${likesInfo.key}', event)" title="為這篇心得點讚">
+                <span class="like-icon">${likesInfo.isLiked ? '❤️' : '🤍'}</span>
+                <span class="like-label">${likesInfo.isLiked ? '已點讚' : '點讚'}</span>
+                <span class="like-count">(${likesInfo.count})</span>
+              </button>
+              <div class="official-seal" title="輔導長 / 連長 官方評閱章">
+                <span>輔導長</span>
+                <span>批閱</span>
+              </div>
             </div>
           </div>
         </div>

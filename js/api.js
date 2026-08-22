@@ -276,6 +276,52 @@ const API = {
         return { success: true, data: newDiary, message: '大兵日記發布成功！' };
       }
 
+      case 'likeLegend': {
+        const { id, userId } = payload;
+        const likesMap = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.LEGEND_LIKES) || '{}');
+        const key = String(id);
+        if (!likesMap[key]) {
+          likesMap[key] = { count: 0, userIds: [] };
+        }
+        const uid = String(userId || 'guest');
+        const userIndex = likesMap[key].userIds.indexOf(uid);
+        let isLiked = false;
+        if (userIndex >= 0) {
+          likesMap[key].userIds.splice(userIndex, 1);
+          likesMap[key].count = Math.max(0, likesMap[key].count - 1);
+          isLiked = false;
+        } else {
+          likesMap[key].userIds.push(uid);
+          likesMap[key].count += 1;
+          isLiked = true;
+        }
+        localStorage.setItem(CONFIG.STORAGE_KEYS.LEGEND_LIKES, JSON.stringify(likesMap));
+        return { success: true, isLiked, count: likesMap[key].count, message: isLiked ? '點讚成功！' : '已收回點讚' };
+      }
+
+      case 'likeDiary': {
+        const { id, userId } = payload;
+        const likesMap = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.DIARY_LIKES) || '{}');
+        const key = String(id);
+        if (!likesMap[key]) {
+          likesMap[key] = { count: 0, userIds: [] };
+        }
+        const uid = String(userId || 'guest');
+        const userIndex = likesMap[key].userIds.indexOf(uid);
+        let isLiked = false;
+        if (userIndex >= 0) {
+          likesMap[key].userIds.splice(userIndex, 1);
+          likesMap[key].count = Math.max(0, likesMap[key].count - 1);
+          isLiked = false;
+        } else {
+          likesMap[key].userIds.push(uid);
+          likesMap[key].count += 1;
+          isLiked = true;
+        }
+        localStorage.setItem(CONFIG.STORAGE_KEYS.DIARY_LIKES, JSON.stringify(likesMap));
+        return { success: true, isLiked, count: likesMap[key].count, message: isLiked ? '點讚成功！' : '已收回點讚' };
+      }
+
       case 'resetPassword': {
         const { admin_id, target_id } = payload;
         if (String(admin_id) !== '13055') {
@@ -365,6 +411,14 @@ const API = {
   async addDiary(diaryData) {
     this.invalidateCache();
     return this.sendGasRequest('addDiary', diaryData);
+  },
+
+  async likeLegend(legendId, userId) {
+    return this.sendGasRequest('likeLegend', { id: legendId, userId: userId });
+  },
+
+  async likeDiary(diaryId, userId) {
+    return this.sendGasRequest('likeDiary', { id: diaryId, userId: userId });
   }
 };
 
