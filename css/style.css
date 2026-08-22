@@ -319,13 +319,34 @@ body::before {
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
+.btn-edit-header {
+  background: var(--tactical-amber);
+  color: var(--tactical-charcoal-dark);
+  border: none;
+  padding: 0.22rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-mono);
+  transition: var(--transition);
+}
+
+.btn-edit-header:hover {
+  background: var(--tactical-amber-light);
+  box-shadow: 0 0 10px rgba(255, 159, 28, 0.4);
+}
+
 .btn-logout {
   background: transparent;
   color: #ff9999;
   border: 1px solid rgba(255, 153, 153, 0.4);
-  padding: 0.25rem 0.65rem;
+  padding: 0.22rem 0.6rem;
   border-radius: var(--radius-sm);
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   cursor: pointer;
   transition: var(--transition);
 }

@@ -1251,12 +1251,14 @@ const APP = {
   },
 
   createMemberCardHtml(member) {
-    const isMe = Boolean(this.currentUser && String(this.currentUser.id) === String(member.id));
+    const cleanId = String(member.id ?? '').trim();
+    const isMe = Boolean(this.currentUser && String(this.currentUser.id).trim() === cleanId);
     const isAdmin = this.isAdmin();
-    const displayName = member.name ? member.name : `弟兄 #${member.id}`;
-    const initials = member.name 
-      ? member.name.substring(Math.max(0, member.name.length - 2)) 
-      : member.id.substring(Math.max(0, member.id.length - 2));
+    const memberName = String(member.name ?? '').trim();
+    const displayName = memberName ? memberName : `弟兄 #${cleanId}`;
+    const initials = memberName 
+      ? memberName.substring(Math.max(0, memberName.length - 2)) 
+      : (cleanId ? cleanId.substring(Math.max(0, cleanId.length - 2)) : '弟兄');
 
     // 正面：大兵軍裝照
     const milPhoto = member.avatar_military || member.avatar_url;
@@ -1901,10 +1903,13 @@ const APP = {
     if (!container) return;
 
     if (this.currentUser) {
-      const displayName = this.currentUser.name || `學號 ${this.currentUser.id}`;
-      const initials = this.currentUser.name 
-        ? this.currentUser.name.substring(Math.max(0, this.currentUser.name.length - 2)) 
-        : (this.currentUser.id ? this.currentUser.id.substring(Math.max(0, this.currentUser.id.length - 2)) : '我');
+      const cleanId = String(this.currentUser.id ?? '').trim();
+      const userName = String(this.currentUser.name ?? '').trim();
+      const isCadre = Boolean(this.currentUser.is_cadre || cleanId.toUpperCase().startsWith('1B3C'));
+      const displayName = userName || (isCadre ? `幹部 #${cleanId}` : `學號 #${cleanId}`);
+      const initials = userName 
+        ? userName.substring(Math.max(0, userName.length - 2)) 
+        : (cleanId ? cleanId.substring(Math.max(0, cleanId.length - 2)) : '我');
       const rawPhoto = this.currentUser.avatar_military || this.currentUser.avatar_url || this.currentUser.avatar_civilian;
       const userPhoto = this.formatImageUrl(rawPhoto);
       const avatarHtml = userPhoto 
@@ -1915,11 +1920,12 @@ const APP = {
 
       container.innerHTML = `
         <div class="user-status-bar">
-          <div class="user-avatar-mini">${avatarHtml}</div>
-          <div class="user-status-text">
-            <span class="user-status-prefix">目前登入：</span><strong class="user-status-id">#${this.currentUser.id}</strong><span class="user-status-name"> (${this.escapeHtml(displayName)})</span>
+          <div class="user-avatar-mini" onclick="APP.openEditProfileModal()" style="cursor:pointer;" title="點擊編輯個人資料">${avatarHtml}</div>
+          <div class="user-status-text" onclick="APP.openEditProfileModal()" style="cursor:pointer;" title="點擊編輯個人資料">
+            <span class="user-status-prefix">目前登入：</span><strong class="user-status-id">#${cleanId}</strong><span class="user-status-name"> (${this.escapeHtml(displayName)})</span>
           </div>
           ${adminBadgeHtml}
+          <button class="btn-edit-header" onclick="APP.openEditProfileModal()" title="編輯我的個人檔案與照片">✏️ 編輯</button>
           <button class="btn-logout" onclick="APP.handleLogout()">登出</button>
         </div>
       `;
@@ -1962,37 +1968,53 @@ const APP = {
 
     const result = await API.login(id, password);
     if (result && result.success && result.user) {
-      this.currentUser = result.user;
-      CONFIG.setCurrentUser(result.user);
+      // 確保字串與數值型別完整安全
+      const user = {
+        ...result.user,
+        id: String(result.user.id ?? '').trim(),
+        name: String(result.user.name ?? '').trim(),
+        nickname: String(result.user.nickname ?? '').trim(),
+        squad: Number(result.user.squad) || 1,
+        room: Number(result.user.room) || 1,
+        duty: String(result.user.duty ?? '一般兵').trim(),
+        interests: String(result.user.interests ?? '').trim(),
+        dream: String(result.user.dream ?? '').trim(),
+        ig: String(result.user.ig ?? '').trim(),
+        line: String(result.user.line ?? '').trim(),
+        bio: String(result.user.bio ?? '').trim(),
+        is_cadre: Boolean(result.user.is_cadre || String(result.user.id).toUpperCase().startsWith('1B3C')),
+        needs_password_change: Boolean(result.user.needs_password_change)
+      };
+
+      this.currentUser = user;
+      CONFIG.setCurrentUser(user);
       this.updateAuthUI();
       this.closeModal('modal-login');
       
-      const isCadre = Boolean(result.user.is_cadre || String(result.user.id).toUpperCase().startsWith('1B3C'));
-      const welcomeName = result.user.name ? `${result.user.name} ${isCadre ? '幹部' : '弟兄'}` : `${isCadre ? '幹部' : '弟兄'} #${result.user.id}`;
+      const welcomeName = user.name ? `${user.name} ${user.is_cadre ? '幹部' : '弟兄'}` : `${user.is_cadre ? '幹部' : '弟兄'} #${user.id}`;
 
       // 首次登入檢查：若密碼尚未自訂修改，強制彈出設定新密碼視窗且無法跳過
-      if (result.user.needs_password_change) {
+      if (user.needs_password_change) {
         this.showToast(`歡迎 ${welcomeName}！首次登入請先設定自訂密碼以保障安全。`, 'warning');
         setTimeout(() => {
           this.openForcePasswordModal();
-        }, 400);
+        }, 300);
         return;
       }
 
       this.showToast(`歡迎回來，${welcomeName}！正在為您定位卡片...`, 'success');
 
-      if (isCadre) {
+      if (user.is_cadre) {
         // 幹部自動切換至幹部專區
         this.navigate('cadres');
       } else {
         // 弟兄自動切換至所屬班級
-        const userSquad = Number(result.user.squad) || 1;
-        this.navigate('squad', userSquad);
+        this.navigate('squad', user.squad);
       }
 
       // 平滑滾動至個人卡片並聚焦高亮
       setTimeout(() => {
-        const myCard = document.getElementById(`card-${result.user.id}`);
+        const myCard = document.getElementById(`card-${user.id}`);
         if (myCard) {
           myCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
           myCard.classList.add('highlight-pulse');
@@ -2000,7 +2022,7 @@ const APP = {
         }
 
         // 若尚未填寫姓名，自動彈出編輯視窗引導填寫自介與雙照片
-        if (!result.user.name) {
+        if (!user.name) {
           setTimeout(() => {
             this.openEditProfileModal();
           }, 600);
@@ -2020,19 +2042,25 @@ const APP = {
 
   openForcePasswordModal() {
     if (!this.currentUser) return;
+    const cleanId = String(this.currentUser.id ?? '').trim();
     const accountDisplay = document.getElementById('force-pwd-account-display');
     if (accountDisplay) {
-      const isCadre = Boolean(this.currentUser.is_cadre || String(this.currentUser.id).toUpperCase().startsWith('1B3C'));
+      const isCadre = Boolean(this.currentUser.is_cadre || cleanId.toUpperCase().startsWith('1B3C'));
       const roleLabel = isCadre ? '長官幹部' : '弟兄學號';
       const nameLabel = this.currentUser.name ? ` (${this.currentUser.name})` : '';
-      accountDisplay.value = `${roleLabel} #${this.currentUser.id}${nameLabel}`;
+      accountDisplay.value = `${roleLabel} #${cleanId}${nameLabel}`;
     }
     const newPwd = document.getElementById('force-new-password');
     const confirmPwd = document.getElementById('force-confirm-password');
     if (newPwd) newPwd.value = '';
     if (confirmPwd) confirmPwd.value = '';
     const modal = document.getElementById('modal-force-password-change');
-    if (modal) modal.classList.add('active');
+    if (modal) {
+      modal.classList.add('active');
+      setTimeout(() => {
+        if (newPwd) newPwd.focus();
+      }, 200);
+    }
   },
 
   async handleForcePasswordChange(e) {
@@ -2295,20 +2323,25 @@ const APP = {
       const result = await API.updateProfile(payload);
 
       if (result && result.success) {
-        this.currentUser = result.user || { ...this.currentUser, ...payload };
-        CONFIG.setCurrentUser(this.currentUser);
+        const updatedUser = {
+          ...this.currentUser,
+          ...(result.user || payload),
+          id: String(this.currentUser.id).trim()
+        };
+        this.currentUser = updatedUser;
+        CONFIG.setCurrentUser(updatedUser);
 
         if (isCadre) {
-          const cIdx = this.cadres.findIndex(c => String(c.id).toUpperCase() === String(this.currentUser.id).toUpperCase());
+          const cIdx = this.cadres.findIndex(c => String(c.id).trim().toUpperCase() === String(this.currentUser.id).trim().toUpperCase());
           if (cIdx !== -1) {
-            this.cadres[cIdx] = { ...this.cadres[cIdx], ...this.currentUser };
+            this.cadres[cIdx] = { ...this.cadres[cIdx], ...updatedUser };
           }
           this.renderCadresView();
           this.renderHomeView();
         } else {
-          const mIdx = this.allMembers.findIndex(m => String(m.id) === String(this.currentUser.id));
+          const mIdx = this.allMembers.findIndex(m => String(m.id).trim() === String(this.currentUser.id).trim());
           if (mIdx !== -1) {
-            this.allMembers[mIdx] = { ...this.allMembers[mIdx], ...this.currentUser };
+            this.allMembers[mIdx] = { ...this.allMembers[mIdx], ...updatedUser };
           }
           if (this.currentView === 'squad') this.renderSquadView();
           if (this.currentView === 'room') this.renderRoomView();

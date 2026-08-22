@@ -44,7 +44,11 @@ const CONFIG = {
     const userJson = localStorage.getItem(this.STORAGE_KEYS.AUTH_USER);
     if (!userJson) return null;
     try {
-      return JSON.parse(userJson);
+      const user = JSON.parse(userJson);
+      if (user && user.id != null) {
+        user.id = String(user.id).trim();
+      }
+      return user;
     } catch (e) {
       return null;
     }
@@ -53,7 +57,11 @@ const CONFIG = {
   // 儲存登入使用者
   setCurrentUser(userData) {
     if (userData) {
-      localStorage.setItem(this.STORAGE_KEYS.AUTH_USER, JSON.stringify(userData));
+      const safeData = {
+        ...userData,
+        id: String(userData.id != null ? userData.id : '').trim()
+      };
+      localStorage.setItem(this.STORAGE_KEYS.AUTH_USER, JSON.stringify(safeData));
     } else {
       localStorage.removeItem(this.STORAGE_KEYS.AUTH_USER);
     }
