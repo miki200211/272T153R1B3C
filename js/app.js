@@ -793,41 +793,6 @@ const APP = {
 
     const statStageSub = document.getElementById('hero-stat-stage-sub');
     if (statStageSub) statStageSub.textContent = stage.statStageSub;
-
-    // 4. 役期兩階段視覺化戰術指示條
-    const trackerContainer = document.getElementById('hero-stage-tracker');
-    if (trackerContainer) {
-      const isP1Active = stage.stageCode === 'PHASE1_JINLIUJIE';
-      const isP1Done = stage.stageCode === 'PHASE2_TROOP' || stage.stageCode === 'DISCHARGED';
-      
-      const isP2Active = stage.stageCode === 'PHASE2_TROOP';
-      const isP2Done = stage.stageCode === 'DISCHARGED';
-
-      const isDischarged = stage.stageCode === 'DISCHARGED';
-
-      trackerContainer.innerHTML = `
-        <div class="stage-tracker-header">
-          <span>⚡ 役期兩階段戰訓歷程 (總役期 124 天)</span>
-          <span style="color:var(--tactical-amber); font-weight:700;">當前進度：${stage.progressPercent}%</span>
-        </div>
-        <div class="stage-tracker-steps">
-          <div class="stage-step-pill ${isP1Done ? 'completed' : (isP1Active ? 'active' : 'upcoming')}">
-            <span>${isP1Done ? '✅' : (isP1Active ? '🪖' : '⏳')}</span>
-            <span>前2個月・金六結新訓<br><small style="opacity:0.8; font-size:0.7rem;">(08/12 ~ 10/11)</small></span>
-          </div>
-          <div class="stage-arrow">➔</div>
-          <div class="stage-step-pill ${isP2Done ? 'completed' : (isP2Active ? 'active' : 'upcoming')}">
-            <span>${isP2Done ? '✅' : (isP2Active ? '⚔️' : '⏳')}</span>
-            <span>後2個月・下部隊實務<br><small style="opacity:0.8; font-size:0.7rem;">(10/12 ~ 12/12)</small></span>
-          </div>
-          <div class="stage-arrow">➔</div>
-          <div class="stage-step-pill ${isDischarged ? 'completed active' : 'upcoming'}">
-            <span>${isDischarged ? '🎖️' : '🏁'}</span>
-            <span>光榮退伍・領結訓令<br><small style="opacity:0.8; font-size:0.7rem;">(12/13 任務達成)</small></span>
-          </div>
-        </div>
-      `;
-    }
   },
 
   // 0. 軍旅役期時光軸渲染 (入伍 8/12 ~ 退伍 12/13，懇親日 8/21，支援後台 Google Sheet / Excel 同步自訂)
@@ -840,20 +805,15 @@ const APP = {
     }
 
     // 計算今日日期 (以 YYYY-MM-DD 比較)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // 役期起迄日
-    const startItem = this.timeline[0] || { date: '2026-08-12', display_date: '08/12' };
-    const endItem = this.timeline[this.timeline.length - 1] || { date: '2026-12-13', display_date: '12/13' };
-
-    const startDate = new Date(startItem.date);
-    startDate.setHours(0, 0, 0, 0);
-    const endDate = new Date(endItem.date);
-    endDate.setHours(0, 0, 0, 0);
+    const startDate = new Date(2026, 7, 12);  // 2026-08-12 (入伍)
+    const phase2Date = new Date(2026, 9, 12); // 2026-10-12 (下部隊)
+    const endDate = new Date(2026, 11, 13);   // 2026-12-13 (退伍)
 
     const msPerDay = 1000 * 60 * 60 * 24;
-    const totalDays = Math.max(1, Math.round((endDate - startDate) / msPerDay));
+    const totalDays = 124; // 8/12 ~ 12/13 總役期 124 天
     
     let daysServed = 0;
     let daysRemaining = totalDays;
@@ -869,14 +829,31 @@ const APP = {
       progressPercent = 100;
     } else {
       daysServed = Math.max(1, Math.round((today - startDate) / msPerDay) + 1);
-      daysRemaining = Math.max(0, Math.round((endDate - today) / msPerDay));
+      daysRemaining = Math.max(0, totalDays - daysServed);
       progressPercent = Math.min(100, Math.max(0, Math.round((daysServed / totalDays) * 100)));
     }
 
+    // 役期兩階段狀態判斷 (前2個月金六結新訓 ➔ 後2個月下部隊實務 ➔ 光榮退伍)
+    const isP1Active = today >= startDate && today < phase2Date;
+    const isP1Done = today >= phase2Date;
+    const isP2Active = today >= phase2Date && today < endDate;
+    const isP2Done = today >= endDate;
+    const isDischarged = today >= endDate;
+
+    // 役期起迄日
+    const startItem = this.timeline[0] || { date: '2026-08-12', display_date: '08/12' };
+    const endItem = this.timeline[this.timeline.length - 1] || { date: '2026-12-13', display_date: '12/13' };
+
     // 里程碑 HTML
     const milestonesHtml = this.timeline.map((m, index) => {
-      const mDate = new Date(m.date);
-      mDate.setHours(0, 0, 0, 0);
+      const parts = String(m.date).split('-');
+      let mDate;
+      if (parts.length === 3) {
+        mDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      } else {
+        mDate = new Date(m.date);
+        mDate.setHours(0, 0, 0, 0);
+      }
 
       let statusBadge = '';
       let statusClass = 'status-upcoming';
@@ -925,7 +902,36 @@ const APP = {
             <span class="range-arrow">➔</span>
             <span>懇親 <strong>08/21</strong></span>
             <span class="range-arrow">➔</span>
+            <span>下部隊 <strong>10/12</strong></span>
+            <span class="range-arrow">➔</span>
             <span>退伍 <strong>${endItem.display_date || '12/13'}</strong></span>
+          </div>
+        </div>
+
+        <!-- 役期兩階段戰術受訓歷程 (合併展示於時光軸模組) -->
+        <div class="timeline-stage-stepper">
+          <div class="timeline-stage-pill ${isP1Done ? 'completed' : (isP1Active ? 'active' : 'upcoming')}">
+            <span class="stage-pill-icon">${isP1Done ? '✅' : (isP1Active ? '🪖' : '⏳')}</span>
+            <div class="stage-pill-text">
+              <span class="stage-pill-name">前2個月・金六結新訓</span>
+              <span class="stage-pill-date">08/12 ~ 10/11 ${isP1Active ? '・進行中' : (isP1Done ? '・已結訓' : '')}</span>
+            </div>
+          </div>
+          <div class="stage-flow-arrow">➔</div>
+          <div class="timeline-stage-pill ${isP2Done ? 'completed' : (isP2Active ? 'active' : 'upcoming')}">
+            <span class="stage-pill-icon">${isP2Done ? '✅' : (isP2Active ? '⚔️' : '⏳')}</span>
+            <div class="stage-pill-text">
+              <span class="stage-pill-name">後2個月・下部隊實務</span>
+              <span class="stage-pill-date">10/12 ~ 12/12 ${isP2Active ? '・進行中' : (isP2Done ? '・已結業' : '')}</span>
+            </div>
+          </div>
+          <div class="stage-flow-arrow">➔</div>
+          <div class="timeline-stage-pill ${isDischarged ? 'completed active' : 'upcoming'}">
+            <span class="stage-pill-icon">${isDischarged ? '🎖️' : '🏁'}</span>
+            <div class="stage-pill-text">
+              <span class="stage-pill-name">光榮退伍・領結訓令</span>
+              <span class="stage-pill-date">12/13 任務達成</span>
+            </div>
           </div>
         </div>
 
