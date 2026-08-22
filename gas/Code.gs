@@ -51,6 +51,12 @@ function doPost(e) {
       case 'addDiary':
         result = handleAddDiary(requestData);
         break;
+      case 'getTimeline':
+        result = handleGetTimeline();
+        break;
+      case 'initTimelineSheet':
+        result = handleInitTimelineSheet();
+        break;
       case 'resetPassword':
         result = handleResetPassword(requestData);
         break;
@@ -215,13 +221,27 @@ function handleGetAllData() {
   legends.sort((a, b) => (b.legend_id || 0) - (a.legend_id || 0));
   diaries.sort((a, b) => (b.diary_id || 0) - (a.diary_id || 0));
 
+  // 讀取 Timeline 時間軸工作表 (若不存在則自動初始化建立並寫入預設 6 個里程碑)
+  let timelineSheet = ss.getSheetByName('Timeline');
+  if (!timelineSheet) {
+    timelineSheet = initTimelineSheet(ss);
+  }
+  const timeline = getSheetDataAsObjects(timelineSheet).map(t => {
+    if (t.date && typeof t.date === 'object' && t.date.toISOString) {
+      t.date = Utilities.formatDate(t.date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    }
+    return t;
+  });
+  timeline.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
   return {
     success: true,
     data: {
       members,
       cadres,
       legends,
-      diaries
+      diaries,
+      timeline
     }
   };
 }
@@ -732,8 +752,66 @@ function setupDatabase(targetSs) {
   diarySheet.appendRow(diaryHeaders);
   formatHeaderRow(diarySheet);
 
+  // 5. 初始化 Timeline 時間軸表 (預設寫入 8/12 入伍 ~ 12/13 退伍等重要里程碑)
+  initTimelineSheet(ss);
+
   SpreadsheetApp.flush();
   Logger.log('✅ 資料庫已成功初始化完成！');
+}
+
+/**
+ * 初始化 Timeline 時間軸工作表並填入預設重要日程
+ */
+function initTimelineSheet(targetSs) {
+  const ss = targetSs || getDatabaseSpreadsheet();
+  if (!ss) return null;
+
+  let timelineSheet = ss.getSheetByName('Timeline');
+  if (!timelineSheet) {
+    timelineSheet = ss.insertSheet('Timeline');
+  } else {
+    timelineSheet.clear();
+  }
+
+  const timelineHeaders = ['id', 'date', 'display_date', 'title', 'badge', 'description', 'icon', 'type'];
+  timelineSheet.appendRow(timelineHeaders);
+  formatHeaderRow(timelineSheet);
+
+  const defaultTimelineRows = [
+    [1, '2026-08-12', '08/12', '入伍入營・金六結報到', '入伍日', '272梯新兵抵達宜蘭金六結營區，步一營第三連正式成軍！', '🪖', 'start'],
+    [2, '2026-08-21', '08/21', '軍民同樂・家屬懇親日', '懇親日', '入伍首週家屬懇親探訪，感謝家人溫暖陪伴與支持！', '👨‍👩‍👧‍👦', 'event'],
+    [3, '2026-09-15', '09/15', '期末鑑測・榮譽測驗', '期末鑑測', '刺槍術、手榴彈投擲、三千公尺跑步與實彈射擊總驗收！', '🎯', 'milestone'],
+    [4, '2026-10-10', '10/10', '專長訓練・第二階段', '二階段訓', '專業兵科戰術與部隊實務操作，精進戰技同甘共苦！', '⚡', 'training'],
+    [5, '2026-11-20', '11/20', '行軍宿營・野外演訓', '野外演訓', '全連長途行軍鍛鍊體魄，凝聚堅定不移的革命情感！', '🥾', 'march'],
+    [6, '2026-12-13', '12/13', '光榮結訓・光榮退伍', '退伍日', '四個月役期圓滿達成！領取結訓令，三連兄弟江湖再見！', '🎖️', 'end']
+  ];
+
+  timelineSheet.getRange(2, 1, defaultTimelineRows.length, timelineHeaders.length).setValues(defaultTimelineRows);
+  SpreadsheetApp.flush();
+  return timelineSheet;
+}
+
+function handleInitTimelineSheet() {
+  const ss = getDatabaseSpreadsheet();
+  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+  const sheet = initTimelineSheet(ss);
+  return { success: true, message: 'Timeline 時間軸工作表已成功建立並填入預設資料！' };
+}
+
+function handleGetTimeline() {
+  const ss = getDatabaseSpreadsheet();
+  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+  let sheet = ss.getSheetByName('Timeline');
+  if (!sheet) {
+    sheet = initTimelineSheet(ss);
+  }
+  const timeline = getSheetDataAsObjects(sheet).map(t => {
+    if (t.date && typeof t.date === 'object' && t.date.toISOString) {
+      t.date = Utilities.formatDate(t.date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    }
+    return t;
+  });
+  return { success: true, data: timeline };
 }
 
 function formatHeaderRow(sheet) {
