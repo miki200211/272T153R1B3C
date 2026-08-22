@@ -689,6 +689,318 @@ body {
 }
 
 /* ==========================================================================
+   軍旅役期時光軸 (Military Timeline - 8/12入伍 ~ 12/13退伍)
+   ========================================================================== */
+.military-timeline-section {
+  margin-bottom: 2.25rem;
+}
+
+.timeline-panel {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid #cbd5cb;
+  border-top: 4.5px solid var(--gold);
+  box-shadow: 0 4px 14px rgba(16, 25, 18, 0.08);
+  padding: 1.75rem 1.75rem 2rem 1.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1.5px solid #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+
+.timeline-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.timeline-flag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: linear-gradient(135deg, #101c13 0%, #223a28 100%);
+  color: var(--gold-light);
+  border: 1px solid var(--gold);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 800;
+  width: fit-content;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.timeline-main-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--primary-dark);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.timeline-date-range {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  color: #475569;
+  font-weight: 700;
+}
+
+.timeline-date-range strong {
+  color: var(--primary-dark);
+}
+
+.timeline-date-range .range-arrow {
+  color: var(--gold-dark);
+  font-weight: 900;
+}
+
+/* 役期動態進度儀表板 */
+.service-progress-card {
+  background: 
+    radial-gradient(circle at 90% 10%, rgba(212, 175, 55, 0.12) 0%, transparent 40%),
+    linear-gradient(135deg, #0e1710 0%, #1c2e21 100%);
+  color: #ffffff;
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.service-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.service-stat-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.service-stat-label {
+  font-size: 0.75rem;
+  color: var(--camo-tan);
+  font-weight: 700;
+}
+
+.service-stat-val {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.service-stat-val.text-gold {
+  color: var(--gold-light);
+  font-size: 1.25rem;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+}
+
+.service-progress-track {
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.service-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #f59e0b 60%, #eab308 100%);
+  border-radius: var(--radius-full);
+  position: relative;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.service-progress-glow {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  background: #ffffff;
+  box-shadow: 0 0 12px #ffffff;
+  border-radius: var(--radius-full);
+}
+
+/* 時間軸節點列表 (卡片軌道) */
+.timeline-steps-track {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  position: relative;
+}
+
+.timeline-step-item {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.timeline-step-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.09);
+}
+
+/* 狀態區分：已達成 / 今日 / 倒數中 */
+.timeline-step-item.status-completed {
+  border-color: #86efac;
+  background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+}
+
+.timeline-step-item.status-completed .timeline-node-icon {
+  background: #22c55e;
+  color: #ffffff;
+  border-color: #16a34a;
+}
+
+.timeline-step-item.status-today {
+  border-color: var(--gold);
+  border-width: 2px;
+  background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.25);
+}
+
+.timeline-step-item.status-today .timeline-node-icon {
+  background: var(--gold);
+  color: var(--primary-dark);
+  border-color: #b45309;
+  animation: pulseGold 2s infinite;
+}
+
+@keyframes pulseGold {
+  0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.6); }
+  70% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+}
+
+.timeline-step-item.status-upcoming {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.timeline-step-item.status-upcoming .timeline-node-icon {
+  background: #e2e8f0;
+  color: #475569;
+  border-color: #94a3b8;
+}
+
+.timeline-node-marker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.timeline-node-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.timeline-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.timeline-date-capsule {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.timeline-date-capsule .date-num {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--primary-dark);
+}
+
+.milestone-badge {
+  background: rgba(43, 66, 49, 0.12);
+  color: var(--primary-dark);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(43, 66, 49, 0.2);
+}
+
+.milestone-status-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+}
+
+.milestone-status-tag.tag-completed {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.milestone-status-tag.tag-today {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+}
+
+.milestone-status-tag.tag-upcoming {
+  background: #e2e8f0;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.timeline-card-title {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--primary-dark);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.timeline-card-desc {
+  font-size: 0.84rem;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ==========================================================================
    2. 幹部專區 (Cadres Section)
    ========================================================================== */
 .cadres-grid {

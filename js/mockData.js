@@ -70,6 +70,70 @@ const MOCK_DATA = {
   // 大兵日記初始資料 (清空由弟兄自行撰寫)
   diaries: [],
 
+  // 軍旅役期重要里程碑時間軸 (預設 8/12 入伍 ~ 12/13 退伍，8/21 懇親日，可由後台 Google Sheet / Excel 同步自訂)
+  timeline: [
+    {
+      id: 1,
+      date: '2026-08-12',
+      display_date: '08/12',
+      title: '入伍入營・金六結報到',
+      badge: '入伍日',
+      description: '272梯新兵抵達宜蘭金六結營區，步一營第三連正式成軍！',
+      icon: '🪖',
+      type: 'start'
+    },
+    {
+      id: 2,
+      date: '2026-08-21',
+      display_date: '08/21',
+      title: '軍民同樂・家屬懇親日',
+      badge: '懇親日',
+      description: '入伍首週家屬懇親探訪，感謝家人溫暖陪伴與支持！',
+      icon: '👨‍👩‍👧‍👦',
+      type: 'event'
+    },
+    {
+      id: 3,
+      date: '2026-09-15',
+      display_date: '09/15',
+      title: '期末鑑測・榮譽測驗',
+      badge: '期末鑑測',
+      description: '刺槍術、手榴彈投擲、三千公尺跑步與實彈射擊總驗收！',
+      icon: '🎯',
+      type: 'milestone'
+    },
+    {
+      id: 4,
+      date: '2026-10-10',
+      display_date: '10/10',
+      title: '專長訓練・第二階段',
+      badge: '二階段訓',
+      description: '專業兵科戰術與部隊實務操作，精進戰技同甘共苦！',
+      icon: '⚡',
+      type: 'training'
+    },
+    {
+      id: 5,
+      date: '2026-11-20',
+      display_date: '11/20',
+      title: '行軍宿營・野外演訓',
+      badge: '野外演訓',
+      description: '全連長途行軍鍛鍊體魄，凝聚堅定不移的革命情感！',
+      icon: '🥾',
+      type: 'march'
+    },
+    {
+      id: 6,
+      date: '2026-12-13',
+      display_date: '12/13',
+      title: '光榮結訓・光榮退伍',
+      badge: '退伍日',
+      description: '四個月役期圓滿達成！領取結訓令，三連兄弟江湖再見！',
+      icon: '🎖️',
+      type: 'end'
+    }
+  ],
+
   // 產生 98 位弟兄空白資料 (13001 ~ 13098)
   getInitialMembers() {
     const members = [];

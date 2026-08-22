@@ -21,7 +21,8 @@ const CONFIG = {
     DIARIES_CACHE: '153r1b3c_diaries_data',
     CADRES_CACHE: '153r1b3c_cadres_data',
     LEGEND_LIKES: '153r1b3c_legend_likes',
-    DIARY_LIKES: '153r1b3c_diary_likes'
+    DIARY_LIKES: '153r1b3c_diary_likes',
+    TIMELINE_CACHE: '153r1b3c_timeline_data'
   },
 
   // 取得目前有效的 GAS API 網址

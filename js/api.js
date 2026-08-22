@@ -322,6 +322,11 @@ const API = {
         return { success: true, isLiked, count: likesMap[key].count, message: isLiked ? '點讚成功！' : '已收回點讚' };
       }
 
+      case 'getTimeline': {
+        const timeline = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.TIMELINE_CACHE) || 'null') || MOCK_DATA.timeline || [];
+        return { success: true, data: timeline };
+      }
+
       case 'resetPassword': {
         const { admin_id, target_id } = payload;
         if (String(admin_id) !== '13055') {
@@ -419,6 +424,10 @@ const API = {
 
   async likeDiary(diaryId, userId) {
     return this.sendGasRequest('likeDiary', { id: diaryId, userId: userId });
+  },
+
+  async getTimeline() {
+    return this.sendGasRequest('getTimeline');
   }
 };
 

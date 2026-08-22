@@ -170,6 +170,7 @@ const APP = {
   cadres: [],
   legends: [],
   diaries: [],
+  timeline: [],
   searchQuery: '',
   tempMilitaryAvatarBase64: null,
   tempCivilianAvatarBase64: null,
@@ -242,6 +243,42 @@ const APP = {
     }));
   },
 
+  // 時間軸資料安全正規化與排序處理 (支援後台 Google Sheet / Excel 同步自訂)
+  normalizeTimeline(rawTimeline) {
+    if (!Array.isArray(rawTimeline) || rawTimeline.length === 0) {
+      rawTimeline = MOCK_DATA.timeline || [];
+    }
+
+    return rawTimeline.map((item, idx) => {
+      let dateStr = String(item.date || item.date_str || '').trim();
+      if (dateStr && !dateStr.includes('-') && !dateStr.includes('/')) {
+        dateStr = `2026-${dateStr}`;
+      }
+      dateStr = dateStr.replace(/\//g, '-');
+      if (dateStr.length <= 5 && dateStr.includes('-')) {
+        dateStr = `2026-${dateStr}`;
+      }
+
+      const displayDate = String(item.display_date || '').trim() || (dateStr.length >= 10 ? dateStr.substring(5).replace('-', '/') : dateStr);
+      const title = String(item.title || item.name || `軍旅里程碑 #${idx + 1}`).trim();
+      const badge = String(item.badge || item.category || '重要日程').trim();
+      const description = String(item.description || item.desc || '').trim();
+      const icon = String(item.icon || (idx === 0 ? '🪖' : (idx === rawTimeline.length - 1 ? '🎖️' : '🎯'))).trim();
+      const type = String(item.type || (idx === 0 ? 'start' : (idx === rawTimeline.length - 1 ? 'end' : 'milestone'))).trim();
+
+      return {
+        id: item.id || idx + 1,
+        date: dateStr,
+        display_date: displayDate,
+        title,
+        badge,
+        description,
+        icon,
+        type
+      };
+    }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  },
+
   // 載入所有資料庫資料
   async loadAllData() {
     try {
@@ -251,12 +288,14 @@ const APP = {
         this.cadres = this.normalizeCadres(response.data.cadres);
         this.legends = response.data.legends || [];
         this.diaries = response.data.diaries || [];
+        this.timeline = this.normalizeTimeline(response.data.timeline || response.data.milestones || MOCK_DATA.timeline);
       } else {
         // 降級為 MOCK_DATA
         this.allMembers = this.normalizeMembers(MOCK_DATA.getInitialMembers());
         this.cadres = this.normalizeCadres(MOCK_DATA.getInitialCadres());
         this.legends = MOCK_DATA.legends || [];
         this.diaries = MOCK_DATA.diaries || [];
+        this.timeline = this.normalizeTimeline(MOCK_DATA.timeline);
       }
     } catch (e) {
       console.warn('載入資料異常，啟用預設資料庫:', e);
@@ -264,6 +303,7 @@ const APP = {
       this.cadres = this.normalizeCadres(MOCK_DATA.getInitialCadres());
       this.legends = MOCK_DATA.legends || [];
       this.diaries = MOCK_DATA.diaries || [];
+      this.timeline = this.normalizeTimeline(MOCK_DATA.timeline);
     }
 
     // 更新首頁統計數字
@@ -565,8 +605,145 @@ const APP = {
   // 畫面渲染邏輯 (View Renderers)
   // =========================================================================
 
-  // 1. 首頁渲染 (含人氣按讚最高傳奇與最高大兵日記排版)
+  // 0. 軍旅役期時光軸渲染 (入伍 8/12 ~ 退伍 12/13，懇親日 8/21，支援後台 Google Sheet / Excel 同步自訂)
+  renderTimeline() {
+    const container = document.getElementById('military-timeline-section');
+    if (!container) return;
+
+    if (!this.timeline || this.timeline.length === 0) {
+      this.timeline = this.normalizeTimeline(MOCK_DATA.timeline);
+    }
+
+    // 計算今日日期 (以 YYYY-MM-DD 比較)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 役期起迄日
+    const startItem = this.timeline[0] || { date: '2026-08-12', display_date: '08/12' };
+    const endItem = this.timeline[this.timeline.length - 1] || { date: '2026-12-13', display_date: '12/13' };
+
+    const startDate = new Date(startItem.date);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(endItem.date);
+    endDate.setHours(0, 0, 0, 0);
+
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const totalDays = Math.max(1, Math.round((endDate - startDate) / msPerDay));
+    
+    let daysServed = 0;
+    let daysRemaining = totalDays;
+    let progressPercent = 0;
+
+    if (today < startDate) {
+      daysServed = 0;
+      daysRemaining = totalDays;
+      progressPercent = 0;
+    } else if (today >= endDate) {
+      daysServed = totalDays;
+      daysRemaining = 0;
+      progressPercent = 100;
+    } else {
+      daysServed = Math.max(1, Math.round((today - startDate) / msPerDay) + 1);
+      daysRemaining = Math.max(0, Math.round((endDate - today) / msPerDay));
+      progressPercent = Math.min(100, Math.max(0, Math.round((daysServed / totalDays) * 100)));
+    }
+
+    // 里程碑 HTML
+    const milestonesHtml = this.timeline.map((m, index) => {
+      const mDate = new Date(m.date);
+      mDate.setHours(0, 0, 0, 0);
+
+      let statusBadge = '';
+      let statusClass = 'status-upcoming';
+
+      if (today > mDate) {
+        statusBadge = '<span class="milestone-status-tag tag-completed">✅ 已達成</span>';
+        statusClass = 'status-completed';
+      } else if (today.getTime() === mDate.getTime()) {
+        statusBadge = '<span class="milestone-status-tag tag-today">🔥 今日進行中</span>';
+        statusClass = 'status-today';
+      } else {
+        const daysDiff = Math.ceil((mDate - today) / msPerDay);
+        statusBadge = `<span class="milestone-status-tag tag-upcoming">⏳ 倒數 ${daysDiff} 天</span>`;
+        statusClass = 'status-upcoming';
+      }
+
+      return `
+        <div class="timeline-step-item ${statusClass}" data-step="${index + 1}">
+          <div class="timeline-node-marker">
+            <div class="timeline-node-icon">${m.icon}</div>
+          </div>
+          <div class="timeline-card">
+            <div class="timeline-card-header">
+              <div class="timeline-date-capsule">
+                <span class="date-num">📅 ${this.escapeHtml(m.display_date)}</span>
+                <span class="milestone-badge">${this.escapeHtml(m.badge)}</span>
+              </div>
+              ${statusBadge}
+            </div>
+            <h4 class="timeline-card-title">${this.escapeHtml(m.title)}</h4>
+            <p class="timeline-card-desc">${this.escapeHtml(m.description)}</p>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="timeline-panel">
+        <div class="timeline-header-bar">
+          <div class="timeline-title-wrap">
+            <div class="timeline-flag-badge">🎖️ 272梯・軍旅役期時光軸</div>
+            <h3 class="timeline-main-title">從金六結入伍到光榮退伍・重要里程碑動態</h3>
+          </div>
+          <div class="timeline-date-range">
+            <span>入伍 <strong>${startItem.display_date || '08/12'}</strong></span>
+            <span class="range-arrow">➔</span>
+            <span>懇親 <strong>08/21</strong></span>
+            <span class="range-arrow">➔</span>
+            <span>退伍 <strong>${endItem.display_date || '12/13'}</strong></span>
+          </div>
+        </div>
+
+        <!-- 役期動態進度儀表板 -->
+        <div class="service-progress-card">
+          <div class="service-stats-row">
+            <div class="service-stat-box">
+              <span class="service-stat-label">📅 入伍日期</span>
+              <strong class="service-stat-val">${startItem.date.replace(/-/g, '/')}</strong>
+            </div>
+            <div class="service-stat-box highlight-box">
+              <span class="service-stat-label">⏰ 役期倒數</span>
+              <strong class="service-stat-val text-gold">${daysRemaining === 0 ? '🎉 光榮結訓' : `剩餘 ${daysRemaining} 天`}</strong>
+            </div>
+            <div class="service-stat-box">
+              <span class="service-stat-label">🎖️ 退伍日期</span>
+              <strong class="service-stat-val">${endItem.date.replace(/-/g, '/')}</strong>
+            </div>
+            <div class="service-stat-box">
+              <span class="service-stat-label">📊 役期進度</span>
+              <strong class="service-stat-val">${progressPercent}% (${daysServed}/${totalDays}天)</strong>
+            </div>
+          </div>
+          <div class="service-progress-track">
+            <div class="service-progress-fill" style="width: ${progressPercent}%;">
+              <span class="service-progress-glow"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 時間軸節點列表 -->
+        <div class="timeline-steps-track">
+          ${milestonesHtml}
+        </div>
+      </div>
+    `;
+  },
+
+  // 1. 首頁渲染 (含時光軸、人氣按讚最高傳奇與最高大兵日記排版)
   renderHomeView() {
+    // 渲染軍旅役期時光軸
+    this.renderTimeline();
+
     const homeCadresGrid = document.getElementById('home-cadres-grid');
     if (homeCadresGrid) {
       const topCadres = this.cadres.slice(0, 3);
