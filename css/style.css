@@ -3271,6 +3271,35 @@ textarea.form-control {
   color: var(--primary-dark);
 }
 
+.interaction-selector-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 480px) {
+  .interaction-selector-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+.interaction-selector-card {
+  padding: 1.35rem 1rem !important;
+  border-radius: var(--radius-lg) !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.interaction-selector-icon {
+  font-size: 2.35rem;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
 /* ==========================================================================
    13. 金六結新生活大樓（南屏樓）專題展示卡片 (Dormitory Feature Card)
    ========================================================================== */

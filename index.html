@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.3.2">
+  <link rel="stylesheet" href="css/style.css?v=3.3.3">
 </head>
 <body>
 
@@ -516,9 +516,9 @@
       <span class="bottom-icon">🛏️</span>
       <span class="bottom-label">寢室</span>
     </button>
-    <button class="mobile-bottom-btn" data-bottom-nav="diaries" onclick="APP.navigate('diaries')">
-      <span class="bottom-icon">📖</span>
-      <span class="bottom-label">日記</span>
+    <button class="mobile-bottom-btn" data-bottom-nav="interaction" onclick="APP.handleMobileInteractionNav()">
+      <span class="bottom-icon">🔥</span>
+      <span class="bottom-label">互動區</span>
     </button>
   </nav>
 
@@ -563,6 +563,27 @@
       <div class="modal-body selector-modal-body">
         <div class="selector-grid" id="room-selector-grid">
           <!-- 1~11 寢選項由 JS 動態渲染 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 0.3 選擇互動專區彈窗 (Interaction Selector Modal / Bottom Sheet) -->
+  <div class="modal-overlay selector-modal-overlay" id="modal-select-interaction">
+    <div class="modal-card selector-modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1.3rem;">🔥</span>
+          <div>
+            <h3 style="margin: 0; font-size: 1.05rem;">選擇連隊互動專區</h3>
+            <p style="margin: 0; font-size: 0.75rem; opacity: 0.85;">爆料傳奇事蹟・撰寫大兵日記心得</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="APP.closeModal('modal-select-interaction')">&times;</button>
+      </div>
+      <div class="modal-body selector-modal-body">
+        <div class="interaction-selector-grid" id="interaction-selector-grid">
+          <!-- 傳奇版 & 大兵日記 選項由 JS 動態渲染 -->
         </div>
       </div>
     </div>
@@ -833,9 +854,9 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- 載入核心腳本 (循序載入) -->
-  <script src="js/config.js?v=3.3.2"></script>
-  <script src="js/mockData.js?v=3.3.2"></script>
-  <script src="js/api.js?v=3.3.2"></script>
-  <script src="js/app.js?v=3.3.2"></script>
+  <script src="js/config.js?v=3.3.3"></script>
+  <script src="js/mockData.js?v=3.3.3"></script>
+  <script src="js/api.js?v=3.3.3"></script>
+  <script src="js/app.js?v=3.3.3"></script>
 </body>
 </html>

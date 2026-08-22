@@ -355,9 +355,13 @@ const APP = {
     // 更新側邊欄按鈕 active 樣式
     document.querySelectorAll('.nav-item-btn').forEach(btn => btn.classList.remove('active'));
 
-    // 更新手機版底部快捷導覽 active 樣式
+    // 更新手機版底部快捷導覽 active 樣式 (傳奇版與大兵日記均對應「互動區」)
     document.querySelectorAll('.mobile-bottom-btn').forEach(btn => btn.classList.remove('active'));
-    const bottomBtn = document.querySelector(`.mobile-bottom-btn[data-bottom-nav="${viewName}"]`);
+    let bottomNavTarget = viewName;
+    if (viewName === 'legends' || viewName === 'diaries') {
+      bottomNavTarget = 'interaction';
+    }
+    const bottomBtn = document.querySelector(`.mobile-bottom-btn[data-bottom-nav="${bottomNavTarget}"]`);
     if (bottomBtn) bottomBtn.classList.add('active');
 
     if (viewName !== 'squad' || param !== null) {
@@ -496,6 +500,51 @@ const APP = {
   selectRoom(roomNum) {
     this.closeModal('modal-select-room');
     this.navigate('room', roomNum);
+  },
+
+  handleMobileInteractionNav() {
+    this.openInteractionSelector();
+  },
+
+  openInteractionSelector() {
+    const grid = document.getElementById('interaction-selector-grid');
+    if (grid) {
+      const items = [
+        {
+          view: 'legends',
+          icon: '⚡',
+          title: '傳奇版',
+          subtitle: '三連英雄事蹟・狂讚排行榜',
+          badge: `${this.legends.length} 則事蹟`
+        },
+        {
+          view: 'diaries',
+          icon: '📖',
+          title: '大兵日記',
+          subtitle: '軍旅心得隨筆・真摯圖文紀錄',
+          badge: `${this.diaries.length} 篇日記`
+        }
+      ];
+
+      grid.innerHTML = items.map(item => {
+        const isActive = (this.currentView === item.view);
+        return `
+          <div class="selector-card-item interaction-selector-card ${isActive ? 'active' : ''}" onclick="APP.selectInteraction('${item.view}')">
+            <div class="interaction-selector-icon">${item.icon}</div>
+            <div class="selector-card-title">${item.title}</div>
+            <div class="selector-card-subtitle" style="font-size:0.78rem; margin: 0.2rem 0; color: #55695a;">${item.subtitle}</div>
+            <div class="selector-card-badge">${item.badge}</div>
+          </div>
+        `;
+      }).join('');
+    }
+    const modal = document.getElementById('modal-select-interaction');
+    if (modal) modal.classList.add('active');
+  },
+
+  selectInteraction(viewName) {
+    this.closeModal('modal-select-interaction');
+    this.navigate(viewName);
   },
 
   handleSelectorOverlayClick(event, modalId) {
