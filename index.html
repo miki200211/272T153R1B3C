@@ -7,7 +7,11 @@
   <meta name="description" content="272梯 陸軍步兵第153旅 步兵第一營第三連 (宜蘭金六結) 官方結訓數位紀念冊與通訊錄">
   <!-- Favicon / 國軍徽章風格圖示 -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎖️</text></svg>">
-  <link rel="stylesheet" href="css/style.css?v=2.10.0">
+  <!-- Google Fonts: Share Tech Mono 戰術中繼資料專用字型 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=3.0.0">
 </head>
 <body>
 
@@ -27,9 +31,10 @@
           <h1>
             <span class="brand-title-desktop">272梯 陸軍153旅 1B3C</span>
             <span class="brand-title-mobile">1B3C</span>
-            <span class="brand-tag">宜蘭金六結</span>
+            <span class="tactical-code-badge">[UNIT: 153R-1B-3C]</span>
+            <span class="tactical-status-badge">[STATUS: MISSION ACCOMPLISHED]</span>
           </h1>
-          <p>步兵第一營第三連 結訓紀念冊</p>
+          <p>步兵第一營第三連 結訓同袍通訊錄</p>
         </div>
       </div>
 
@@ -240,13 +245,21 @@
 
       <!-- 1. 首頁總覽 (Home View) -->
       <section id="view-home" class="view-section active">
-        <!-- 英雄橫幅 -->
-        <div class="hero-banner">
+        <!-- 英雄橫幅 (現代軍事戰術檔案風格) -->
+        <div class="hero-banner tactical-hero-dossier">
+          <div class="hud-bracket bracket-tl"></div>
+          <div class="hud-bracket bracket-tr"></div>
+          <div class="hud-bracket bracket-bl"></div>
+          <div class="hud-bracket bracket-br"></div>
+
           <div class="hero-content">
-            <div class="hero-badge-pill">
-              <span>🎖️ 親愛精誠</span>
+            <div class="hero-tactical-badges">
+              <span class="tactical-badge-unit">[UNIT: 153R-1B-3C]</span>
+              <span class="tactical-badge-status"><span class="status-pulse-dot"></span>[MISSION ACCOMPLISHED]</span>
+              <span class="tactical-badge-motto">🎖️ 親愛精誠</span>
             </div>
             <h2 class="hero-title">陸軍步兵第153旅 步兵第一營第三連</h2>
+            <div class="hero-dossier-code">DOSSIER // MODERN MILITARY GRADUATION DIRECTORY</div>
             <p class="hero-desc">
               紀念我們在宜蘭金六結共同揮灑汗水、鑑測行軍、打靶刺槍的迷彩歲月。<br>
               四個月的革命情感，一輩子的真摯兄弟！結訓快樂，江湖再見！
@@ -255,18 +268,22 @@
               <div class="hero-stat-card">
                 <div class="stat-num" id="stat-members-count">98</div>
                 <div class="stat-label">三連弟兄總數</div>
+                <div class="stat-sublabel">TOTAL MEMBERS</div>
               </div>
               <div class="hero-stat-card">
                 <div class="stat-num">9</div>
-                <div class="stat-label">建制建全班級</div>
+                <div class="stat-label">建制健全班級</div>
+                <div class="stat-sublabel">ACTIVE SQUADS</div>
               </div>
               <div class="hero-stat-card">
                 <div class="stat-num">11</div>
-                <div class="stat-label">寢室溫馨床位</div>
+                <div class="stat-label">現代化寢室</div>
+                <div class="stat-sublabel">LIVING ROOMS</div>
               </div>
               <div class="hero-stat-card">
                 <div class="stat-num" id="stat-cadres-count">100</div>
                 <div class="stat-label">長官幹部群</div>
+                <div class="stat-sublabel">OFFICERS & CADRES</div>
               </div>
             </div>
           </div>
@@ -801,9 +818,9 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- 載入核心腳本 (循序載入) -->
-  <script src="js/config.js?v=2.10.0"></script>
-  <script src="js/mockData.js?v=2.10.0"></script>
-  <script src="js/api.js?v=2.10.0"></script>
-  <script src="js/app.js?v=2.10.0"></script>
+  <script src="js/config.js?v=3.0.0"></script>
+  <script src="js/mockData.js?v=3.0.0"></script>
+  <script src="js/api.js?v=3.0.0"></script>
+  <script src="js/app.js?v=3.0.0"></script>
 </body>
 </html>

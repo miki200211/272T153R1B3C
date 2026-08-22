@@ -1252,10 +1252,26 @@ const APP = {
       : '';
 
     return `
-      <div class="member-card ${isMe ? 'is-current-user' : ''}" id="card-${member.id}">
+      <div class="member-card tactical-dossier-card ${isMe ? 'is-current-user' : ''}" id="card-${member.id}">
+        <!-- Tactical HUD Corner Accents -->
+        <div class="dossier-corner corner-tl"></div>
+        <div class="dossier-corner corner-tr"></div>
+        <div class="dossier-corner corner-bl"></div>
+        <div class="dossier-corner corner-br"></div>
+
+        <!-- Dossier Top Status Strip -->
+        <div class="dossier-top-strip">
+          <div class="dossier-id-chips">
+            <span class="dossier-code-chip">ID #${member.id}</span>
+            <span class="dossier-squad-chip">SQD 0${member.squad}・第${this.toChineseNum(member.squad)}班</span>
+            <span class="dossier-room-chip">RM 0${member.room}・第${this.toChineseNum(member.room)}寢</span>
+          </div>
+          <span class="dossier-verify-chip">RECORD // VERIFIED</span>
+        </div>
+
         <div class="member-card-header">
           <!-- 3D 翻轉頭像容器 -->
-          <div class="avatar-flip-container" onclick="APP.toggleCardFlip(this, event, '${member.id}')" title="點擊 3D 翻轉切換照片 (大兵 ⇋ 便服)">
+          <div class="avatar-flip-container tactical-avatar-frame" onclick="APP.toggleCardFlip(this, event, '${member.id}')" title="點擊 3D 翻轉切換照片 (大兵 ⇋ 便服)">
             <div class="avatar-flip-card" id="flip-card-${member.id}">
               <div class="avatar-face avatar-face-front">${milAvatarHtml}</div>
               <div class="avatar-face avatar-face-back">${civAvatarHtml}</div>
@@ -1264,33 +1280,46 @@ const APP = {
           </div>
 
           <div class="member-header-text">
-            <div class="member-id-row">
-              <span class="member-id-badge">#${member.id}</span>
-              <span class="member-squad-badge">第${this.toChineseNum(member.squad)}班</span>
-              <span class="member-room-badge">第${this.toChineseNum(member.room)}寢</span>
-            </div>
             <h3 class="member-name" title="${this.escapeHtml(displayName)}" onclick="APP.showMemberDetail('${member.id}')" style="cursor:pointer;">
               ${this.escapeHtml(displayName)}
-              ${isMe ? '<span style="color: var(--gold); font-size: 0.75rem; font-weight: 800;">(我)</span>' : ''}
-              ${!member.name ? '<span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">(待填寫)</span>' : ''}
+              ${isMe ? '<span class="tag-me-badge">(我)</span>' : ''}
+              ${!member.name ? '<span class="tag-pending-badge">(待填寫)</span>' : ''}
             </h3>
-            <div class="member-nickname">綽號: ${this.escapeHtml(member.nickname || '未填寫')}</div>
+            <div class="member-callsign-box">
+              <span class="callsign-label">CALLSIGN // 綽號:</span>
+              <strong class="callsign-val">${this.escapeHtml(member.nickname || '未填寫')}</strong>
+            </div>
             <div class="flip-hint-text" onclick="APP.toggleCardFlip(this.closest('.member-card').querySelector('.avatar-flip-container'), event, '${member.id}')">
               <span>🔄 點擊照片翻轉 (大兵 ⇋ 便服)</span>
             </div>
           </div>
         </div>
 
-        <div style="display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.25rem;">
-          <span class="member-duty-tag">🎖️ 公差：${this.escapeHtml(member.duty || '一般兵')}</span>
-          ${member.interests ? `<span class="member-interest-tag" title="個人興趣">🎨 興趣：${this.escapeHtml(member.interests)}</span>` : ''}
-          ${member.dream ? `<span class="member-dream-tag" title="未來夢想">🌟 夢想：${this.escapeHtml(member.dream)}</span>` : ''}
+        <!-- Bento Grid Specs Row -->
+        <div class="dossier-bento-grid">
+          <div class="bento-cell bento-duty">
+            <span class="bento-cell-label">🎖️ RANK / DUTY 職責</span>
+            <span class="bento-cell-val">${this.escapeHtml(member.duty || '一般兵')}</span>
+          </div>
+          ${member.interests ? `
+          <div class="bento-cell bento-interests">
+            <span class="bento-cell-label">🎨 SPECS 專長興趣</span>
+            <span class="bento-cell-val">${this.escapeHtml(member.interests)}</span>
+          </div>` : ''}
+          ${member.dream ? `
+          <div class="bento-cell bento-dream">
+            <span class="bento-cell-label">🌟 TARGET 未來目標</span>
+            <span class="bento-cell-val">${this.escapeHtml(member.dream)}</span>
+          </div>` : ''}
         </div>
 
-        <div class="member-bio">
-          ${this.escapeHtml(member.bio || (member.name ? '金六結 153R 1B3C 結訓快樂！' : '（尚未填寫自我介紹與感言...）'))}
+        <!-- Dossier Transcript / Bio -->
+        <div class="member-bio dossier-transcript">
+          <div class="transcript-tag">TRANSCRIPT // 結訓感言</div>
+          <div class="transcript-body">${this.escapeHtml(member.bio || (member.name ? '金六結 153R 1B3C 結訓快樂！' : '（尚未填寫自我介紹與感言...）'))}</div>
         </div>
 
+        <!-- Social Actions Deck -->
         <div class="member-social-actions">
           ${igButton}
           ${lineButton}
