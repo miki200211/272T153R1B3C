@@ -355,6 +355,12 @@ const APP = {
     const bottomBtn = document.querySelector(`.mobile-bottom-btn[data-bottom-nav="${viewName}"]`);
     if (bottomBtn) bottomBtn.classList.add('active');
 
+    if (viewName !== 'squad' || param !== null) {
+      this.searchQuery = '';
+      const searchInput = document.getElementById('member-search-input');
+      if (searchInput) searchInput.value = '';
+    }
+
     if (viewName === 'home') {
       const homeSec = document.getElementById('view-home');
       if (homeSec) homeSec.classList.add('active');
@@ -1042,71 +1048,154 @@ const APP = {
   },
 
   // 3. 班級名冊渲染
+  // 3. 班級名冊渲染 (支援全連 1~9 班 98 位弟兄跨班級即時搜尋)
   renderSquadView() {
-    const squadNum = this.selectedSquad;
+    const isSearching = Boolean(this.searchQuery && this.searchQuery.length > 0);
+    const query = (this.searchQuery || '').toLowerCase();
     const titleEl = document.getElementById('squad-view-title');
-    if (titleEl) titleEl.textContent = `第 ${this.toChineseNum(squadNum)} 班 成員名冊`;
-
+    const squadNum = this.selectedSquad;
     const squadPillBar = document.getElementById('squad-quick-pill-bar');
+    const leaderBannerEl = document.getElementById('squad-leader-banner');
+    const countTag = document.getElementById('squad-member-count-tag');
+    const membersGrid = document.getElementById('squad-members-grid');
+
+    let displayMembers = [];
+
+    if (isSearching) {
+      // 全連跨班級搜尋 (包含 1~9 班所有弟兄)
+      displayMembers = this.allMembers.filter(m => {
+        const id = String(m.id || '').toLowerCase();
+        const name = String(m.name || '').toLowerCase();
+        const nickname = String(m.nickname || '').toLowerCase();
+        const duty = String(m.duty || '').toLowerCase();
+        const interests = String(m.interests || '').toLowerCase();
+        const dream = String(m.dream || '').toLowerCase();
+        const bio = String(m.bio || '').toLowerCase();
+        const ig = String(m.ig || '').toLowerCase();
+        const line = String(m.line || '').toLowerCase();
+        const squadStr = `第${this.toChineseNum(m.squad)}班 ${m.squad}班`;
+        const roomStr = `第${this.toChineseNum(m.room)}寢 ${m.room}寢`;
+
+        return id.includes(query) ||
+               name.includes(query) ||
+               nickname.includes(query) ||
+               duty.includes(query) ||
+               interests.includes(query) ||
+               dream.includes(query) ||
+               bio.includes(query) ||
+               ig.includes(query) ||
+               line.includes(query) ||
+               squadStr.includes(query) ||
+               roomStr.includes(query);
+      });
+
+      if (titleEl) {
+        titleEl.innerHTML = `🔍 全連搜尋結果：「<span style="color:var(--gold-dark);">${this.escapeHtml(this.searchQuery)}</span>」`;
+      }
+
+      if (countTag) {
+        countTag.textContent = `找到 ${displayMembers.length} 位弟兄 (全連)`;
+      }
+
+      if (leaderBannerEl) {
+        leaderBannerEl.innerHTML = `
+          <div class="squad-leader-info" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <span class="badge" style="background:var(--primary-dark); color:var(--gold); padding: 3px 8px; border-radius: 4px; font-weight:800;">🌐 全連跨班級搜尋模式</span>
+              <strong style="color:var(--primary-dark);">已為您搜尋第 1 ~ 9 班全部 98 位弟兄資料</strong>
+            </div>
+            <button onclick="APP.clearSquadSearch()" style="background:#ef4444; color:#fff; border:none; border-radius:4px; padding:4px 10px; font-size:0.75rem; font-weight:800; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.15);" title="清除搜尋並返回班級名冊">
+              ✖ 清除搜尋
+            </button>
+          </div>
+        `;
+      }
+    } else {
+      // 正常指定班級瀏覽模式
+      displayMembers = this.allMembers.filter(m => Number(m.squad) === squadNum);
+
+      if (titleEl) {
+        titleEl.textContent = `第 ${this.toChineseNum(squadNum)} 班 成員名冊`;
+      }
+
+      if (countTag) {
+        countTag.textContent = `${displayMembers.length} 人`;
+      }
+
+      const leader = MOCK_DATA.squadLeaders[squadNum] || { name: '帶班班長', rank: '帶班幹部', quote: '（待幹部填寫帶班期勉）' };
+      if (leaderBannerEl) {
+        let leaderInfoHtml = `
+          <span class="badge" style="background:#b45309; color:#fff; padding: 2px 7px; border-radius: 4px;">🎖️ ${this.escapeHtml(leader.rank || '帶班幹部')}</span>
+          <strong>班長：${this.escapeHtml(leader.name || '帶班班長')}</strong>
+        `;
+        if (leader.assistant) {
+          leaderInfoHtml += `
+            <span style="display: inline-block; width: 12px;"></span>
+            <span class="badge" style="background:#0284c7; color:#fff; padding: 2px 7px; border-radius: 4px;">⚔️ ${this.escapeHtml(leader.assistant.rank || '副班長')}</span>
+            <strong>副班長：${this.escapeHtml(leader.assistant.name || '帶班幹部')}</strong>
+          `;
+        }
+        leaderBannerEl.innerHTML = `
+          <div class="squad-leader-info" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            ${leaderInfoHtml}
+          </div>
+          <div class="squad-leader-quote" style="margin-top: 0.25rem;">
+            ${this.escapeHtml(leader.quote || '（待幹部填寫帶班期勉）')}
+          </div>
+        `;
+      }
+    }
+
+    // 班級快捷橫條更新
     if (squadPillBar) {
       squadPillBar.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
-        const isActive = (num === squadNum);
+        const isActive = (!isSearching && num === squadNum);
         return `
-          <button class="quick-pill-item ${isActive ? 'active' : ''}" onclick="APP.navigate('squad', ${num})" title="切換至第${this.toChineseNum(num)}班">
+          <button class="quick-pill-item ${isActive ? 'active' : ''}" onclick="APP.selectSquadFromPill(${num})" title="切換至第${this.toChineseNum(num)}班">
             <span>第${this.toChineseNum(num)}班</span>
             <span class="pill-badge">${(num === 8) ? '10人' : '11人'}</span>
           </button>
         `;
       }).join('');
-      const activePill = squadPillBar.querySelector('.quick-pill-item.active');
-      if (activePill) activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-    }
-
-    const leader = MOCK_DATA.squadLeaders[squadNum] || { name: '帶班班長', rank: '帶班幹部', quote: '（待幹部填寫帶班期勉）' };
-    const leaderBannerEl = document.getElementById('squad-leader-banner');
-    if (leaderBannerEl) {
-      let leaderInfoHtml = `
-        <span class="badge" style="background:#b45309; color:#fff; padding: 2px 7px; border-radius: 4px;">🎖️ ${this.escapeHtml(leader.rank || '帶班幹部')}</span>
-        <strong>班長：${this.escapeHtml(leader.name || '帶班班長')}</strong>
-      `;
-      if (leader.assistant) {
-        leaderInfoHtml += `
-          <span style="display: inline-block; width: 12px;"></span>
-          <span class="badge" style="background:#0284c7; color:#fff; padding: 2px 7px; border-radius: 4px;">⚔️ ${this.escapeHtml(leader.assistant.rank || '副班長')}</span>
-          <strong>副班長：${this.escapeHtml(leader.assistant.name || '帶班幹部')}</strong>
-        `;
+      if (!isSearching) {
+        const activePill = squadPillBar.querySelector('.quick-pill-item.active');
+        if (activePill) activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
       }
-      leaderBannerEl.innerHTML = `
-        <div class="squad-leader-info" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-          ${leaderInfoHtml}
-        </div>
-        <div class="squad-leader-quote" style="margin-top: 0.25rem;">
-          ${this.escapeHtml(leader.quote || '（待幹部填寫帶班期勉）')}
-        </div>
-      `;
     }
 
-    const countTag = document.getElementById('squad-member-count-tag');
-    const squadMembers = this.allMembers.filter(m => Number(m.squad) === squadNum);
-    if (countTag) countTag.textContent = `${squadMembers.length} 人`;
-
-    const membersGrid = document.getElementById('squad-members-grid');
     if (membersGrid) {
-      if (squadMembers.length === 0) {
+      if (displayMembers.length === 0) {
         membersGrid.innerHTML = `
-          <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #94a3b8;">
-            <p style="font-size: 1.1rem; font-weight: 700;">查無此班級成員</p>
+          <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 1.5rem; background:#fff; border-radius:var(--radius-md); border:1.5px dashed #cbd5e1;">
+            <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🔍</div>
+            <p style="font-size: 1.15rem; font-weight: 800; color: var(--primary-dark);">查無符合條件之弟兄資料</p>
+            <p style="font-size: 0.85rem; color: #64748b; margin-top: 0.35rem;">請嘗試搜尋其他學號、姓名關鍵字、綽號、公差或興趣</p>
+            ${isSearching ? `<button onclick="APP.clearSquadSearch()" class="btn-primary" style="margin-top:1rem; padding:6px 14px; font-size:0.85rem; cursor:pointer;">✖ 清除搜尋條件</button>` : ''}
           </div>
         `;
       } else {
-        membersGrid.innerHTML = squadMembers.map(m => this.createMemberCardHtml(m)).join('');
+        membersGrid.innerHTML = displayMembers.map(m => this.createMemberCardHtml(m)).join('');
       }
     }
   },
 
   handleSearch(query) {
-    this.searchQuery = query.trim();
+    this.searchQuery = (query || '').trim();
     this.renderSquadView();
+  },
+
+  clearSquadSearch() {
+    this.searchQuery = '';
+    const searchInput = document.getElementById('member-search-input');
+    if (searchInput) searchInput.value = '';
+    this.renderSquadView();
+  },
+
+  selectSquadFromPill(num) {
+    this.searchQuery = '';
+    const searchInput = document.getElementById('member-search-input');
+    if (searchInput) searchInput.value = '';
+    this.navigate('squad', num);
   },
 
   // 判斷當前登入者是否為 13055 系統管理員
@@ -1177,6 +1266,7 @@ const APP = {
           <div class="member-header-text">
             <div class="member-id-row">
               <span class="member-id-badge">#${member.id}</span>
+              <span class="member-squad-badge">第${this.toChineseNum(member.squad)}班</span>
               <span class="member-room-badge">第${this.toChineseNum(member.room)}寢</span>
             </div>
             <h3 class="member-name" title="${this.escapeHtml(displayName)}" onclick="APP.showMemberDetail('${member.id}')" style="cursor:pointer;">

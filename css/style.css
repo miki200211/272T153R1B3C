@@ -1321,6 +1321,15 @@ body {
   border-radius: 4px;
 }
 
+.member-squad-badge {
+  font-size: 0.7rem;
+  color: #ffffff;
+  background: var(--primary-accent);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
 .member-room-badge {
   font-size: 0.7rem;
   color: var(--text-muted);
