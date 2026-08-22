@@ -10,7 +10,7 @@ const CONFIG = {
   ADMIN_CONTACT_ID: '13055', // 忘記密碼聯繫窗口
   
   // Google Apps Script (GAS) 部署 Web App URL
-  DEFAULT_GAS_API_URL: 'https://script.google.com/macros/s/AKfycbx6aaqkOGthxZ8ocqOYqqwnEggOd9D1TiPWQGTYIxhlRIv3nGUb8fhRDZmWcg9IMKqHjg/exec',
+  DEFAULT_GAS_API_URL: 'https://script.google.com/macros/s/AKfycbxrXxzbLKlfCMBE43669K5fiduhGn_ZMtQw2rVyNHzm1ZmwyyIfu_OgSRUgi4Z8WLIhLg/exec',
 
   // LocalStorage 鍵名
   STORAGE_KEYS: {
