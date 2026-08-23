@@ -294,7 +294,7 @@ const APP = {
         description = '常備兵役軍事訓練圓滿達成！115年12月2日零時生效，三連兄弟江湖再見！';
         icon = '🎖️';
         type = 'end';
-      } else if (dateStr === '2026-10-12' || displayDate === '10/12') {
+      } else if (dateStr === '2026-10-12' || dateStr === '2026-10-10' || displayDate === '10/12' || displayDate === '10/10') {
         dateStr = '2026-10-15';
         displayDate = '10/15';
         title = '下部隊撥交・二階段戰訓';
