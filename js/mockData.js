@@ -71,7 +71,7 @@ const MOCK_DATA = {
   // 大兵日記初始資料 (清空由弟兄自行撰寫)
   diaries: [],
 
-  // 軍旅役期重要里程碑時間軸 (預設 8/12 入伍 ~ 12/13 退伍，8/21 懇親日，可由後台 Google Sheet / Excel 同步自訂)
+  // 軍旅役期重要里程碑時間軸 (依國軍官方公文：8/12 入伍 ~ 12/02 零時結訓退伍，8/21 懇親日，9/30 抽籤，10/5~8 鑑測，10/14 撥交/10/15 下部隊)
   timeline: [
     {
       id: 1,
@@ -95,41 +95,41 @@ const MOCK_DATA = {
     },
     {
       id: 3,
-      date: '2026-09-15',
-      display_date: '09/15',
-      title: '期末鑑測・榮譽測驗',
-      badge: '期末鑑測',
-      description: '刺槍術、手榴彈投擲、三千公尺跑步與實彈射擊總驗收！',
-      icon: '🎯',
+      date: '2026-09-30',
+      display_date: '09/30',
+      title: '部隊抽籤・分發籤筒',
+      badge: '部隊抽籤',
+      description: '第二階段部隊訓練抽籤，決定下部隊服役單位與專長！',
+      icon: '🎲',
       type: 'milestone'
     },
     {
       id: 4,
-      date: '2026-10-12',
-      display_date: '10/12',
-      title: '下部隊實務・二階段戰訓',
-      badge: '下部隊',
-      description: '前兩個月金六結新訓結業！後兩個月進入下部隊實兵專精與實務戰訓！',
+      date: '2026-10-05',
+      display_date: '10/05',
+      title: '入伍結訓鑑測・總驗收',
+      badge: '結訓鑑測',
+      description: '入伍結訓鑑測 (10/5~10/8)：刺槍術、手榴彈投擲、三千公尺跑步與實彈射擊總驗收！',
+      icon: '🎯',
+      type: 'milestone'
+    },
+    {
+      id: 5,
+      date: '2026-10-15',
+      display_date: '10/15',
+      title: '下部隊撥交・二階段戰訓',
+      badge: '下部隊實務',
+      description: '金六結第一階段入伍訓練圓滿結業 (10/14撥交)！10/15起進入第二階段部隊訓練！',
       icon: '⚔️',
       type: 'training'
     },
     {
-      id: 5,
-      date: '2026-11-20',
-      display_date: '11/20',
-      title: '行軍宿營・野外演訓',
-      badge: '野外演訓',
-      description: '全連長途行軍鍛鍊體魄，凝聚堅定不移的革命情感！',
-      icon: '🥾',
-      type: 'march'
-    },
-    {
       id: 6,
-      date: '2026-12-13',
-      display_date: '12/13',
-      title: '光榮結訓・光榮退伍',
-      badge: '退伍日',
-      description: '四個月役期圓滿達成！領取結訓令，三連兄弟江湖再見！',
+      date: '2026-12-02',
+      display_date: '12/02',
+      title: '光榮結訓・結訓令生效',
+      badge: '光榮退伍',
+      description: '常備兵役軍事訓練圓滿達成！115年12月2日零時生效，三連兄弟江湖再見！',
       icon: '🎖️',
       type: 'end'
     }

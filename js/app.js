@@ -680,18 +680,18 @@ const APP = {
   // 畫面渲染邏輯 (View Renderers)
   // =========================================================================
 
-  // 役期兩階段與時間動態狀態計算 (8/12~10/11 金六結新訓前兩個月，10/12~12/12 下部隊後兩個月，12/13 光榮退伍)
+  // 役期兩階段與時間動態狀態計算 (依官方公文：8/12~10/14 金六結新訓第一階段，10/15~12/01 下部隊二階段，12/02 零時結訓生效)
   getServiceStageData() {
     const now = new Date();
     // 歸零時分秒以進行準確日數比較
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     const startDate = new Date(2026, 7, 12);  // 2026-08-12 (月從0起算，7代表8月)
-    const phase2Date = new Date(2026, 9, 12); // 2026-10-12 (9代表10月，下部隊)
-    const endDate = new Date(2026, 11, 13);   // 2026-12-13 (11代表12月，光榮退伍)
+    const phase2Date = new Date(2026, 9, 15); // 2026-10-15 (9代表10月，下部隊撥交)
+    const endDate = new Date(2026, 11, 2);    // 2026-12-02 (11代表12月，12/2 零時結訓生效)
 
     const msPerDay = 1000 * 60 * 60 * 24;
-    const totalDays = 124; // 8/12 ~ 12/13 總役期 124 天
+    const totalDays = 113; // 8/12 ~ 12/02 總役期 113 天 (115/12/02 零時生效)
 
     if (today < startDate) {
       const daysUntil = Math.ceil((startDate - today) / msPerDay);
@@ -717,7 +717,7 @@ const APP = {
         statStageSub: 'STAGE 0'
       };
     } else if (today >= startDate && today < phase2Date) {
-      // 第一階段：宜蘭金六結新訓受訓中 (前兩個月 8/12 ~ 10/11)
+      // 第一階段：宜蘭金六結新訓受訓中 (8/12 ~ 10/14，10/14撥交)
       const daysServed = Math.max(1, Math.round((today - startDate) / msPerDay) + 1);
       const daysRemaining = Math.max(0, totalDays - daysServed);
       const progressPercent = Math.min(100, Math.max(0, Math.round((daysServed / totalDays) * 100)));
@@ -728,9 +728,9 @@ const APP = {
         heroBadge: '[ 階段一：金六結入伍受訓 ]',
         badgeClass: 'stage-jinliujie',
         heroTitle: '精實鍛鍊・金六結新訓中',
-        heroDesc: `目前正於宜蘭金六結營區進行第一階段新兵專長入伍訓練，揮灑汗水、同甘共苦！<br>四個月役期已完成 ${progressPercent}%（已服役 ${daysServed}/${totalDays} 天），距離 12/13 光榮退伍還有 ${daysRemaining} 天！`,
+        heroDesc: `目前正於宜蘭金六結營區進行第一階段新兵入伍訓練 (08/12~10/14)，揮灑汗水、同甘共苦！<br>軍事訓練役已完成 ${progressPercent}%（已服役 ${daysServed}/${totalDays} 天），距離 12/02 零時光榮結訓還有 ${daysRemaining} 天！`,
         mottoTag: `🎖️ 金六結新訓・第 ${daysServed} 天`,
-        stageName: '金六結新訓 (前兩個月)',
+        stageName: '金六結新訓 (08/12~10/14)',
         stageSublabel: 'PHASE 1 // JINLIUJIE',
         daysServed: daysServed,
         daysTotal: totalDays,
@@ -740,11 +740,11 @@ const APP = {
         statDaysLabel: `役期進度 (剩 ${daysRemaining} 天)`,
         statDaysSub: `PROGRESS ${progressPercent}%`,
         statStageValue: '金六結新訓',
-        statStageLabel: '當前階段 (前兩個月)',
+        statStageLabel: '當前階段 (第一階段)',
         statStageSub: 'PHASE 1 // JINLIUJIE'
       };
     } else if (today >= phase2Date && today < endDate) {
-      // 第二階段：下部隊專精戰訓實務 (後兩個月 10/12 ~ 12/12)
+      // 第二階段：下部隊專精戰訓實務 (10/15 ~ 12/01)
       const daysServed = Math.max(1, Math.round((today - startDate) / msPerDay) + 1);
       const daysRemaining = Math.max(0, totalDays - daysServed);
       const progressPercent = Math.min(100, Math.max(0, Math.round((daysServed / totalDays) * 100)));
@@ -756,9 +756,9 @@ const APP = {
         heroBadge: '[ 階段二：下部隊實務戰訓 ]',
         badgeClass: 'stage-troops',
         heroTitle: '戰力堅強・下部隊實務階段',
-        heroDesc: `已圓滿完成金六結新兵訓練，目前進入第二階段下部隊實務戰訓，磨練精準戰技、同袍並肩作戰！<br>總役期已達成 ${progressPercent}%，倒數 ${daysRemaining} 天光榮退伍！`,
+        heroDesc: `已圓滿完成金六結第一階段新訓 (10/14撥交)，目前進入第二階段部隊訓練實務戰訓！<br>總役期已達成 ${progressPercent}%，倒數 ${daysRemaining} 天 12/02 零時光榮結訓生效！`,
         mottoTag: `🎖️ 下部隊實務・第 ${phase2DaysServed} 天`,
-        stageName: '下部隊實務 (後兩個月)',
+        stageName: '部隊訓練實務 (10/15~12/01)',
         stageSublabel: 'PHASE 2 // ACTIVE UNIT',
         daysServed: daysServed,
         daysTotal: totalDays,
@@ -767,19 +767,19 @@ const APP = {
         statDaysValue: `${daysServed}<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">/${totalDays}天</span>`,
         statDaysLabel: `役期進度 (剩 ${daysRemaining} 天)`,
         statDaysSub: `PROGRESS ${progressPercent}%`,
-        statStageValue: '下部隊實務',
-        statStageLabel: '當前階段 (後兩個月)',
+        statStageValue: '部隊訓練',
+        statStageLabel: '當前階段 (第二階段)',
         statStageSub: 'PHASE 2 // TROOPS'
       };
     } else {
-      // 結訓/光榮退伍 (>= 2026/12/13)
+      // 結訓/光榮退伍 (>= 2026/12/02)
       return {
         stageCode: 'DISCHARGED',
         headerBadge: '[ 光榮退伍・任務達成 ]',
         heroBadge: '[ 任務圓滿達成・光榮退伍 ]',
         badgeClass: 'stage-discharged',
         heroTitle: '光榮退伍・任務達成',
-        heroDesc: '紀念我們在宜蘭金六結與部隊共同揮灑汗水、鑑測行軍、打靶刺槍的迷彩歲月。<br>四個月的革命情感，一輩子的真摯兄弟！結訓快樂，江湖再見！',
+        heroDesc: '紀念我們在宜蘭金六結與部隊共同揮灑汗水、鑑測行軍、打靶刺槍的迷彩歲月。<br>115年12月2日零時結訓令正式生效！四個月的革命情感，一輩子的真摯兄弟！結訓快樂，江湖再見！',
         mottoTag: '🎖️ 陸軍272梯・全連結訓',
         stageName: '光榮退伍',
         stageSublabel: 'MISSION ACCOMPLISHED',
@@ -788,7 +788,7 @@ const APP = {
         daysRemaining: 0,
         progressPercent: 100,
         statDaysValue: `${totalDays}<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">天</span>`,
-        statDaysLabel: '役期總日數 (8/12~12/13)',
+        statDaysLabel: '役期總日數 (8/12~12/02)',
         statDaysSub: 'MISSION ACCOMPLISHED',
         statStageValue: '光榮退伍',
         statStageLabel: '結訓任務狀態',
@@ -844,7 +844,7 @@ const APP = {
     if (statStageSub) statStageSub.textContent = stage.statStageSub;
   },
 
-  // 0. 軍旅役期時光軸渲染 (入伍 8/12 ~ 退伍 12/13，懇親日 8/21，支援後台 Google Sheet / Excel 同步自訂)
+  // 0. 軍旅役期時光軸渲染 (依國軍官方公文：入伍 8/12 ~ 結訓退伍 12/02，懇親 8/21，抽籤 9/30，鑑測 10/5~8，下部隊 10/15)
   renderTimeline() {
     const container = document.getElementById('military-timeline-section');
     if (!container) return;
@@ -858,11 +858,11 @@ const APP = {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     const startDate = new Date(2026, 7, 12);  // 2026-08-12 (入伍)
-    const phase2Date = new Date(2026, 9, 12); // 2026-10-12 (下部隊)
-    const endDate = new Date(2026, 11, 13);   // 2026-12-13 (退伍)
+    const phase2Date = new Date(2026, 9, 15); // 2026-10-15 (下部隊)
+    const endDate = new Date(2026, 11, 2);    // 2026-12-02 (退伍結訓令生效)
 
     const msPerDay = 1000 * 60 * 60 * 24;
-    const totalDays = 124; // 8/12 ~ 12/13 總役期 124 天
+    const totalDays = 113; // 8/12 ~ 12/02 總役期 113 天 (115/12/02 零時生效)
     
     let daysServed = 0;
     let daysRemaining = totalDays;
@@ -882,7 +882,7 @@ const APP = {
       progressPercent = Math.min(100, Math.max(0, Math.round((daysServed / totalDays) * 100)));
     }
 
-    // 役期兩階段狀態判斷 (前2個月金六結新訓 ➔ 後2個月下部隊實務 ➔ 光榮退伍)
+    // 役期兩階段狀態判斷 (第一階段金六結新訓 08/12~10/14 ➔ 第二階段部隊訓練 10/15~12/01 ➔ 光榮退伍 12/02)
     const isP1Active = today >= startDate && today < phase2Date;
     const isP1Done = today >= phase2Date;
     const isP2Active = today >= phase2Date && today < endDate;
@@ -891,7 +891,7 @@ const APP = {
 
     // 役期起迄日
     const startItem = this.timeline[0] || { date: '2026-08-12', display_date: '08/12' };
-    const endItem = this.timeline[this.timeline.length - 1] || { date: '2026-12-13', display_date: '12/13' };
+    const endItem = this.timeline[this.timeline.length - 1] || { date: '2026-12-02', display_date: '12/02' };
 
     // 里程碑 HTML
     const milestonesHtml = this.timeline.map((m, index) => {
@@ -951,9 +951,11 @@ const APP = {
             <span class="range-arrow">➔</span>
             <span>懇親 <strong>08/21</strong></span>
             <span class="range-arrow">➔</span>
-            <span>下部隊 <strong>10/12</strong></span>
+            <span>抽籤 <strong>09/30</strong></span>
             <span class="range-arrow">➔</span>
-            <span>退伍 <strong>${endItem.display_date || '12/13'}</strong></span>
+            <span>下部隊 <strong>10/15</strong></span>
+            <span class="range-arrow">➔</span>
+            <span>退伍 <strong>${endItem.display_date || '12/02'}</strong></span>
           </div>
         </div>
 
@@ -962,24 +964,24 @@ const APP = {
           <div class="timeline-stage-pill ${isP1Done ? 'completed' : (isP1Active ? 'active' : 'upcoming')}">
             <span class="stage-pill-icon">${isP1Done ? '✅' : (isP1Active ? '🪖' : '⏳')}</span>
             <div class="stage-pill-text">
-              <span class="stage-pill-name">前2個月・金六結新訓</span>
-              <span class="stage-pill-date">08/12 ~ 10/11 ${isP1Active ? '・進行中' : (isP1Done ? '・已結訓' : '')}</span>
+              <span class="stage-pill-name">第一階段・金六結新訓</span>
+              <span class="stage-pill-date">08/12 ~ 10/14 ${isP1Active ? '・進行中' : (isP1Done ? '・已結訓' : '')}</span>
             </div>
           </div>
           <div class="stage-flow-arrow">➔</div>
           <div class="timeline-stage-pill ${isP2Done ? 'completed' : (isP2Active ? 'active' : 'upcoming')}">
             <span class="stage-pill-icon">${isP2Done ? '✅' : (isP2Active ? '⚔️' : '⏳')}</span>
             <div class="stage-pill-text">
-              <span class="stage-pill-name">後2個月・下部隊實務</span>
-              <span class="stage-pill-date">10/12 ~ 12/12 ${isP2Active ? '・進行中' : (isP2Done ? '・已結業' : '')}</span>
+              <span class="stage-pill-name">第二階段・部隊訓練</span>
+              <span class="stage-pill-date">10/15 ~ 12/01 ${isP2Active ? '・進行中' : (isP2Done ? '・已結業' : '')}</span>
             </div>
           </div>
           <div class="stage-flow-arrow">➔</div>
           <div class="timeline-stage-pill ${isDischarged ? 'completed active' : 'upcoming'}">
             <span class="stage-pill-icon">${isDischarged ? '🎖️' : '🏁'}</span>
             <div class="stage-pill-text">
-              <span class="stage-pill-name">光榮退伍・領結訓令</span>
-              <span class="stage-pill-date">12/13 任務達成</span>
+              <span class="stage-pill-name">光榮結訓・領結訓令</span>
+              <span class="stage-pill-date">12/02 零時生效</span>
             </div>
           </div>
         </div>
