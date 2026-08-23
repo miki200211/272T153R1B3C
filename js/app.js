@@ -1211,10 +1211,10 @@ const APP = {
     const isAdmin = this.isAdmin();
     const cadreName = String(cadre.name ?? '').trim();
     const hasName = Boolean(cadreName);
-    const displayName = hasName ? cadreName : `幹部 #${cleanCadreId}`;
+    const displayName = hasName ? cadreName : (cadre.duty || cadre.rank_level || '連隊幹部');
     const initials = hasName 
       ? cadreName.substring(Math.max(0, cadreName.length - 2)) 
-      : cleanCadreId.substring(Math.max(0, cleanCadreId.length - 2));
+      : '幹部';
 
     // 正面：軍裝照
     const milPhoto = cadre.avatar_military || cadre.avatar_url || cadre.photo_url;
@@ -1254,7 +1254,7 @@ const APP = {
     // 13055 管理員專屬：可將幹部密碼恢復為預設帳號
     const adminResetBtn = (isAdmin && !isMe)
       ? `<button class="btn-admin-reset" onclick="APP.handleAdminResetPassword('${cadre.id}')" title="管理員權限：將此幹部密碼恢復為預設">
-          <span>🔑 恢復預設密碼</span>
+          <span>🔑 恢復密碼</span>
          </button>`
       : '';
 
@@ -1266,11 +1266,10 @@ const APP = {
         <div class="dossier-corner corner-bl"></div>
         <div class="dossier-corner corner-br"></div>
 
-        <!-- Dossier Top Status Strip -->
+        <!-- Dossier Top Status Strip (不顯示幹部流水編號) -->
         <div class="dossier-top-strip">
           <div class="dossier-id-chips">
-            <span class="dossier-code-chip">ID #${cadre.id}</span>
-            <span class="badge-admin" style="background:var(--primary-dark); color:var(--gold); font-size:0.7rem;">⭐ 長官幹部</span>
+            <span class="badge-admin" style="background:var(--primary-dark); color:var(--gold); font-size:0.75rem;">⭐ 長官幹部</span>
           </div>
           <span class="dossier-duty-tag" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a;">🎖️ ${this.escapeHtml(cadre.rank_level || '幹部階級')}</span>
         </div>
@@ -2221,10 +2220,10 @@ const APP = {
       const cleanId = String(this.currentUser.id ?? '').trim();
       const userName = String(this.currentUser.name ?? '').trim();
       const isCadre = Boolean(this.currentUser.is_cadre || cleanId.toUpperCase().startsWith('1B3C'));
-      const displayName = userName || (isCadre ? `幹部 #${cleanId}` : `學號 #${cleanId}`);
+      const displayName = userName || (isCadre ? (this.currentUser.duty || this.currentUser.rank_level || '連隊幹部') : `學號 #${cleanId}`);
       const initials = userName 
         ? userName.substring(Math.max(0, userName.length - 2)) 
-        : (cleanId ? cleanId.substring(Math.max(0, cleanId.length - 2)) : '我');
+        : (isCadre ? '幹部' : (cleanId ? cleanId.substring(Math.max(0, cleanId.length - 2)) : '我'));
       const rawPhoto = this.currentUser.avatar_military || this.currentUser.avatar_url || this.currentUser.avatar_civilian;
       const userPhoto = this.formatImageUrl(rawPhoto);
       const avatarHtml = userPhoto 
@@ -2232,12 +2231,13 @@ const APP = {
         : initials;
 
       const adminBadgeHtml = this.isAdmin() ? '<span class="badge-admin admin-badge-header">👑 管理員</span>' : '';
+      const statusIdText = isCadre ? '長官幹部' : `#${cleanId}`;
 
       container.innerHTML = `
         <div class="user-status-bar">
           <div class="user-avatar-mini" onclick="APP.openEditProfileModal()" style="cursor:pointer;" title="點擊編輯個人資料">${avatarHtml}</div>
           <div class="user-status-text" onclick="APP.openEditProfileModal()" style="cursor:pointer;" title="點擊編輯個人資料">
-            <span class="user-status-prefix">目前登入：</span><strong class="user-status-id">#${cleanId}</strong><span class="user-status-name"> (${this.escapeHtml(displayName)})</span>
+            <span class="user-status-prefix">目前登入：</span><strong class="user-status-id">${statusIdText}</strong><span class="user-status-name"> (${this.escapeHtml(displayName)})</span>
           </div>
           ${adminBadgeHtml}
           <button class="btn-edit-header" onclick="APP.openEditProfileModal()" title="編輯我的個人檔案與照片">✏️ 編輯</button>
@@ -2362,9 +2362,8 @@ const APP = {
     const accountDisplay = document.getElementById('force-pwd-account-display');
     if (accountDisplay) {
       const isCadre = Boolean(this.currentUser.is_cadre || cleanId.toUpperCase().startsWith('1B3C'));
-      const roleLabel = isCadre ? '長官幹部' : '弟兄學號';
       const nameLabel = this.currentUser.name ? ` (${this.currentUser.name})` : '';
-      accountDisplay.value = `${roleLabel} #${cleanId}${nameLabel}`;
+      accountDisplay.value = isCadre ? `長官幹部${nameLabel || '專屬帳號'}` : `弟兄學號 #${cleanId}${nameLabel}`;
     }
     const newPwd = document.getElementById('force-new-password');
     const confirmPwd = document.getElementById('force-confirm-password');
@@ -2492,7 +2491,7 @@ const APP = {
 
     const titleEl = document.getElementById('edit-profile-modal-title');
     if (titleEl) {
-      titleEl.textContent = isCadre ? `編輯長官幹部基本資料 (#${this.currentUser.id})` : `編輯個人基本資料 (#${this.currentUser.id})`;
+      titleEl.textContent = isCadre ? '編輯長官幹部基本資料' : `編輯個人基本資料 (#${this.currentUser.id})`;
     }
 
     const cadreGroup = document.getElementById('profile-cadre-fields-group');
@@ -2985,13 +2984,13 @@ const APP = {
     const cleanCadreId = String(cadre.id ?? '').trim();
     const cadreName = String(cadre.name ?? '').trim();
     const hasName = Boolean(cadreName);
-    const displayName = hasName ? cadreName : `幹部 #${cleanCadreId}`;
+    const displayName = hasName ? cadreName : (cadre.duty || cadre.rank_level || '連隊幹部');
     const initials = hasName 
       ? cadreName.substring(Math.max(0, cadreName.length - 2)) 
-      : cleanCadreId.substring(Math.max(0, cleanCadreId.length - 2));
+      : '幹部';
 
     const titleEl = document.getElementById('detail-modal-title');
-    if (titleEl) titleEl.textContent = `幹部戰術檔案 #${cleanCadreId} ${displayName}`;
+    if (titleEl) titleEl.textContent = hasName ? `幹部戰術檔案 ${displayName}` : '長官幹部戰術檔案';
 
     const bodyEl = document.getElementById('detail-modal-body');
     if (bodyEl) {
@@ -3031,9 +3030,8 @@ const APP = {
               </div>
             </div>
 
-            <!-- 戰術中繼徽章 -->
+            <!-- 戰術中繼徽章 (不顯示幹部流水編號) -->
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin-top:0.35rem;">
-              <span class="dossier-code-chip" style="font-size:0.75rem;">ID #${cleanCadreId}</span>
               <span class="badge-admin" style="background:var(--primary-dark); color:var(--gold); font-size:0.75rem;">⭐ 長官幹部</span>
               <span class="dossier-duty-tag" style="background:#fef3c7; color:#92400e; font-size:0.75rem; border:1px solid #fde68a;">🎖️ ${this.escapeHtml(cadre.rank_level || '幹部階級')}</span>
               <span class="dossier-duty-tag" style="font-size:0.75rem;">⚔️ ${this.escapeHtml(cadre.duty || '連隊幹部')}</span>
