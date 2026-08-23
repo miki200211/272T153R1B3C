@@ -1259,10 +1259,30 @@ const APP = {
       : '';
 
     return `
-      <div class="member-card cadre-member-card ${isMe ? 'is-current-user' : ''}" id="card-${cadre.id}">
+      <div class="member-card tactical-dossier-card cadre-member-card ${isMe ? 'is-current-user' : ''}" id="card-${cadre.id}">
+        <!-- Tactical HUD Corner Accents -->
+        <div class="dossier-corner corner-tl"></div>
+        <div class="dossier-corner corner-tr"></div>
+        <div class="dossier-corner corner-bl"></div>
+        <div class="dossier-corner corner-br"></div>
+
+        <!-- Dossier Top Status Strip -->
+        <div class="dossier-top-strip">
+          <div class="dossier-id-chips">
+            <span class="dossier-code-chip">ID #${cadre.id}</span>
+            <span class="badge-admin" style="background:var(--primary-dark); color:var(--gold); font-size:0.7rem;">⭐ 長官幹部</span>
+          </div>
+          <span class="dossier-duty-tag" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a;">🎖️ ${this.escapeHtml(cadre.rank_level || '幹部階級')}</span>
+        </div>
+
         <div class="member-card-header">
-          <!-- 3D 翻轉頭像容器 -->
-          <div class="avatar-flip-container" onclick="APP.toggleCardFlip(this, event, '${cadre.id}')" title="點擊 3D 翻轉切換照片 (軍裝 ⇋ 便服)">
+          <!-- 3D 翻轉頭像容器 (包含四角戰術十字標 Crosshairs +) -->
+          <div class="avatar-flip-container tactical-avatar-frame" onclick="APP.toggleCardFlip(this, event, '${cadre.id}')" title="點擊 3D 翻轉切換照片 (軍裝 ⇋ 便服)">
+            <span class="tactical-crosshair crosshair-tl">+</span>
+            <span class="tactical-crosshair crosshair-tr">+</span>
+            <span class="tactical-crosshair crosshair-bl">+</span>
+            <span class="tactical-crosshair crosshair-br">+</span>
+
             <div class="avatar-flip-card" id="flip-card-${cadre.id}">
               <div class="avatar-face avatar-face-front">${milAvatarHtml}</div>
               <div class="avatar-face avatar-face-back">${civAvatarHtml}</div>
@@ -1271,35 +1291,65 @@ const APP = {
           </div>
 
           <div class="member-header-text">
-            <div class="member-id-row">
-              <span class="member-id-badge">#${cadre.id}</span>
-              <span class="badge-admin" style="background:var(--primary-dark); color:var(--gold); font-size:0.7rem;">⭐ 長官幹部</span>
-            </div>
             <h3 class="member-name" title="${this.escapeHtml(displayName)}" onclick="APP.showCadreDetail('${cadre.id}')" style="cursor:pointer;">
               ${this.escapeHtml(displayName)}
-              ${isMe ? '<span style="color: var(--gold); font-size: 0.75rem; font-weight: 800;">(我)</span>' : ''}
-              ${!hasName ? '<span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">(待填寫)</span>' : ''}
+              ${isMe ? '<span class="tag-me-badge">(我)</span>' : ''}
+              ${!hasName ? '<span class="tag-pending-badge">(待填寫)</span>' : ''}
             </h3>
-            <div class="member-nickname">稱呼: ${this.escapeHtml(cadre.nickname || '未填寫')}</div>
+            <div class="member-callsign-box">
+              <span class="callsign-label">CALLSIGN // 綽號:</span>
+              <strong class="callsign-val">${this.escapeHtml(cadre.nickname || '未填寫')}</strong>
+            </div>
             <div class="flip-hint-text" onclick="APP.toggleCardFlip(this.closest('.member-card, .cadre-card').querySelector('.avatar-flip-container'), event, '${cadre.id}')">
               <span>🔄 點擊照片翻轉 (軍裝 ⇋ 便服)</span>
             </div>
           </div>
         </div>
 
-        <div style="display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.25rem;">
-          <span class="member-duty-tag" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a;">🎖️ 職等：${this.escapeHtml(cadre.rank_level || '幹部階級')}</span>
-          <span class="member-duty-tag">⚔️ 職務：${this.escapeHtml(cadre.duty || '連隊幹部')}</span>
-          ${cadre.enlist_date ? `<span class="member-duty-tag" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;" title="入伍日期：${this.escapeHtml(cadre.enlist_date)}">📅 年資：${this.calculateServiceTime(cadre.enlist_date)}</span>` : ''}
-          ${cadre.interests ? `<span class="member-interest-tag" title="個人興趣">🎨 興趣：${this.escapeHtml(cadre.interests)}</span>` : ''}
-          ${cadre.dream ? `<span class="member-dream-tag" title="未來夢想">🌟 夢想：${this.escapeHtml(cadre.dream)}</span>` : ''}
+        <!-- Bento Grid Specs Row -->
+        <div class="dossier-bento-grid">
+          <div class="bento-cell bento-duty">
+            <span class="bento-cell-label">⚔️ DUTY 連隊職務</span>
+            <span class="bento-cell-val">${this.escapeHtml(cadre.duty || '連隊幹部')}</span>
+          </div>
+          ${cadre.enlist_date ? `
+          <div class="bento-cell" style="background: rgba(14, 165, 233, 0.08); border-color: rgba(56, 189, 248, 0.25);">
+            <span class="bento-cell-label" style="color: #38bdf8;">📅 SERVICE 服役年資</span>
+            <span class="bento-cell-val">${this.calculateServiceTime(cadre.enlist_date)}</span>
+          </div>` : ''}
+          ${cadre.interests ? `
+          <div class="bento-cell bento-interests">
+            <span class="bento-cell-label">🎨 SPECS 專長興趣</span>
+            <span class="bento-cell-val">${this.escapeHtml(cadre.interests)}</span>
+          </div>` : ''}
+          ${cadre.dream ? `
+          <div class="bento-cell bento-dream">
+            <span class="bento-cell-label">🌟 TARGET 未來目標</span>
+            <span class="bento-cell-val">${this.escapeHtml(cadre.dream)}</span>
+          </div>` : ''}
         </div>
 
+        <!-- Dossier Transcript / 幹部期勉 (外層卡片展示原本的 bio 欄位) -->
         <div class="member-bio dossier-transcript">
           <div class="transcript-tag">💬 MOTTO // 幹部期勉</div>
           <div class="transcript-body">${this.escapeHtml(cadre.graduation_quote || cadre.bio || (hasName ? '金六結 153R 1B3C 精實連隊！' : '（尚未填寫期勉感言...）'))}</div>
         </div>
 
+        <!-- Direct Action Buttons & View Dossier Drawer Trigger -->
+        <div class="member-dossier-action-bar">
+          <button class="btn-view-dossier" onclick="APP.showCadreDetail('${cadre.id}')" title="開啟完整長官幹部戰術檔案 (Bottom Sheet / Drawer)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>檢視完整檔案 (View Dossier)</span>
+          </button>
+        </div>
+
+        <!-- Social Actions Deck -->
         <div class="member-social-actions">
           ${igButton}
           ${lineButton}
@@ -2941,7 +2991,7 @@ const APP = {
       : cleanCadreId.substring(Math.max(0, cleanCadreId.length - 2));
 
     const titleEl = document.getElementById('detail-modal-title');
-    if (titleEl) titleEl.textContent = `幹部檔案 #${cleanCadreId} ${displayName}`;
+    if (titleEl) titleEl.textContent = `幹部戰術檔案 #${cleanCadreId} ${displayName}`;
 
     const bodyEl = document.getElementById('detail-modal-body');
     if (bodyEl) {
@@ -2952,60 +3002,94 @@ const APP = {
       const civHtml = civPhoto ? `<img src="${civPhoto}" alt="便服照">` : `<span>🕶️ ${initials}</span>`;
 
       bodyEl.innerHTML = `
-        <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:0.75rem;">
-          <!-- 3D 翻轉證件照容器 -->
-          <div class="avatar-flip-container" style="width:96px; height:128px;" onclick="APP.toggleCardFlip(this, event, 'detail-${cadre.id}')" title="點擊 3D 翻轉 (軍裝 ⇋ 便服)">
-            <div class="avatar-flip-card" id="flip-card-detail-${cadre.id}">
-              <div class="avatar-face avatar-face-front">${milHtml}</div>
-              <div class="avatar-face avatar-face-back">${civHtml}</div>
+        <div class="member-detail-dossier-layout">
+          <!-- 頂部頭像與基本資訊區 -->
+          <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:0.65rem;">
+            <!-- 3D 翻轉證件照容器 -->
+            <div class="avatar-flip-container tactical-avatar-frame" style="width:105px; height:140px;" onclick="APP.toggleCardFlip(this, event, 'detail-${cadre.id}')" title="點擊 3D 翻轉 (軍裝 ⇋ 便服)">
+              <span class="tactical-crosshair crosshair-tl">+</span>
+              <span class="tactical-crosshair crosshair-tr">+</span>
+              <span class="tactical-crosshair crosshair-bl">+</span>
+              <span class="tactical-crosshair crosshair-br">+</span>
+
+              <div class="avatar-flip-card" id="flip-card-detail-${cadre.id}">
+                <div class="avatar-face avatar-face-front">${milHtml}</div>
+                <div class="avatar-face avatar-face-back">${civHtml}</div>
+              </div>
+              <span class="flip-tag-badge flip-tag-front" id="flip-tag-detail-${cadre.id}">🪖 軍裝</span>
             </div>
-            <span class="flip-tag-badge flip-tag-front" id="flip-tag-detail-${cadre.id}">🪖 軍裝</span>
-          </div>
 
-          <div style="font-size:0.75rem; color:#64748b; cursor:pointer;" onclick="APP.toggleCardFlip(this.previousElementSibling, event, 'detail-${cadre.id}')">
-            🔄 點擊證件照體驗 3D 翻轉 (軍裝 ⇋ 便服)
-          </div>
-
-          <div>
-            <h3 style="font-size:1.3rem; font-weight:800;">${this.escapeHtml(displayName)}</h3>
-            <div style="font-size:0.85rem; color:#64748b;">稱呼：${this.escapeHtml(cadre.nickname || '未填寫')}</div>
-          </div>
-
-          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center;">
-            <span class="tag" style="background:#fef3c7; color:#92400e; font-weight:800; padding:3px 8px; border-radius:4px; font-size:0.75rem;">🎖️ 職等：${this.escapeHtml(cadre.rank_level || '幹部階級')}</span>
-            <span class="tag" style="background:var(--primary-light); color:#fff; padding:3px 8px; border-radius:4px; font-size:0.75rem;">⚔️ 職務：${this.escapeHtml(cadre.duty || '連隊幹部')}</span>
-            ${cadre.enlist_date ? `<span class="tag" style="background:#e0f2fe; color:#0369a1; font-weight:800; padding:3px 8px; border-radius:4px; font-size:0.75rem;">📅 入伍：${this.escapeHtml(cadre.enlist_date)} (${this.calculateServiceTime(cadre.enlist_date)})</span>` : ''}
-          </div>
-
-          ${(cadre.interests || cadre.dream) ? `
-            <div style="display:flex; flex-direction:column; gap:0.35rem; width:100%; margin-top:0.4rem; text-align:left; background:#141a15; border:1px solid var(--tactical-olive-border); border-radius:var(--radius-sm); padding:0.65rem 0.85rem; font-size:0.82rem;">
-              ${cadre.interests ? `<div><strong style="color:var(--tactical-amber);">🎨 個人興趣：</strong>${this.escapeHtml(cadre.interests)}</div>` : ''}
-              ${cadre.dream ? `<div><strong style="color:var(--tactical-amber-light);">🌟 未來夢想：</strong>${this.escapeHtml(cadre.dream)}</div>` : ''}
+            <div class="flip-hint-text" style="cursor:pointer;" onclick="APP.toggleCardFlip(this.previousElementSibling, event, 'detail-${cadre.id}')">
+              <span>🔄 點擊照片體驗 3D 翻轉 (軍裝 ⇋ 便服)</span>
             </div>
-          ` : ''}
-        </div>
 
-        <!-- 幹部期勉與自我介紹 (點進來完整展示) -->
-        <div class="dossier-details-section" style="margin-top:1rem; display:flex; flex-direction:column; gap:0.75rem; text-align:left;">
-          <div class="member-bio dossier-transcript">
-            <div class="transcript-tag">💬 MOTTO // 幹部期勉與座右銘</div>
-            <div class="transcript-body" style="font-size:0.92rem; line-height:1.6;">
-              ${this.escapeHtml(cadre.bio || (hasName ? '金六結 153R 1B3C 精實連隊！' : '（尚未填寫期勉感言...）'))}
+            <div style="margin-top:0.25rem;">
+              <h3 style="font-size:1.45rem; font-weight:900; color:#ffffff; letter-spacing:0.5px;">${this.escapeHtml(displayName)}</h3>
+              <div class="member-callsign-box" style="margin-top:0.25rem; display:inline-flex;">
+                <span class="callsign-label">CALLSIGN // 綽號:</span>
+                <strong class="callsign-val">${this.escapeHtml(cadre.nickname || '未填寫')}</strong>
+              </div>
+            </div>
+
+            <!-- 戰術中繼徽章 -->
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin-top:0.35rem;">
+              <span class="dossier-code-chip" style="font-size:0.75rem;">ID #${cleanCadreId}</span>
+              <span class="badge-admin" style="background:var(--primary-dark); color:var(--gold); font-size:0.75rem;">⭐ 長官幹部</span>
+              <span class="dossier-duty-tag" style="background:#fef3c7; color:#92400e; font-size:0.75rem; border:1px solid #fde68a;">🎖️ ${this.escapeHtml(cadre.rank_level || '幹部階級')}</span>
+              <span class="dossier-duty-tag" style="font-size:0.75rem;">⚔️ ${this.escapeHtml(cadre.duty || '連隊幹部')}</span>
+              ${cadre.enlist_date ? `<span class="dossier-code-chip" style="background:rgba(14, 165, 233, 0.15); color:#38bdf8; border-color:rgba(56, 189, 248, 0.4); font-size:0.75rem;">📅 服役年資：${this.calculateServiceTime(cadre.enlist_date)}</span>` : ''}
+            </div>
+
+            <!-- Bento Specs -->
+            <div class="dossier-bento-grid" style="width:100%; margin-top:0.6rem;">
+              <div class="bento-cell bento-duty">
+                <span class="bento-cell-label">⚔️ DUTY 連隊職務</span>
+                <span class="bento-cell-val">${this.escapeHtml(cadre.duty || '連隊幹部')}</span>
+              </div>
+              ${cadre.enlist_date ? `
+              <div class="bento-cell" style="background: rgba(14, 165, 233, 0.08); border-color: rgba(56, 189, 248, 0.25);">
+                <span class="bento-cell-label" style="color: #38bdf8;">📅 SERVICE 服役年資</span>
+                <span class="bento-cell-val">${this.calculateServiceTime(cadre.enlist_date)}</span>
+              </div>` : ''}
+              ${cadre.interests ? `
+              <div class="bento-cell bento-interests">
+                <span class="bento-cell-label">🎨 SPECS 專長興趣</span>
+                <span class="bento-cell-val">${this.escapeHtml(cadre.interests)}</span>
+              </div>` : ''}
+              ${cadre.dream ? `
+              <div class="bento-cell bento-dream">
+                <span class="bento-cell-label">🌟 TARGET 未來目標</span>
+                <span class="bento-cell-val">${this.escapeHtml(cadre.dream)}</span>
+              </div>` : ''}
             </div>
           </div>
 
-          <div class="member-bio dossier-transcript" style="border-left-color: var(--tactical-green-light); background: rgba(34, 197, 94, 0.07);">
-            <div class="transcript-tag" style="color: var(--tactical-green-light);">📝 DOSSIER BIO // 幹部詳細簡介</div>
-            <div class="transcript-body" style="font-size:0.92rem; line-height:1.6; color:#f1f5f2;">
-              ${this.escapeHtml(cadre.self_intro || '（尚未填寫幹部詳細簡介...）')}
+          <!-- 幹部期勉與自我介紹 (點進去才看得到自我介紹) -->
+          <div class="dossier-details-section" style="margin-top:1rem; display:flex; flex-direction:column; gap:0.75rem;">
+            <!-- 幹部期勉 (原本的 bio 欄位) -->
+            <div class="member-bio dossier-transcript">
+              <div class="transcript-tag">💬 MOTTO // 幹部期勉與座右銘</div>
+              <div class="transcript-body" style="font-size:0.92rem; line-height:1.6;">
+                ${this.escapeHtml(cadre.bio || (hasName ? '金六結 153R 1B3C 精實連隊！' : '（尚未填寫期勉感言...）'))}
+              </div>
+            </div>
+
+            <!-- 幹部詳細自我介紹 (Excel 新增的 self_intro 欄位，點進來完整檔案才展示) -->
+            <div class="member-bio dossier-transcript" style="border-left-color: var(--tactical-green-light); background: rgba(34, 197, 94, 0.07);">
+              <div class="transcript-tag" style="color: var(--tactical-green-light);">📝 DOSSIER BIO // 幹部詳細簡介</div>
+              <div class="transcript-body" style="font-size:0.92rem; line-height:1.6; color:#f1f5f2;">
+                ${this.escapeHtml(cadre.self_intro || '（尚未填寫幹部詳細簡介與個人自傳...）')}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div style="margin-top:1rem; display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
-          ${cadre.ig ? `<button class="btn-social btn-ig" onclick="APP.openInstagram('${this.escapeHtml(cadre.ig)}')">📸 IG: @${this.escapeHtml(cadre.ig)}</button>` : ''}
-          ${cadre.line ? `<button class="btn-social btn-line" onclick="APP.copyToClipboard('${this.escapeHtml(cadre.line)}', 'LINE ID')">💬 複製 LINE ID</button>` : ''}
-          ${(this.isAdmin() && String(cadre.id) !== '13055') ? `<button class="btn-admin-reset" onclick="APP.handleAdminResetPassword('${cadre.id}')">🔑 恢復此幹部密碼為預設</button>` : ''}
+          <!-- 社群聯絡與動作 -->
+          <div style="margin-top:1.15rem; display:grid; grid-template-columns:1fr 1fr; gap:0.6rem;">
+            ${cadre.ig ? `<button class="btn-social btn-ig" onclick="APP.openInstagram('${this.escapeHtml(cadre.ig)}')">📸 IG: @${this.escapeHtml(cadre.ig)}</button>` : `<button class="btn-social btn-ig" style="opacity:0.45; cursor:not-allowed;">📸 未填寫 IG</button>`}
+            ${cadre.line ? `<button class="btn-social btn-line" onclick="APP.copyToClipboard('${this.escapeHtml(cadre.line)}', 'LINE ID')">💬 複製 LINE ID</button>` : `<button class="btn-social btn-line" style="opacity:0.45; cursor:not-allowed;">💬 未填寫 LINE</button>`}
+            ${(this.currentUser && String(this.currentUser.id).toUpperCase() === String(cleanCadreId).toUpperCase()) ? `<button class="btn-primary" style="grid-column:1/-1; padding:0.6rem;" onclick="APP.closeModal('modal-member-detail'); APP.openEditProfileModal();">✏️ 編輯我的幹部檔案與照片</button>` : ''}
+            ${(this.isAdmin() && String(cadre.id) !== '13055') ? `<button class="btn-admin-reset" style="grid-column:1/-1;" onclick="APP.handleAdminResetPassword('${cadre.id}')">🔑 管理員重設此幹部密碼</button>` : ''}
+          </div>
         </div>
       `;
     }
