@@ -230,6 +230,26 @@ function handleGetAllData() {
     if (t.date && typeof t.date === 'object' && t.date.toISOString) {
       t.date = Utilities.formatDate(t.date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
     }
+    // 智慧校正歷史 12/13 / 10/12 / 09/15 舊版資料
+    if (String(t.date).includes('2026-12-13') || String(t.display_date).includes('12/13')) {
+      t.date = '2026-12-02';
+      t.display_date = '12/02';
+      t.title = '光榮結訓・結訓令生效';
+      t.badge = '光榮退伍';
+      t.description = '常備兵役軍事訓練圓滿達成！115年12月2日零時生效，三連兄弟江湖再見！';
+    } else if (String(t.date).includes('2026-10-12') || String(t.display_date).includes('10/12')) {
+      t.date = '2026-10-15';
+      t.display_date = '10/15';
+      t.title = '下部隊撥交・二階段戰訓';
+      t.badge = '下部隊實務';
+      t.description = '金六結第一階段入伍訓練圓滿結業 (10/14撥交)！10/15起進入第二階段部隊訓練！';
+    } else if ((String(t.date).includes('2026-09-15') || String(t.display_date).includes('09/15')) && String(t.title).includes('鑑測')) {
+      t.date = '2026-10-05';
+      t.display_date = '10/05';
+      t.title = '入伍結訓鑑測・總驗收';
+      t.badge = '結訓鑑測';
+      t.description = '入伍結訓鑑測 (10/5~10/8)：刺槍術、手榴彈投擲、三千公尺跑步與實彈射擊總驗收！';
+    }
     return t;
   });
   timeline.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -757,7 +777,7 @@ function setupDatabase(targetSs) {
   diarySheet.appendRow(diaryHeaders);
   formatHeaderRow(diarySheet);
 
-  // 5. 初始化 Timeline 時間軸表 (預設寫入 8/12 入伍 ~ 12/13 退伍等重要里程碑)
+  // 5. 初始化 Timeline 時間軸表 (預設寫入 8/12 入伍 ~ 12/02 結訓退伍等重要里程碑)
   initTimelineSheet(ss);
 
   SpreadsheetApp.flush();

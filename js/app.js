@@ -279,11 +279,38 @@ const APP = {
         }
       }
 
-      const title = String(item.title || item.name || `軍旅里程碑 #${idx + 1}`).trim();
-      const badge = String(item.badge || item.category || '重要日程').trim();
-      const description = String(item.description || item.desc || '').trim();
-      const icon = String(item.icon || (idx === 0 ? '🪖' : (idx === rawTimeline.length - 1 ? '🎖️' : '🎯'))).trim();
-      const type = String(item.type || (idx === 0 ? 'start' : (idx === rawTimeline.length - 1 ? 'end' : 'milestone'))).trim();
+      let title = String(item.title || item.name || `軍旅里程碑 #${idx + 1}`).trim();
+      let badge = String(item.badge || item.category || '重要日程').trim();
+      let description = String(item.description || item.desc || '').trim();
+      let icon = String(item.icon || (idx === 0 ? '🪖' : (idx === rawTimeline.length - 1 ? '🎖️' : '🎯'))).trim();
+      let type = String(item.type || (idx === 0 ? 'start' : (idx === rawTimeline.length - 1 ? 'end' : 'milestone'))).trim();
+
+      // 智慧校正：若 Google 試算表歷史資料仍殘留舊版 12/13 / 10/12 / 09/15 日程，自動對齊國軍官方公文標準日期
+      if (dateStr === '2026-12-13' || displayDate === '12/13') {
+        dateStr = '2026-12-02';
+        displayDate = '12/02';
+        title = '光榮結訓・結訓令生效';
+        badge = '光榮退伍';
+        description = '常備兵役軍事訓練圓滿達成！115年12月2日零時生效，三連兄弟江湖再見！';
+        icon = '🎖️';
+        type = 'end';
+      } else if (dateStr === '2026-10-12' || displayDate === '10/12') {
+        dateStr = '2026-10-15';
+        displayDate = '10/15';
+        title = '下部隊撥交・二階段戰訓';
+        badge = '下部隊實務';
+        description = '金六結第一階段入伍訓練圓滿結業 (10/14撥交)！10/15起進入第二階段部隊訓練！';
+        icon = '⚔️';
+        type = 'training';
+      } else if ((dateStr === '2026-09-15' || displayDate === '09/15') && title.includes('鑑測')) {
+        dateStr = '2026-10-05';
+        displayDate = '10/05';
+        title = '入伍結訓鑑測・總驗收';
+        badge = '結訓鑑測';
+        description = '入伍結訓鑑測 (10/5~10/8)：刺槍術、手榴彈投擲、三千公尺跑步與實彈射擊總驗收！';
+        icon = '🎯';
+        type = 'milestone';
+      }
 
       return {
         id: item.id || idx + 1,
