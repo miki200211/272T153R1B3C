@@ -200,6 +200,11 @@ function handleGetAllData() {
   const cadres = getSheetDataAsObjects(ss.getSheetByName('Cadres')).map(c => {
     delete c.password;
     c.is_cadre = true;
+    if (c.enlist_date && typeof c.enlist_date === 'object' && c.enlist_date.toISOString) {
+      c.enlist_date = Utilities.formatDate(c.enlist_date, 'Asia/Taipei', 'yyyy-MM-dd');
+    } else if (c.enlist_date && String(c.enlist_date).includes('T')) {
+      c.enlist_date = String(c.enlist_date).split('T')[0];
+    }
     return c;
   });
 
@@ -692,7 +697,11 @@ function getSheetDataAsObjects(sheet) {
 function rowToObject(headers, row) {
   const obj = {};
   for (let j = 0; j < headers.length; j++) {
-    obj[headers[j]] = row[j];
+    let val = row[j];
+    if (val && typeof val === 'object' && val.toISOString) {
+      val = Utilities.formatDate(val, 'Asia/Taipei', 'yyyy-MM-dd');
+    }
+    obj[headers[j]] = val;
   }
   return obj;
 }

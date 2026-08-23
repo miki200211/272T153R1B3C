@@ -14,10 +14,49 @@ const APP = {
     return mapping[n] || String(num);
   },
 
+  // 輔助函式：標準化日期為 YYYY-MM-DD (防止 ISO 格式或斜線破壞 input[type=date])
+  formatDateToYMD(dateVal) {
+    if (!dateVal) return '';
+    if (typeof dateVal === 'object' && dateVal instanceof Date) {
+      if (isNaN(dateVal.getTime())) return '';
+      const y = dateVal.getFullYear();
+      const m = String(dateVal.getMonth() + 1).padStart(2, '0');
+      const d = String(dateVal.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    let str = String(dateVal).trim();
+    if (!str) return '';
+    if (str.includes('T')) {
+      const dObj = new Date(str);
+      if (!isNaN(dObj.getTime())) {
+        const y = dObj.getFullYear();
+        const m = String(dObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+      return str.split('T')[0];
+    }
+    if (str.includes('/')) {
+      str = str.replace(/\//g, '-');
+    }
+    const parts = str.split('-');
+    if (parts.length === 3) {
+      const y = parts[0].padStart(4, '20');
+      const m = parts[1].padStart(2, '0');
+      const d = parts[2].padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    return str;
+  },
+
   // 計算幹部入伍年資 (幾年幾個月)
   calculateServiceTime(dateStr) {
     if (!dateStr) return null;
-    const start = new Date(dateStr);
+    const ymd = this.formatDateToYMD(dateStr);
+    if (!ymd) return null;
+    const parts = ymd.split('-');
+    if (parts.length < 3) return null;
+    const start = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
     if (isNaN(start.getTime())) return null;
     const now = new Date();
     if (now < start) return '尚未入伍';
@@ -234,7 +273,7 @@ const APP = {
       nickname: String(c.nickname ?? '').trim(),
       rank_level: String(c.rank_level ?? c.rank ?? '').trim(),
       duty: String(c.duty ?? '連隊幹部').trim(),
-      enlist_date: String(c.enlist_date ?? '').trim(),
+      enlist_date: this.formatDateToYMD(c.enlist_date),
       interests: String(c.interests ?? '').trim(),
       dream: String(c.dream ?? '').trim(),
       ig: String(c.ig ?? '').trim(),
@@ -2580,8 +2619,9 @@ const APP = {
     }
     const enlistInput = document.getElementById('profile-enlist-date');
     if (enlistInput) {
-      enlistInput.value = member.enlist_date || '';
-      this.handleEnlistDateChange(member.enlist_date || '');
+      const formattedEnlistDate = this.formatDateToYMD(member.enlist_date);
+      enlistInput.value = formattedEnlistDate;
+      this.handleEnlistDateChange(formattedEnlistDate);
     }
 
     document.getElementById('profile-name').value = member.name || '';
@@ -2695,7 +2735,8 @@ const APP = {
     const rank_level = rankLevelInput ? rankLevelInput.value.trim() : '';
 
     const enlistDateInput = document.getElementById('profile-enlist-date');
-    const enlist_date = (isCadre && enlistDateInput) ? enlistDateInput.value.trim() : '';
+    const rawEnlistDate = (isCadre && enlistDateInput) ? enlistDateInput.value.trim() : '';
+    const enlist_date = this.formatDateToYMD(rawEnlistDate);
 
     const saveBtn = document.getElementById('btn-save-profile');
     const originalSaveText = saveBtn ? saveBtn.textContent : '儲存更新';
@@ -2729,9 +2770,13 @@ const APP = {
       const result = await API.updateProfile(payload);
 
       if (result && result.success) {
+        const cleanResultUser = { ...(result.user || payload) };
+        if (cleanResultUser.enlist_date) {
+          cleanResultUser.enlist_date = this.formatDateToYMD(cleanResultUser.enlist_date);
+        }
         const updatedUser = {
           ...this.currentUser,
-          ...(result.user || payload),
+          ...cleanResultUser,
           id: String(this.currentUser.id).trim()
         };
         this.currentUser = updatedUser;
