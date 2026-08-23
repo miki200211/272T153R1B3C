@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.3.5">
+  <link rel="stylesheet" href="css/style.css?v=3.3.6">
 </head>
 <body>
 
@@ -714,8 +714,39 @@
           <div id="profile-cadre-fields-group" style="display: none;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
               <div class="form-group">
-                <label for="profile-rank-level">🎖️ 職等 / 階級</label>
-                <input type="text" id="profile-rank-level" class="form-control" placeholder="例：少校、上尉、中尉、士官長、上士、中士、下士">
+                <label for="profile-rank-level">🎖️ 職等 / 軍階</label>
+                <select id="profile-rank-level" class="form-control">
+                  <option value="">-- 請選擇軍階職等 --</option>
+                  <optgroup label="🎖️ 軍官（將官）">
+                    <option value="一級上將">一級上將 (四星)</option>
+                    <option value="二級上將">二級上將 (三星)</option>
+                    <option value="中將">中將 (二星)</option>
+                    <option value="少將">少將 (一星)</option>
+                  </optgroup>
+                  <optgroup label="🎖️ 軍官（校官）">
+                    <option value="上校">上校 (兩條三)</option>
+                    <option value="中校">中校 (兩條二)</option>
+                    <option value="少校">少校 (兩條一)</option>
+                  </optgroup>
+                  <optgroup label="🎖️ 軍官（尉官）">
+                    <option value="上尉">上尉 (一條三)</option>
+                    <option value="中尉">中尉 (一條二)</option>
+                    <option value="少尉">少尉 (一條一)</option>
+                  </optgroup>
+                  <optgroup label="⚔️ 士官">
+                    <option value="一等士官長">一等士官長 (一等長)</option>
+                    <option value="二等士官長">二等士官長 (二等長)</option>
+                    <option value="三等士官長">三等士官長 (三等長)</option>
+                    <option value="上士">上士</option>
+                    <option value="中士">中士</option>
+                    <option value="下士">下士</option>
+                  </optgroup>
+                  <optgroup label="🪖 士兵">
+                    <option value="上等兵">上等兵 (上兵)</option>
+                    <option value="一等兵">一等兵 (一兵)</option>
+                    <option value="二等兵">二等兵 (二兵)</option>
+                  </optgroup>
+                </select>
               </div>
               <div class="form-group">
                 <label for="profile-enlist-date">📅 入伍日期 (自動算年資)</label>
@@ -854,9 +885,9 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- 載入核心腳本 (循序載入) -->
-  <script src="js/config.js?v=3.3.5"></script>
-  <script src="js/mockData.js?v=3.3.5"></script>
-  <script src="js/api.js?v=3.3.5"></script>
-  <script src="js/app.js?v=3.3.5"></script>
+  <script src="js/config.js?v=3.3.6"></script>
+  <script src="js/mockData.js?v=3.3.6"></script>
+  <script src="js/api.js?v=3.3.6"></script>
+  <script src="js/app.js?v=3.3.6"></script>
 </body>
 </html>

@@ -1029,7 +1029,17 @@ const APP = {
 
     const homeCadresGrid = document.getElementById('home-cadres-grid');
     if (homeCadresGrid) {
-      const topCadres = this.cadres.slice(0, 3);
+      const sortedCadres = [...this.cadres].sort((a, b) => {
+        const aHasName = Boolean(a.name && a.name.trim());
+        const bHasName = Boolean(b.name && b.name.trim());
+        if (aHasName && !bHasName) return -1;
+        if (!aHasName && bHasName) return 1;
+        const weightA = this.getRankOrderWeight(a.rank_level);
+        const weightB = this.getRankOrderWeight(b.rank_level);
+        if (weightA !== weightB) return weightB - weightA;
+        return String(a.id).localeCompare(String(b.id));
+      });
+      const topCadres = sortedCadres.slice(0, 3);
       homeCadresGrid.innerHTML = topCadres.map(c => this.createCadreCardHtml(c)).join('');
     }
 
@@ -1165,16 +1175,45 @@ const APP = {
     }
   },
 
-  // 計算幹部職等排序權重 (將官 > 校官 > 尉官 > 士官長 > 上士 > 中士 > 下士 > 一兵 > 二兵)
+  // 計算幹部職等排序權重 (將官 > 校官 > 尉官 > 士官長 > 士官 > 士兵)
   getRankOrderWeight(rank) {
     const r = String(rank || '').trim();
-    if (r.includes('將') || r.includes('校') || r.includes('尉')) return 100;
-    if (r.includes('士官長') || r.includes('一等') || r.includes('二等') || r.includes('三等')) return 80;
-    if (r.includes('上士')) return 70;
-    if (r.includes('中士')) return 60;
-    if (r.includes('下士')) return 50;
-    if (r.includes('一兵')) return 40;
-    if (r.includes('二兵')) return 30;
+    if (!r) return 0;
+
+    // 將官
+    if (r.includes('一級上將') || r.includes('四星')) return 240;
+    if (r.includes('二級上將') || r.includes('三星')) return 230;
+    if (r.includes('中將') || r.includes('二星')) return 220;
+    if (r.includes('少將') || r.includes('一星')) return 210;
+
+    // 校官
+    if (r.includes('上校') || r.includes('兩條三') || r.includes('2條3')) return 190;
+    if (r.includes('中校') || r.includes('兩條二') || r.includes('2條2')) return 180;
+    if (r.includes('少校') || r.includes('兩條一') || r.includes('2條1')) return 170;
+
+    // 尉官
+    if (r.includes('上尉') || r.includes('一條三') || r.includes('1條3')) return 150;
+    if (r.includes('中尉') || r.includes('一條二') || r.includes('1條2')) return 140;
+    if (r.includes('少尉') || r.includes('一條一') || r.includes('1條1')) return 130;
+
+    // 士官長
+    if (r.includes('一等士官長') || r.includes('一等長')) return 110;
+    if (r.includes('二等士官長') || r.includes('二等長')) return 100;
+    if (r.includes('三等士官長') || r.includes('三等長')) return 90;
+    if (r.includes('士官長')) return 95;
+
+    // 士官
+    if (r.includes('上士')) return 80;
+    if (r.includes('中士')) return 70;
+    if (r.includes('下士')) return 60;
+    if (r.includes('士官')) return 65;
+
+    // 士兵
+    if (r.includes('上等兵') || r.includes('上兵')) return 40;
+    if (r.includes('一等兵') || r.includes('一兵')) return 30;
+    if (r.includes('二等兵') || r.includes('二兵')) return 20;
+    if (r.includes('兵')) return 25;
+
     return 10;
   },
 
@@ -2497,7 +2536,19 @@ const APP = {
     const cadreGroup = document.getElementById('profile-cadre-fields-group');
     if (cadreGroup) cadreGroup.style.display = isCadre ? 'block' : 'none';
     const rankInput = document.getElementById('profile-rank-level');
-    if (rankInput) rankInput.value = member.rank_level || member.rank || '';
+    if (rankInput) {
+      const currentRank = String(member.rank_level || member.rank || '').trim();
+      rankInput.value = currentRank;
+      if (currentRank && !rankInput.value) {
+        for (let i = 0; i < rankInput.options.length; i++) {
+          const optVal = rankInput.options[i].value;
+          if (optVal && (currentRank.includes(optVal) || optVal.includes(currentRank))) {
+            rankInput.selectedIndex = i;
+            break;
+          }
+        }
+      }
+    }
     const enlistInput = document.getElementById('profile-enlist-date');
     if (enlistInput) {
       enlistInput.value = member.enlist_date || '';
