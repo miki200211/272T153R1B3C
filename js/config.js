@@ -10,7 +10,7 @@ const CONFIG = {
   ADMIN_CONTACT_ID: '13055', // 忘記密碼聯繫窗口
   
   // Google Apps Script (GAS) 部署 Web App URL
-  DEFAULT_GAS_API_URL: 'https://script.google.com/macros/s/AKfycbzgJk2TxIbRRwXMSVhQI4Xo1hiD49XH2dsXdXfhdLsB8bVqusvtfSWRfhjQa_R00yV5Lg/exec',
+  DEFAULT_GAS_API_URL: 'https://script.google.com/macros/s/AKfycbzOMOUax5iBiAinnxicDrStVsIpcaMqZCBZH_7aWlCmyW1vuZsoWMd4UnxIV-X5R9jnRQ/exec',
 
   // LocalStorage 鍵名
   STORAGE_KEYS: {
@@ -28,7 +28,7 @@ const CONFIG = {
   // 取得目前有效的 GAS API 網址
   getGasApiUrl() {
     const saved = localStorage.getItem(this.STORAGE_KEYS.GAS_URL);
-    if (saved && !saved.includes('AKfycbzgJk2TxIbRRwXMSVhQI4Xo1hiD49XH2dsXdXfhdLsB8bVqusvtfSWRfhjQa_R00yV5Lg')) {
+    if (saved && !saved.includes('AKfycbzOMOUax5iBiAinnxicDrStVsIpcaMqZCBZH_7aWlCmyW1vuZsoWMd4UnxIV-X5R9jnRQ')) {
       localStorage.setItem(this.STORAGE_KEYS.GAS_URL, this.DEFAULT_GAS_API_URL);
       return this.DEFAULT_GAS_API_URL;
     }
