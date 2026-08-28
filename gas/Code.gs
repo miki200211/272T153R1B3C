@@ -129,12 +129,12 @@ function getDatabaseSpreadsheet() {
 // =========================================================================
 
 /**
- * 1. 登入驗證 (支援弟兄學號 13001~13098 與 長官幹部 1B3C001~1B3C100)
+ * 1. 登入驗證 (專屬 98 位弟兄學號 13001~13098)
  */
 function handleLogin(data) {
   const { id, password } = data;
   if (!id || !password) {
-    return { success: false, code: 'ERR-AUTH-EMPTY', message: '[ERR-AUTH-EMPTY] 請輸入帳號/學號與密碼' };
+    return { success: false, code: 'ERR-AUTH-EMPTY', message: '[ERR-AUTH-EMPTY] 請輸入弟兄學號與密碼' };
   }
 
   const ss = getDatabaseSpreadsheet();
@@ -143,13 +143,9 @@ function handleLogin(data) {
   const cleanId = String(id).trim();
   const cleanPwd = String(password).trim();
 
-  // 判斷是否為長官幹部帳號 (1B3C 開頭)
-  const isCadreId = cleanId.toUpperCase().startsWith('1B3C');
-  const targetSheetName = isCadreId ? 'Cadres' : 'Members';
-  const sheet = ss.getSheetByName(targetSheetName);
-
+  const sheet = ss.getSheetByName('Members');
   if (!sheet) {
-    return { success: false, code: 'ERR-DB-NOTFOUND', message: `[ERR-DB-NOTFOUND] ${targetSheetName} 資料表不存在` };
+    return { success: false, code: 'ERR-DB-NOTFOUND', message: '[ERR-DB-NOTFOUND] Members 資料表不存在' };
   }
 
   const values = sheet.getDataRange().getValues();
@@ -159,22 +155,22 @@ function handleLogin(data) {
 
   for (let i = 1; i < values.length; i++) {
     const row = values[i];
-    if (String(row[idColIdx]).toUpperCase() === cleanId.toUpperCase()) {
-      const storedPwd = String(row[pwdColIdx] || row[idColIdx]);
+    if (String(row[idColIdx]).trim() === cleanId) {
+      const storedPwd = String(row[pwdColIdx] || row[idColIdx]).trim();
       if (storedPwd === cleanPwd) {
         const userObj = rowToObject(headers, row);
         delete userObj.password; // 安全考量不回傳密碼
-        userObj.is_cadre = isCadreId;
-        // 首次登入檢查：若目前密碼與帳號/學號相同，代表尚未設定自訂密碼，強制要求修改
-        userObj.needs_password_change = Boolean(storedPwd.toUpperCase() === cleanId.toUpperCase());
+        userObj.is_cadre = false;
+        // 首次登入檢查：若目前密碼與學號相同，代表尚未設定自訂密碼，強制要求修改
+        userObj.needs_password_change = Boolean(storedPwd === cleanId);
         return { success: true, user: userObj, message: '登入成功' };
       } else {
-        return { success: false, code: 'ERR-AUTH-PWD', message: '[ERR-AUTH-PWD] 密碼錯誤！忘記密碼請聯繫 13055' };
+        return { success: false, code: 'ERR-AUTH-PWD', message: '[ERR-AUTH-PWD] 密碼錯誤！預設為學號，忘記請聯繫 13055' };
       }
     }
   }
 
-  return { success: false, code: 'ERR-AUTH-NOUSER', message: `[ERR-AUTH-NOUSER] 查無此帳號 (${cleanId})，請確認後重新輸入` };
+  return { success: false, code: 'ERR-AUTH-NOUSER', message: `[ERR-AUTH-NOUSER] 查無此弟兄學號 (${cleanId})，請確認後重新輸入` };
 }
 
 /**

@@ -266,24 +266,44 @@ const APP = {
   },
 
   normalizeCadres(rawCadres) {
-    return (rawCadres || []).map(c => ({
-      ...c,
-      id: String(c.id ?? '').trim(),
-      name: String(c.name ?? '').trim(),
-      nickname: String(c.nickname ?? '').trim(),
-      rank_level: String(c.rank_level ?? c.rank ?? '').trim(),
-      duty: String(c.duty ?? '連隊幹部').trim(),
-      enlist_date: this.formatDateToYMD(c.enlist_date),
-      interests: String(c.interests ?? '').trim(),
-      dream: String(c.dream ?? '').trim(),
-      ig: String(c.ig ?? '').trim(),
-      line: String(c.line ?? '').trim(),
-      bio: String(c.bio ?? c.graduation_quote ?? '').trim(), // 💬 幹部期勉座右銘 (原本的 bio 欄位，外層卡片展示)
-      self_intro: String(c.self_intro ?? c.intro ?? c.dossier_bio ?? '').trim(), // 📝 幹部自我介紹 (新增在 Excel 的 self_intro 欄位，點進檔案才展示)
-      avatar_military: this.formatImageUrl(c.avatar_military || c.avatar_url || c.photo_url || ''),
-      avatar_civilian: this.formatImageUrl(c.avatar_civilian || ''),
-      is_cadre: true
-    }));
+    if (!Array.isArray(rawCadres) || rawCadres.length === 0) {
+      rawCadres = MOCK_DATA.getInitialCadres();
+    }
+    // 過濾掉無名無職的空白假帳號
+    const validCadres = rawCadres.filter(c => c && (c.name || c.duty || c.nickname));
+    const listToUse = validCadres.length > 0 ? validCadres : MOCK_DATA.getInitialCadres();
+
+    return listToUse.map((c, idx) => {
+      // 智慧推算所屬班級 (若未帶 squad 欄位則從 duty 解析)
+      let squadNum = Number(c.squad) || 0;
+      if (!squadNum && c.duty) {
+        const match = c.duty.match(/第([一二三四五六七八九十\d]+)班/);
+        if (match) {
+          const numMap = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9 };
+          squadNum = numMap[match[1]] || Number(match[1]) || 0;
+        }
+      }
+
+      return {
+        ...c,
+        id: String(c.id || `CADRE-${idx + 1}`).trim(),
+        name: String(c.name ?? '').trim(),
+        nickname: String(c.nickname ?? '').trim(),
+        squad: squadNum,
+        rank_level: String(c.rank_level ?? c.rank ?? '').trim(),
+        duty: String(c.duty ?? '連隊幹部').trim(),
+        enlist_date: this.formatDateToYMD(c.enlist_date),
+        interests: String(c.interests ?? '').trim(),
+        dream: String(c.dream ?? '').trim(),
+        ig: String(c.ig ?? '').trim(),
+        line: String(c.line ?? '').trim(),
+        bio: String(c.bio ?? c.graduation_quote ?? '').trim(), // 💬 幹部期勉座右銘 (原本的 bio 欄位，外層卡片展示)
+        self_intro: String(c.self_intro ?? c.intro ?? c.dossier_bio ?? '').trim(), // 📝 幹部自我介紹 (新增在 Excel 的 self_intro 欄位，點進檔案才展示)
+        avatar_military: this.formatImageUrl(c.avatar_military || c.avatar_url || c.photo_url || ''),
+        avatar_civilian: this.formatImageUrl(c.avatar_civilian || ''),
+        is_cadre: true
+      };
+    });
   },
 
   // 時間軸資料安全正規化與排序處理 (支援後台 Google Sheet / Excel 同步自訂)
@@ -1285,43 +1305,76 @@ const APP = {
     return 10;
   },
 
-  // 2. 幹部專區渲染 (依職等順序排列：士官長 ➔ 上士 ➔ 中士 ➔ 下士 ➔ 一兵)
+  // 2. 各班幹部專區渲染 (依排組與班級順序 第一班 ~ 第九班 班長與副班長)
   renderCadresView() {
     const cadresListGrid = document.getElementById('cadres-list-grid');
-    if (cadresListGrid) {
-      if (!this.cadres || this.cadres.length === 0) {
-        cadresListGrid.innerHTML = `
-          <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #94a3b8;">
-            <p style="font-size: 1.1rem; font-weight: 700;">目前尚無幹部資料</p>
-          </div>
-        `;
-      } else {
-        // 依軍階職等排序：有姓名的幹部依職等高低排列，空白卡位排在最後
-        const sortedCadres = [...this.cadres].sort((a, b) => {
-          const aHasName = Boolean(a.name && a.name.trim());
-          const bHasName = Boolean(b.name && b.name.trim());
-          if (aHasName && !bHasName) return -1;
-          if (!aHasName && bHasName) return 1;
-          const weightA = this.getRankOrderWeight(a.rank_level);
-          const weightB = this.getRankOrderWeight(b.rank_level);
-          if (weightA !== weightB) return weightB - weightA;
-          return String(a.id).localeCompare(String(b.id));
-        });
-        cadresListGrid.innerHTML = sortedCadres.map(c => this.createCadreCardHtml(c)).join('');
-      }
+    if (!cadresListGrid) return;
+
+    if (!this.cadres || this.cadres.length === 0) {
+      this.cadres = MOCK_DATA.getInitialCadres();
     }
+
+    // 排組篩選條
+    const filterContainer = document.getElementById('cadre-platoon-filter-bar');
+    if (filterContainer) {
+      const activePlatoon = this.currentCadrePlatoon || 'all';
+      filterContainer.innerHTML = `
+        <button class="duty-pill ${activePlatoon === 'all' ? 'active' : ''}" onclick="APP.setCadrePlatoonFilter('all')">🎖️ 全部各班幹部 (14)</button>
+        <button class="duty-pill ${activePlatoon === '1' ? 'active' : ''}" onclick="APP.setCadrePlatoonFilter('1')">🥇 一排幹部 (1~3班)</button>
+        <button class="duty-pill ${activePlatoon === '2' ? 'active' : ''}" onclick="APP.setCadrePlatoonFilter('2')">🥈 二排幹部 (4~6班)</button>
+        <button class="duty-pill ${activePlatoon === '3' ? 'active' : ''}" onclick="APP.setCadrePlatoonFilter('3')">🥉 三排幹部 (7~9班)</button>
+      `;
+    }
+
+    let filtered = [...this.cadres];
+    if (this.currentCadrePlatoon && this.currentCadrePlatoon !== 'all') {
+      const pNum = Number(this.currentCadrePlatoon);
+      filtered = filtered.filter(c => {
+        const squadNum = Number(c.squad) || 0;
+        if (pNum === 1) return squadNum >= 1 && squadNum <= 3;
+        if (pNum === 2) return squadNum >= 4 && squadNum <= 6;
+        if (pNum === 3) return squadNum >= 7 && squadNum <= 9;
+        return true;
+      });
+    }
+
+    // 依班級順序與班長/副班長排列 (第1班 ➔ 第9班，同班班長在副班長前)
+    filtered.sort((a, b) => {
+      const sA = Number(a.squad) || 99;
+      const sB = Number(b.squad) || 99;
+      if (sA !== sB) return sA - sB;
+      const isAsstA = String(a.duty || '').includes('副');
+      const isAsstB = String(b.duty || '').includes('副');
+      if (!isAsstA && isAsstB) return -1;
+      if (isAsstA && !isAsstB) return 1;
+      return 0;
+    });
+
+    cadresListGrid.innerHTML = filtered.map(c => this.createCadreCardHtml(c)).join('');
+  },
+
+  setCadrePlatoonFilter(platoon) {
+    this.currentCadrePlatoon = platoon;
+    this.renderCadresView();
   },
 
   createCadreCardHtml(cadre) {
-    const cleanCadreId = String(cadre.id ?? '').trim();
-    const isMe = Boolean(this.currentUser && String(this.currentUser.id).trim().toUpperCase() === cleanCadreId.toUpperCase());
-    const isAdmin = this.isAdmin();
     const cadreName = String(cadre.name ?? '').trim();
     const hasName = Boolean(cadreName);
     const displayName = hasName ? cadreName : (cadre.duty || cadre.rank_level || '連隊幹部');
     const initials = hasName 
       ? cadreName.substring(Math.max(0, cadreName.length - 2)) 
       : '幹部';
+
+    // 所屬班級與排組標籤
+    const squadNum = Number(cadre.squad) || 0;
+    let platoonName = '連部';
+    if (squadNum >= 1 && squadNum <= 3) platoonName = '一排';
+    else if (squadNum >= 4 && squadNum <= 6) platoonName = '二排';
+    else if (squadNum >= 7 && squadNum <= 9) platoonName = '三排';
+    const squadName = squadNum > 0 ? `第${this.toChineseNum(squadNum)}班` : '連部';
+    const isAssistant = String(cadre.duty || '').includes('副');
+    const roleTag = isAssistant ? '🛡️ 副班長' : '⚔️ 班長';
 
     // 正面：軍裝照
     const milPhoto = cadre.avatar_military || cadre.avatar_url || cadre.photo_url;
@@ -1347,36 +1400,19 @@ const APP = {
          </button>` 
       : `<button class="btn-social btn-line" style="opacity: 0.45; cursor: not-allowed;" title="未填寫 LINE">💬 未填寫</button>`;
 
-    // 只有該幹部本人可以編輯自己的資料與照片
-    const editSelfBtn = isMe 
-      ? `<button class="btn-edit-self" onclick="APP.openEditProfileModal()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-          </svg>
-          <span>編輯我的幹部資料與照片</span>
-        </button>` 
-      : '';
-
-    // 13055 管理員專屬：可將幹部密碼恢復為預設帳號
-    const adminResetBtn = (isAdmin && !isMe)
-      ? `<button class="btn-admin-reset" onclick="APP.handleAdminResetPassword('${cadre.id}')" title="管理員權限：將此幹部密碼恢復為預設">
-          <span>🔑 恢復密碼</span>
-         </button>`
-      : '';
-
     return `
-      <div class="member-card tactical-dossier-card cadre-member-card ${isMe ? 'is-current-user' : ''}" id="card-${cadre.id}">
+      <div class="member-card tactical-dossier-card cadre-member-card" id="card-${cadre.id}">
         <!-- Tactical HUD Corner Accents -->
         <div class="dossier-corner corner-tl"></div>
         <div class="dossier-corner corner-tr"></div>
         <div class="dossier-corner corner-bl"></div>
         <div class="dossier-corner corner-br"></div>
 
-        <!-- Dossier Top Status Strip (不顯示幹部流水編號) -->
+        <!-- Dossier Top Status Strip -->
         <div class="dossier-top-strip">
           <div class="dossier-id-chips">
-            <span class="badge-admin" style="background:var(--primary-dark); color:var(--gold); font-size:0.75rem;">⭐ 長官幹部</span>
+            <span class="badge-admin" style="background:var(--primary-dark); color:var(--gold); font-size:0.75rem;">🎖️ ${platoonName}・${squadName}</span>
+            <span class="dossier-code-chip" style="font-size:0.72rem;">${roleTag}</span>
           </div>
           <span class="dossier-duty-tag" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a;">🎖️ ${this.escapeHtml(cadre.rank_level || '幹部階級')}</span>
         </div>
@@ -1399,12 +1435,10 @@ const APP = {
           <div class="member-header-text">
             <h3 class="member-name" title="${this.escapeHtml(displayName)}" onclick="APP.showCadreDetail('${cadre.id}')" style="cursor:pointer;">
               ${this.escapeHtml(displayName)}
-              ${isMe ? '<span class="tag-me-badge">(我)</span>' : ''}
-              ${!hasName ? '<span class="tag-pending-badge">(待填寫)</span>' : ''}
             </h3>
             <div class="member-callsign-box">
               <span class="callsign-label">CALLSIGN // 綽號:</span>
-              <strong class="callsign-val">${this.escapeHtml(cadre.nickname || '未填寫')}</strong>
+              <strong class="callsign-val">${this.escapeHtml(cadre.nickname || displayName)}</strong>
             </div>
             <div class="flip-hint-text" onclick="APP.toggleCardFlip(this.closest('.member-card, .cadre-card').querySelector('.avatar-flip-container'), event, '${cadre.id}')">
               <span>🔄 點擊照片翻轉 (軍裝 ⇋ 便服)</span>
@@ -1415,11 +1449,15 @@ const APP = {
         <!-- Bento Grid Specs Row -->
         <div class="dossier-bento-grid">
           <div class="bento-cell bento-duty">
-            <span class="bento-cell-label">⚔️ DUTY 連隊職務</span>
-            <span class="bento-cell-val">${this.escapeHtml(cadre.duty || '連隊幹部')}</span>
+            <span class="bento-cell-label">⚔️ DUTY 帶班職務</span>
+            <span class="bento-cell-val">${this.escapeHtml(cadre.duty || `${squadName} 幹部`)}</span>
+          </div>
+          <div class="bento-cell bento-room">
+            <span class="bento-cell-label">🏢 SQUAD 所屬編制</span>
+            <span class="bento-cell-val">${platoonName} ${squadName}</span>
           </div>
           ${cadre.enlist_date ? `
-          <div class="bento-cell" style="background: rgba(14, 165, 233, 0.08); border-color: rgba(56, 189, 248, 0.25);">
+          <div class="bento-cell" style="grid-column: 1 / -1; background: rgba(14, 165, 233, 0.08); border-color: rgba(56, 189, 248, 0.25);">
             <span class="bento-cell-label" style="color: #38bdf8;">📅 SERVICE 服役年資</span>
             <span class="bento-cell-val">${this.calculateServiceTime(cadre.enlist_date)}</span>
           </div>` : ''}
@@ -1438,7 +1476,7 @@ const APP = {
         <!-- Dossier Transcript / 幹部期勉 (外層卡片展示原本的 bio 欄位) -->
         <div class="member-bio dossier-transcript">
           <div class="transcript-tag">💬 MOTTO // 幹部期勉</div>
-          <div class="transcript-body">${this.escapeHtml(cadre.graduation_quote || cadre.bio || (hasName ? '金六結 153R 1B3C 精實連隊！' : '（尚未填寫期勉感言...）'))}</div>
+          <div class="transcript-body">${this.escapeHtml(cadre.graduation_quote || cadre.bio || '熱血三連，同甘共苦、榮耀同行！')}</div>
         </div>
 
         <!-- Direct Action Buttons & View Dossier Drawer Trigger -->
@@ -1459,8 +1497,6 @@ const APP = {
         <div class="member-social-actions">
           ${igButton}
           ${lineButton}
-          ${editSelfBtn}
-          ${adminResetBtn}
         </div>
       </div>
     `;
@@ -2326,11 +2362,10 @@ const APP = {
     if (this.currentUser) {
       const cleanId = String(this.currentUser.id ?? '').trim();
       const userName = String(this.currentUser.name ?? '').trim();
-      const isCadre = Boolean(this.currentUser.is_cadre || cleanId.toUpperCase().startsWith('1B3C'));
-      const displayName = userName || (isCadre ? (this.currentUser.duty || this.currentUser.rank_level || '連隊幹部') : `學號 #${cleanId}`);
+      const displayName = userName || `學號 #${cleanId}`;
       const initials = userName 
         ? userName.substring(Math.max(0, userName.length - 2)) 
-        : (isCadre ? '幹部' : (cleanId ? cleanId.substring(Math.max(0, cleanId.length - 2)) : '我'));
+        : (cleanId ? cleanId.substring(Math.max(0, cleanId.length - 2)) : '我');
       const rawPhoto = this.currentUser.avatar_military || this.currentUser.avatar_url || this.currentUser.avatar_civilian;
       const userPhoto = this.formatImageUrl(rawPhoto);
       const avatarHtml = userPhoto 
@@ -2338,7 +2373,7 @@ const APP = {
         : initials;
 
       const adminBadgeHtml = this.isAdmin() ? '<span class="badge-admin admin-badge-header">👑 管理員</span>' : '';
-      const statusIdText = isCadre ? '長官幹部' : `#${cleanId}`;
+      const statusIdText = `#${cleanId}`;
 
       container.innerHTML = `
         <div class="user-status-bar">
@@ -2405,7 +2440,7 @@ const APP = {
         line: String(result.user.line ?? '').trim(),
         bio: String(result.user.bio ?? result.user.graduation_quote ?? '').trim(), // 💬 結訓感言 (原本的 bio 欄位)
         self_intro: String(result.user.self_intro ?? result.user.intro ?? '').trim(), // 📝 自我介紹 (新增的 self_intro 欄位)
-        is_cadre: Boolean(result.user.is_cadre || String(result.user.id).toUpperCase().startsWith('1B3C')),
+        is_cadre: false,
         needs_password_change: Boolean(result.user.needs_password_change)
       };
 
@@ -2414,7 +2449,7 @@ const APP = {
       this.updateAuthUI();
       this.closeModal('modal-login');
       
-      const welcomeName = user.name ? `${user.name} ${user.is_cadre ? '幹部' : '弟兄'}` : `${user.is_cadre ? '幹部' : '弟兄'} #${user.id}`;
+      const welcomeName = user.name ? `${user.name} 弟兄` : `弟兄 #${user.id}`;
 
       // 首次登入檢查：若密碼尚未自訂修改，強制彈出設定新密碼視窗且無法跳過
       if (user.needs_password_change) {
@@ -2427,34 +2462,26 @@ const APP = {
 
       this.showToast(`歡迎回來，${welcomeName}！正在為您定位卡片...`, 'success');
 
-      if (user.is_cadre) {
-        // 幹部自動切換至幹部專區
-        this.navigate('cadres');
-      } else {
-        // 弟兄自動切換至所屬班級
-        this.navigate('squad', user.squad);
-      }
+      // 弟兄自動切換至所屬班級
+      const userSquad = Number(user.squad) || 1;
+      this.navigate('squad', userSquad);
 
-      // 平滑滾動至個人卡片並聚焦高亮
       setTimeout(() => {
-        const myCard = document.getElementById(`card-${user.id}`);
-        if (myCard) {
-          myCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          myCard.classList.add('highlight-pulse');
-          setTimeout(() => myCard.classList.remove('highlight-pulse'), 5000);
-        }
-
-        // 若尚未填寫姓名，自動彈出編輯視窗引導填寫自介與雙照片
-        if (!user.name) {
+        const card = document.getElementById(`card-${user.id}`);
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.style.transition = 'transform 0.4s ease, box-shadow 0.4s ease';
+          card.style.transform = 'scale(1.03)';
+          card.style.boxShadow = '0 0 25px rgba(255, 183, 3, 0.6)';
           setTimeout(() => {
-            this.openEditProfileModal();
-          }, 600);
+            card.style.transform = '';
+            card.style.boxShadow = '';
+          }, 1800);
         }
-      }, 350);
-
+      }, 500);
     } else {
       const errCode = (result && result.code) || 'ERR-AUTH-FAILED';
-      const errMsg = (result && result.message) || '登入失敗，請確認學號密碼';
+      const errMsg = (result && result.message) || '登入失敗，請確認學號與密碼';
       this.showToast(`❌ [${errCode}] ${errMsg}`, 'error');
     }
   },
@@ -2468,9 +2495,8 @@ const APP = {
     const cleanId = String(this.currentUser.id ?? '').trim();
     const accountDisplay = document.getElementById('force-pwd-account-display');
     if (accountDisplay) {
-      const isCadre = Boolean(this.currentUser.is_cadre || cleanId.toUpperCase().startsWith('1B3C'));
       const nameLabel = this.currentUser.name ? ` (${this.currentUser.name})` : '';
-      accountDisplay.value = isCadre ? `長官幹部${nameLabel || '專屬帳號'}` : `弟兄學號 #${cleanId}${nameLabel}`;
+      accountDisplay.value = `弟兄學號 #${cleanId}${nameLabel}`;
     }
     const newPwd = document.getElementById('force-new-password');
     const confirmPwd = document.getElementById('force-confirm-password');
@@ -2501,7 +2527,7 @@ const APP = {
     }
 
     if (newPassword.toUpperCase() === String(this.currentUser.id).trim().toUpperCase()) {
-      this.showToast('❌ [ERR-PWD-SAME] 新密碼不能與原本的預設學號/帳號相同，請自訂專屬密碼！', 'error');
+      this.showToast('❌ [ERR-PWD-SAME] 新密碼不能與原本的預設學號相同，請自訂專屬密碼！', 'error');
       return;
     }
 
@@ -2510,16 +2536,16 @@ const APP = {
       return;
     }
 
-    const submitBtn = document.getElementById('btn-force-pwd-submit');
-    const originalBtnText = submitBtn ? submitBtn.textContent : '🔒 確認設定新密碼並啟用帳號';
+    const submitBtn = document.getElementById('btn-submit-force-pwd');
+    const originalBtnText = submitBtn ? submitBtn.textContent : '確認設定並啟用帳號';
 
     this.isSubmitting = true;
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.textContent = '⏳ 新密碼設定中，請稍候...';
+      submitBtn.textContent = '⏳ 設定中，請稍候...';
     }
 
-    this.showToast('⏳ 正在為您設定新密碼並啟用帳號...', 'info');
+    this.showToast('⏳ 正在為您設定專屬新密碼並同步雲端...', 'info');
 
     try {
       const payload = {
@@ -2538,13 +2564,8 @@ const APP = {
 
         this.showToast('🎉 自訂新密碼設定成功！帳號已正式啟用，歡迎使用紀念冊系統！', 'success');
         
-        const isCadre = Boolean(this.currentUser.is_cadre || String(this.currentUser.id).toUpperCase().startsWith('1B3C'));
-        if (isCadre) {
-          this.navigate('cadres');
-        } else {
-          const userSquad = Number(this.currentUser.squad) || 1;
-          this.navigate('squad', userSquad);
-        }
+        const userSquad = Number(this.currentUser.squad) || 1;
+        this.navigate('squad', userSquad);
 
         // 若尚未填寫姓名，貼心自動引導填寫基本資料與上傳照片
         if (!this.currentUser.name) {
@@ -3101,12 +3122,11 @@ const APP = {
     if (modal) modal.classList.add('active');
   },
 
-  // 長官幹部詳細名片彈窗 (Cadre Detail Modal)
+  // 各班幹部詳細名片彈窗 (Cadre Detail Modal)
   showCadreDetail(cadreId) {
     const cadre = this.cadres.find(c => String(c.id).trim().toUpperCase() === String(cadreId).trim().toUpperCase());
     if (!cadre) return;
 
-    const cleanCadreId = String(cadre.id ?? '').trim();
     const cadreName = String(cadre.name ?? '').trim();
     const hasName = Boolean(cadreName);
     const displayName = hasName ? cadreName : (cadre.duty || cadre.rank_level || '連隊幹部');
@@ -3114,8 +3134,17 @@ const APP = {
       ? cadreName.substring(Math.max(0, cadreName.length - 2)) 
       : '幹部';
 
+    const squadNum = Number(cadre.squad) || 0;
+    let platoonName = '連部';
+    if (squadNum >= 1 && squadNum <= 3) platoonName = '一排';
+    else if (squadNum >= 4 && squadNum <= 6) platoonName = '二排';
+    else if (squadNum >= 7 && squadNum <= 9) platoonName = '三排';
+    const squadName = squadNum > 0 ? `第${this.toChineseNum(squadNum)}班` : '連部';
+    const isAssistant = String(cadre.duty || '').includes('副');
+    const roleTag = isAssistant ? '🛡️ 副班長' : '⚔️ 班長';
+
     const titleEl = document.getElementById('detail-modal-title');
-    if (titleEl) titleEl.textContent = hasName ? `幹部戰術檔案 ${displayName}` : '長官幹部戰術檔案';
+    if (titleEl) titleEl.textContent = hasName ? `幹部戰術檔案 ${displayName}` : '幹部戰術檔案';
 
     const bodyEl = document.getElementById('detail-modal-body');
     if (bodyEl) {
@@ -3151,26 +3180,30 @@ const APP = {
               <h3 style="font-size:1.45rem; font-weight:900; color:#ffffff; letter-spacing:0.5px;">${this.escapeHtml(displayName)}</h3>
               <div class="member-callsign-box" style="margin-top:0.25rem; display:inline-flex;">
                 <span class="callsign-label">CALLSIGN // 綽號:</span>
-                <strong class="callsign-val">${this.escapeHtml(cadre.nickname || '未填寫')}</strong>
+                <strong class="callsign-val">${this.escapeHtml(cadre.nickname || displayName)}</strong>
               </div>
             </div>
 
-            <!-- 戰術中繼徽章 (不顯示幹部流水編號) -->
+            <!-- 戰術中繼徽章 -->
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin-top:0.35rem;">
-              <span class="badge-admin" style="background:var(--primary-dark); color:var(--gold); font-size:0.75rem;">⭐ 長官幹部</span>
+              <span class="badge-admin" style="background:var(--primary-dark); color:var(--gold); font-size:0.75rem;">🎖️ ${platoonName}・${squadName}</span>
+              <span class="dossier-code-chip" style="font-size:0.75rem;">${roleTag}</span>
               <span class="dossier-duty-tag" style="background:#fef3c7; color:#92400e; font-size:0.75rem; border:1px solid #fde68a;">🎖️ ${this.escapeHtml(cadre.rank_level || '幹部階級')}</span>
-              <span class="dossier-duty-tag" style="font-size:0.75rem;">⚔️ ${this.escapeHtml(cadre.duty || '連隊幹部')}</span>
               ${cadre.enlist_date ? `<span class="dossier-code-chip" style="background:rgba(14, 165, 233, 0.15); color:#38bdf8; border-color:rgba(56, 189, 248, 0.4); font-size:0.75rem;">📅 服役年資：${this.calculateServiceTime(cadre.enlist_date)}</span>` : ''}
             </div>
 
             <!-- Bento Specs -->
             <div class="dossier-bento-grid" style="width:100%; margin-top:0.6rem;">
               <div class="bento-cell bento-duty">
-                <span class="bento-cell-label">⚔️ DUTY 連隊職務</span>
-                <span class="bento-cell-val">${this.escapeHtml(cadre.duty || '連隊幹部')}</span>
+                <span class="bento-cell-label">⚔️ DUTY 帶班職務</span>
+                <span class="bento-cell-val">${this.escapeHtml(cadre.duty || `${squadName} 幹部`)}</span>
+              </div>
+              <div class="bento-cell bento-room">
+                <span class="bento-cell-label">🏢 SQUAD 所屬編制</span>
+                <span class="bento-cell-val">${platoonName} ${squadName}</span>
               </div>
               ${cadre.enlist_date ? `
-              <div class="bento-cell" style="background: rgba(14, 165, 233, 0.08); border-color: rgba(56, 189, 248, 0.25);">
+              <div class="bento-cell" style="grid-column: 1 / -1; background: rgba(14, 165, 233, 0.08); border-color: rgba(56, 189, 248, 0.25);">
                 <span class="bento-cell-label" style="color: #38bdf8;">📅 SERVICE 服役年資</span>
                 <span class="bento-cell-val">${this.calculateServiceTime(cadre.enlist_date)}</span>
               </div>` : ''}
@@ -3187,31 +3220,30 @@ const APP = {
             </div>
           </div>
 
-          <!-- 幹部期勉與自我介紹 (點進去才看得到自我介紹) -->
+          <!-- 幹部期勉與自我介紹 -->
           <div class="dossier-details-section" style="margin-top:1rem; display:flex; flex-direction:column; gap:0.75rem;">
-            <!-- 幹部期勉 (原本的 bio 欄位) -->
+            <!-- 幹部期勉 -->
             <div class="member-bio dossier-transcript">
               <div class="transcript-tag">💬 MOTTO // 幹部期勉與座右銘</div>
               <div class="transcript-body" style="font-size:0.92rem; line-height:1.6;">
-                ${this.escapeHtml(cadre.bio || (hasName ? '金六結 153R 1B3C 精實連隊！' : '（尚未填寫期勉感言...）'))}
+                ${this.escapeHtml(cadre.bio || '熱血三連，同甘共苦、榮耀同行！')}
               </div>
             </div>
 
-            <!-- 幹部詳細自我介紹 (Excel 新增的 self_intro 欄位，點進來完整檔案才展示) -->
+            <!-- 幹部詳細自我介紹 (點進來完整檔案才展示) -->
+            ${cadre.self_intro ? `
             <div class="member-bio dossier-transcript" style="border-left-color: var(--tactical-green-light); background: rgba(34, 197, 94, 0.07);">
               <div class="transcript-tag" style="color: var(--tactical-green-light);">📝 DOSSIER BIO // 幹部詳細簡介</div>
               <div class="transcript-body" style="font-size:0.92rem; line-height:1.6; color:#f1f5f2;">
-                ${this.escapeHtml(cadre.self_intro || '（尚未填寫幹部詳細簡介與個人自傳...）')}
+                ${this.escapeHtml(cadre.self_intro)}
               </div>
-            </div>
+            </div>` : ''}
           </div>
 
-          <!-- 社群聯絡與動作 -->
+          <!-- 社群聯絡動作列 -->
           <div style="margin-top:1.15rem; display:grid; grid-template-columns:1fr 1fr; gap:0.6rem;">
             ${cadre.ig ? `<button class="btn-social btn-ig" onclick="APP.openInstagram('${this.escapeHtml(cadre.ig)}')">📸 IG: @${this.escapeHtml(cadre.ig)}</button>` : `<button class="btn-social btn-ig" style="opacity:0.45; cursor:not-allowed;">📸 未填寫 IG</button>`}
             ${cadre.line ? `<button class="btn-social btn-line" onclick="APP.copyToClipboard('${this.escapeHtml(cadre.line)}', 'LINE ID')">💬 複製 LINE ID</button>` : `<button class="btn-social btn-line" style="opacity:0.45; cursor:not-allowed;">💬 未填寫 LINE</button>`}
-            ${(this.currentUser && String(this.currentUser.id).toUpperCase() === String(cleanCadreId).toUpperCase()) ? `<button class="btn-primary" style="grid-column:1/-1; padding:0.6rem;" onclick="APP.closeModal('modal-member-detail'); APP.openEditProfileModal();">✏️ 編輯我的幹部檔案與照片</button>` : ''}
-            ${(this.isAdmin() && String(cadre.id) !== '13055') ? `<button class="btn-admin-reset" style="grid-column:1/-1;" onclick="APP.handleAdminResetPassword('${cadre.id}')">🔑 管理員重設此幹部密碼</button>` : ''}
           </div>
         </div>
       `;
