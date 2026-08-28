@@ -1118,17 +1118,16 @@ const APP = {
     const homeCadresGrid = document.getElementById('home-cadres-grid');
     if (homeCadresGrid) {
       const sortedCadres = [...this.cadres].sort((a, b) => {
-        const aHasName = Boolean(a.name && a.name.trim());
-        const bHasName = Boolean(b.name && b.name.trim());
-        if (aHasName && !bHasName) return -1;
-        if (!aHasName && bHasName) return 1;
-        const weightA = this.getRankOrderWeight(a.rank_level);
-        const weightB = this.getRankOrderWeight(b.rank_level);
-        if (weightA !== weightB) return weightB - weightA;
-        return String(a.id).localeCompare(String(b.id));
+        const sA = Number(a.squad) || 99;
+        const sB = Number(b.squad) || 99;
+        if (sA !== sB) return sA - sB;
+        const isAsstA = String(a.duty || '').includes('副');
+        const isAsstB = String(b.duty || '').includes('副');
+        if (!isAsstA && isAsstB) return -1;
+        if (isAsstA && !isAsstB) return 1;
+        return 0;
       });
-      const topCadres = sortedCadres.slice(0, 3);
-      homeCadresGrid.innerHTML = topCadres.map(c => this.createCadreCardHtml(c)).join('');
+      homeCadresGrid.innerHTML = sortedCadres.map(c => this.createCadreCardHtml(c)).join('');
     }
 
     // 依按讚數高低排序傳奇（若按讚數相同則依最新時間排序）
@@ -1360,11 +1359,7 @@ const APP = {
 
   createCadreCardHtml(cadre) {
     const cadreName = String(cadre.name ?? '').trim();
-    const hasName = Boolean(cadreName);
-    const displayName = hasName ? cadreName : (cadre.duty || cadre.rank_level || '連隊幹部');
-    const initials = hasName 
-      ? cadreName.substring(Math.max(0, cadreName.length - 2)) 
-      : '幹部';
+    const displayName = cadreName || (cadre.duty || cadre.rank_level || '連隊幹部');
 
     // 所屬班級與排組標籤
     const squadNum = Number(cadre.squad) || 0;
@@ -1375,128 +1370,20 @@ const APP = {
     const squadName = squadNum > 0 ? `第${this.toChineseNum(squadNum)}班` : '連部';
     const isAssistant = String(cadre.duty || '').includes('副');
     const roleTag = isAssistant ? '🛡️ 副班長' : '⚔️ 班長';
-
-    // 正面：軍裝照
-    const milPhoto = cadre.avatar_military || cadre.avatar_url || cadre.photo_url;
-    const milAvatarHtml = milPhoto 
-      ? `<img src="${milPhoto}" alt="軍裝照" onerror="this.onerror=null; this.parentElement.innerHTML='🪖 ${initials}'">` 
-      : `<span>🪖 ${initials}</span>`;
-
-    // 背面：私人便服照
-    const civPhoto = cadre.avatar_civilian;
-    const civAvatarHtml = civPhoto 
-      ? `<img src="${civPhoto}" alt="便服照" onerror="this.onerror=null; this.parentElement.innerHTML='🕶️ ${initials}'">` 
-      : `<span>🕶️ ${initials}</span>`;
-
-    const igButton = cadre.ig 
-      ? `<button class="btn-social btn-ig" onclick="APP.openInstagram('${this.escapeHtml(cadre.ig)}')" title="查看 Instagram: @${this.escapeHtml(cadre.ig)}">
-          <span>📸 IG: @${this.escapeHtml(cadre.ig)}</span>
-         </button>` 
-      : `<button class="btn-social btn-ig" style="opacity: 0.45; cursor: not-allowed;" title="未填寫 IG">📸 未填寫</button>`;
-
-    const lineButton = cadre.line 
-      ? `<button class="btn-social btn-line" onclick="APP.copyToClipboard('${this.escapeHtml(cadre.line)}', 'LINE ID')" title="點擊複製 LINE ID">
-          <span>💬 LINE: ${this.escapeHtml(cadre.line)}</span>
-         </button>` 
-      : `<button class="btn-social btn-line" style="opacity: 0.45; cursor: not-allowed;" title="未填寫 LINE">💬 未填寫</button>`;
+    const rankTitle = cadre.rank_level || '幹部';
 
     return `
-      <div class="member-card tactical-dossier-card cadre-member-card" id="card-${cadre.id}">
-        <!-- Tactical HUD Corner Accents -->
-        <div class="dossier-corner corner-tl"></div>
-        <div class="dossier-corner corner-tr"></div>
-        <div class="dossier-corner corner-bl"></div>
-        <div class="dossier-corner corner-br"></div>
-
-        <!-- Dossier Top Status Strip -->
-        <div class="dossier-top-strip">
-          <div class="dossier-id-chips">
-            <span class="badge-admin" style="background:var(--primary-dark); color:var(--gold); font-size:0.75rem;">🎖️ ${platoonName}・${squadName}</span>
-            <span class="dossier-code-chip" style="font-size:0.72rem;">${roleTag}</span>
-          </div>
-          <span class="dossier-duty-tag" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a;">🎖️ ${this.escapeHtml(cadre.rank_level || '幹部階級')}</span>
+      <div class="cadre-simple-card" id="card-${cadre.id}">
+        <div class="cadre-card-top">
+          <span class="cadre-tag-squad">🎖️ ${platoonName}・${squadName}</span>
+          <span class="cadre-tag-role ${isAssistant ? 'asst' : 'leader'}">${roleTag}</span>
         </div>
-
-        <div class="member-card-header">
-          <!-- 3D 翻轉頭像容器 (包含四角戰術十字標 Crosshairs +) -->
-          <div class="avatar-flip-container tactical-avatar-frame" onclick="APP.toggleCardFlip(this, event, '${cadre.id}')" title="點擊 3D 翻轉切換照片 (軍裝 ⇋ 便服)">
-            <span class="tactical-crosshair crosshair-tl">+</span>
-            <span class="tactical-crosshair crosshair-tr">+</span>
-            <span class="tactical-crosshair crosshair-bl">+</span>
-            <span class="tactical-crosshair crosshair-br">+</span>
-
-            <div class="avatar-flip-card" id="flip-card-${cadre.id}">
-              <div class="avatar-face avatar-face-front">${milAvatarHtml}</div>
-              <div class="avatar-face avatar-face-back">${civAvatarHtml}</div>
-            </div>
-            <span class="flip-tag-badge flip-tag-front" id="flip-tag-${cadre.id}">🪖 軍裝</span>
+        <div class="cadre-card-main">
+          <div class="cadre-name-text">${this.escapeHtml(displayName)}</div>
+          <div class="cadre-rank-row">
+            <span class="cadre-rank-lbl">官階</span>
+            <span class="cadre-rank-val">⭐ ${this.escapeHtml(rankTitle)}</span>
           </div>
-
-          <div class="member-header-text">
-            <h3 class="member-name" title="${this.escapeHtml(displayName)}" onclick="APP.showCadreDetail('${cadre.id}')" style="cursor:pointer;">
-              ${this.escapeHtml(displayName)}
-            </h3>
-            <div class="member-callsign-box">
-              <span class="callsign-label">CALLSIGN // 綽號:</span>
-              <strong class="callsign-val">${this.escapeHtml(cadre.nickname || displayName)}</strong>
-            </div>
-            <div class="flip-hint-text" onclick="APP.toggleCardFlip(this.closest('.member-card, .cadre-card').querySelector('.avatar-flip-container'), event, '${cadre.id}')">
-              <span>🔄 點擊照片翻轉 (軍裝 ⇋ 便服)</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bento Grid Specs Row -->
-        <div class="dossier-bento-grid">
-          <div class="bento-cell bento-duty">
-            <span class="bento-cell-label">⚔️ DUTY 帶班職務</span>
-            <span class="bento-cell-val">${this.escapeHtml(cadre.duty || `${squadName} 幹部`)}</span>
-          </div>
-          <div class="bento-cell bento-room">
-            <span class="bento-cell-label">🏢 SQUAD 所屬編制</span>
-            <span class="bento-cell-val">${platoonName} ${squadName}</span>
-          </div>
-          ${cadre.enlist_date ? `
-          <div class="bento-cell" style="grid-column: 1 / -1; background: rgba(14, 165, 233, 0.08); border-color: rgba(56, 189, 248, 0.25);">
-            <span class="bento-cell-label" style="color: #38bdf8;">📅 SERVICE 服役年資</span>
-            <span class="bento-cell-val">${this.calculateServiceTime(cadre.enlist_date)}</span>
-          </div>` : ''}
-          ${cadre.interests ? `
-          <div class="bento-cell bento-interests">
-            <span class="bento-cell-label">🎨 SPECS 專長興趣</span>
-            <span class="bento-cell-val">${this.escapeHtml(cadre.interests)}</span>
-          </div>` : ''}
-          ${cadre.dream ? `
-          <div class="bento-cell bento-dream">
-            <span class="bento-cell-label">🌟 TARGET 未來目標</span>
-            <span class="bento-cell-val">${this.escapeHtml(cadre.dream)}</span>
-          </div>` : ''}
-        </div>
-
-        <!-- Dossier Transcript / 幹部期勉 (外層卡片展示原本的 bio 欄位) -->
-        <div class="member-bio dossier-transcript">
-          <div class="transcript-tag">💬 MOTTO // 幹部期勉</div>
-          <div class="transcript-body">${this.escapeHtml(cadre.graduation_quote || cadre.bio || '熱血三連，同甘共苦、榮耀同行！')}</div>
-        </div>
-
-        <!-- Direct Action Buttons & View Dossier Drawer Trigger -->
-        <div class="member-dossier-action-bar">
-          <button class="btn-view-dossier" onclick="APP.showCadreDetail('${cadre.id}')" title="開啟完整長官幹部戰術檔案 (Bottom Sheet / Drawer)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-            <span>檢視完整檔案 (View Dossier)</span>
-          </button>
-        </div>
-
-        <!-- Social Actions Deck -->
-        <div class="member-social-actions">
-          ${igButton}
-          ${lineButton}
         </div>
       </div>
     `;
@@ -3122,138 +3009,7 @@ const APP = {
     if (modal) modal.classList.add('active');
   },
 
-  // 各班幹部詳細名片彈窗 (Cadre Detail Modal)
-  showCadreDetail(cadreId) {
-    const cadre = this.cadres.find(c => String(c.id).trim().toUpperCase() === String(cadreId).trim().toUpperCase());
-    if (!cadre) return;
-
-    const cadreName = String(cadre.name ?? '').trim();
-    const hasName = Boolean(cadreName);
-    const displayName = hasName ? cadreName : (cadre.duty || cadre.rank_level || '連隊幹部');
-    const initials = hasName 
-      ? cadreName.substring(Math.max(0, cadreName.length - 2)) 
-      : '幹部';
-
-    const squadNum = Number(cadre.squad) || 0;
-    let platoonName = '連部';
-    if (squadNum >= 1 && squadNum <= 3) platoonName = '一排';
-    else if (squadNum >= 4 && squadNum <= 6) platoonName = '二排';
-    else if (squadNum >= 7 && squadNum <= 9) platoonName = '三排';
-    const squadName = squadNum > 0 ? `第${this.toChineseNum(squadNum)}班` : '連部';
-    const isAssistant = String(cadre.duty || '').includes('副');
-    const roleTag = isAssistant ? '🛡️ 副班長' : '⚔️ 班長';
-
-    const titleEl = document.getElementById('detail-modal-title');
-    if (titleEl) titleEl.textContent = hasName ? `幹部戰術檔案 ${displayName}` : '幹部戰術檔案';
-
-    const bodyEl = document.getElementById('detail-modal-body');
-    if (bodyEl) {
-      const milPhoto = cadre.avatar_military || cadre.avatar_url || cadre.photo_url;
-      const milHtml = milPhoto ? `<img src="${milPhoto}" alt="軍裝照">` : `<span>🪖 ${initials}</span>`;
-
-      const civPhoto = cadre.avatar_civilian;
-      const civHtml = civPhoto ? `<img src="${civPhoto}" alt="便服照">` : `<span>🕶️ ${initials}</span>`;
-
-      bodyEl.innerHTML = `
-        <div class="member-detail-dossier-layout">
-          <!-- 頂部頭像與基本資訊區 -->
-          <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:0.65rem;">
-            <!-- 3D 翻轉證件照容器 -->
-            <div class="avatar-flip-container tactical-avatar-frame" style="width:105px; height:140px;" onclick="APP.toggleCardFlip(this, event, 'detail-${cadre.id}')" title="點擊 3D 翻轉 (軍裝 ⇋ 便服)">
-              <span class="tactical-crosshair crosshair-tl">+</span>
-              <span class="tactical-crosshair crosshair-tr">+</span>
-              <span class="tactical-crosshair crosshair-bl">+</span>
-              <span class="tactical-crosshair crosshair-br">+</span>
-
-              <div class="avatar-flip-card" id="flip-card-detail-${cadre.id}">
-                <div class="avatar-face avatar-face-front">${milHtml}</div>
-                <div class="avatar-face avatar-face-back">${civHtml}</div>
-              </div>
-              <span class="flip-tag-badge flip-tag-front" id="flip-tag-detail-${cadre.id}">🪖 軍裝</span>
-            </div>
-
-            <div class="flip-hint-text" style="cursor:pointer;" onclick="APP.toggleCardFlip(this.previousElementSibling, event, 'detail-${cadre.id}')">
-              <span>🔄 點擊照片體驗 3D 翻轉 (軍裝 ⇋ 便服)</span>
-            </div>
-
-            <div style="margin-top:0.25rem;">
-              <h3 style="font-size:1.45rem; font-weight:900; color:#ffffff; letter-spacing:0.5px;">${this.escapeHtml(displayName)}</h3>
-              <div class="member-callsign-box" style="margin-top:0.25rem; display:inline-flex;">
-                <span class="callsign-label">CALLSIGN // 綽號:</span>
-                <strong class="callsign-val">${this.escapeHtml(cadre.nickname || displayName)}</strong>
-              </div>
-            </div>
-
-            <!-- 戰術中繼徽章 -->
-            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin-top:0.35rem;">
-              <span class="badge-admin" style="background:var(--primary-dark); color:var(--gold); font-size:0.75rem;">🎖️ ${platoonName}・${squadName}</span>
-              <span class="dossier-code-chip" style="font-size:0.75rem;">${roleTag}</span>
-              <span class="dossier-duty-tag" style="background:#fef3c7; color:#92400e; font-size:0.75rem; border:1px solid #fde68a;">🎖️ ${this.escapeHtml(cadre.rank_level || '幹部階級')}</span>
-              ${cadre.enlist_date ? `<span class="dossier-code-chip" style="background:rgba(14, 165, 233, 0.15); color:#38bdf8; border-color:rgba(56, 189, 248, 0.4); font-size:0.75rem;">📅 服役年資：${this.calculateServiceTime(cadre.enlist_date)}</span>` : ''}
-            </div>
-
-            <!-- Bento Specs -->
-            <div class="dossier-bento-grid" style="width:100%; margin-top:0.6rem;">
-              <div class="bento-cell bento-duty">
-                <span class="bento-cell-label">⚔️ DUTY 帶班職務</span>
-                <span class="bento-cell-val">${this.escapeHtml(cadre.duty || `${squadName} 幹部`)}</span>
-              </div>
-              <div class="bento-cell bento-room">
-                <span class="bento-cell-label">🏢 SQUAD 所屬編制</span>
-                <span class="bento-cell-val">${platoonName} ${squadName}</span>
-              </div>
-              ${cadre.enlist_date ? `
-              <div class="bento-cell" style="grid-column: 1 / -1; background: rgba(14, 165, 233, 0.08); border-color: rgba(56, 189, 248, 0.25);">
-                <span class="bento-cell-label" style="color: #38bdf8;">📅 SERVICE 服役年資</span>
-                <span class="bento-cell-val">${this.calculateServiceTime(cadre.enlist_date)}</span>
-              </div>` : ''}
-              ${cadre.interests ? `
-              <div class="bento-cell bento-interests">
-                <span class="bento-cell-label">🎨 SPECS 專長興趣</span>
-                <span class="bento-cell-val">${this.escapeHtml(cadre.interests)}</span>
-              </div>` : ''}
-              ${cadre.dream ? `
-              <div class="bento-cell bento-dream">
-                <span class="bento-cell-label">🌟 TARGET 未來目標</span>
-                <span class="bento-cell-val">${this.escapeHtml(cadre.dream)}</span>
-              </div>` : ''}
-            </div>
-          </div>
-
-          <!-- 幹部期勉與自我介紹 -->
-          <div class="dossier-details-section" style="margin-top:1rem; display:flex; flex-direction:column; gap:0.75rem;">
-            <!-- 幹部期勉 -->
-            <div class="member-bio dossier-transcript">
-              <div class="transcript-tag">💬 MOTTO // 幹部期勉與座右銘</div>
-              <div class="transcript-body" style="font-size:0.92rem; line-height:1.6;">
-                ${this.escapeHtml(cadre.bio || '熱血三連，同甘共苦、榮耀同行！')}
-              </div>
-            </div>
-
-            <!-- 幹部詳細自我介紹 (點進來完整檔案才展示) -->
-            ${cadre.self_intro ? `
-            <div class="member-bio dossier-transcript" style="border-left-color: var(--tactical-green-light); background: rgba(34, 197, 94, 0.07);">
-              <div class="transcript-tag" style="color: var(--tactical-green-light);">📝 DOSSIER BIO // 幹部詳細簡介</div>
-              <div class="transcript-body" style="font-size:0.92rem; line-height:1.6; color:#f1f5f2;">
-                ${this.escapeHtml(cadre.self_intro)}
-              </div>
-            </div>` : ''}
-          </div>
-
-          <!-- 社群聯絡動作列 -->
-          <div style="margin-top:1.15rem; display:grid; grid-template-columns:1fr 1fr; gap:0.6rem;">
-            ${cadre.ig ? `<button class="btn-social btn-ig" onclick="APP.openInstagram('${this.escapeHtml(cadre.ig)}')">📸 IG: @${this.escapeHtml(cadre.ig)}</button>` : `<button class="btn-social btn-ig" style="opacity:0.45; cursor:not-allowed;">📸 未填寫 IG</button>`}
-            ${cadre.line ? `<button class="btn-social btn-line" onclick="APP.copyToClipboard('${this.escapeHtml(cadre.line)}', 'LINE ID')">💬 複製 LINE ID</button>` : `<button class="btn-social btn-line" style="opacity:0.45; cursor:not-allowed;">💬 未填寫 LINE</button>`}
-          </div>
-        </div>
-      `;
-    }
-
-    const modal = document.getElementById('modal-member-detail');
-    if (modal) modal.classList.add('active');
-  },
-
-  // 管理員專屬：重設弟兄/幹部密碼為預設 (僅限 13055)
+  // 管理員專屬：重設弟兄密碼為預設 (僅限 13055)
   async handleAdminResetPassword(targetId) {
     if (!this.isAdmin()) {
       this.showToast('權限不足！只有 13055 管理員可執行此操作。', 'error');
