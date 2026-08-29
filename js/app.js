@@ -287,11 +287,16 @@ const APP = {
       const roomNum = (m.room && Number(m.room) > 0) ? Number(m.room) : (calculatedRoom || 1);
 
       const defaultSquadDuty = squadDutyMap[squadNum] || '一般兵';
+      const leaderIds = new Set(['13001', '13012', '13023', '13034', '13045', '13056', '13067', '13078', '13089']);
+      const isLeader = leaderIds.has(idStr);
+
       let dutyStr = String(m.duty ?? '').trim();
-      if (!dutyStr || dutyStr === '一般兵' || dutyStr === '士兵') {
-        dutyStr = defaultSquadDuty;
-      } else if (dutyStr === '班頭') {
+      if (isLeader) {
         dutyStr = `班頭 / ${defaultSquadDuty}`;
+      } else {
+        if (!dutyStr || dutyStr === '一般兵' || dutyStr === '士兵' || dutyStr.includes('班頭')) {
+          dutyStr = defaultSquadDuty;
+        }
       }
 
       return {
@@ -601,7 +606,7 @@ const APP = {
         const dutyName = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[num]) || '';
         const dutyIcon = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTY_ICONS && CONFIG.SQUAD_DUTY_ICONS[num]) || '👥';
         const leaderText = `🎖️ 班長：${leader.rank || ''} ${leader.name || ''}`;
-        const countText = (num === 8) ? '10 人' : '11 人';
+        const countText = (num === 9) ? '10 人' : '11 人';
         return `
           <div class="selector-card-item ${isActive ? 'active' : ''}" onclick="APP.selectSquad(${num})">
             <div class="selector-card-title">${dutyIcon} 第 ${this.toChineseNum(num)} 班・${dutyName}</div>
@@ -624,12 +629,12 @@ const APP = {
     const grid = document.getElementById('room-selector-grid');
     if (grid) {
       const suites = [
-        { roomA: 1, roomB: 2, title: '🏢 第 1 & 2 寢套房', subtitle: '第 1 寢 (10人) ⇋ 🚿 衛浴 ⇋ 第 2 寢 (10人)', count: '共 20 人' },
-        { roomA: 3, roomB: 4, title: '🏢 第 3 & 4 寢套房', subtitle: '第 3 寢 (10人) ⇋ 🚿 衛浴 ⇋ 第 4 寢 (10人)', count: '共 20 人' },
-        { roomA: 5, roomB: 6, title: '🏢 第 5 & 6 寢套房', subtitle: '第 5 寢 (10人) ⇋ 🚿 衛浴 ⇋ 第 6 寢 (10人)', count: '共 20 人' },
-        { roomA: 7, roomB: 8, title: '🏢 第 7 & 8 寢套房', subtitle: '第 7 寢 (10人) ⇋ 🚿 衛浴 ⇋ 第 8 寢 (10人)', count: '共 20 人' },
-        { roomA: 9, roomB: 10, title: '🏢 第 9 & 10 寢套房', subtitle: '第 9 寢 (10人) ⇋ 🚿 衛浴 ⇋ 第 10 寢 (10人)', count: '共 20 人' },
-        { roomA: 11, roomB: 12, title: '🏢 第 11 & 12 寢套房', subtitle: '第 11 寢 (9人) ⇋ 🚿 衛浴 ⇋ 第 12 寢 (備用空寢)', count: '共 9 人 (12未住人)' }
+        { roomA: 1, roomB: 2, title: '🏢 第 1 & 2 寢套房', subtitle: '第 1 寢 (9人) ⇋ 🚿 衛浴 ⇋ 第 2 寢 (9人)', count: '共 18 人' },
+        { roomA: 3, roomB: 4, title: '🏢 第 3 & 4 寢套房', subtitle: '第 3 寢 (9人) ⇋ 🚿 衛浴 ⇋ 第 4 寢 (9人)', count: '共 18 人' },
+        { roomA: 5, roomB: 6, title: '🏢 第 5 & 6 寢套房', subtitle: '第 5 寢 (9人) ⇋ 🚿 衛浴 ⇋ 第 6 寢 (9人)', count: '共 18 人' },
+        { roomA: 7, roomB: 8, title: '🏢 第 7 & 8 寢套房', subtitle: '第 7 寢 (9人) ⇋ 🚿 衛浴 ⇋ 第 8 寢 (9人)', count: '共 18 人' },
+        { roomA: 9, roomB: 10, title: '🏢 第 9 & 10 寢套房', subtitle: '第 9 寢 (9人) ⇋ 🚿 衛浴 ⇋ 第 10 寢 (9人)', count: '共 18 人' },
+        { roomA: 11, roomB: 12, title: '🏢 第 11 & 12 寢套房', subtitle: '第 11 寢 (8人) ⇋ 🚿 衛浴 ⇋ 第 12 寢 (備用空寢)', count: '共 8 人 (12未住人)' }
       ];
 
       grid.innerHTML = suites.map(s => {
@@ -1834,6 +1839,7 @@ const APP = {
     } else {
       // 正常指定班級瀏覽模式
       displayMembers = this.allMembers.filter(m => Number(m.squad) === squadNum);
+      displayMembers.sort((a, b) => String(a.id).localeCompare(String(b.id)));
 
       if (titleEl) {
         const squadDuty = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[squadNum]) ? `・${CONFIG.SQUAD_DUTIES[squadNum]}` : '';
@@ -1991,8 +1997,8 @@ const APP = {
         <div class="dossier-top-strip">
           <div class="dossier-id-chips">
             <span class="dossier-code-chip">ID #${member.id}</span>
-            <span class="dossier-squad-chip">SQD 0${member.squad}・第${this.toChineseNum(member.squad)}班</span>
-            <span class="dossier-room-chip">RM 0${member.room}・第${this.toChineseNum(member.room)}寢</span>
+            <span class="dossier-squad-chip">SQD ${String(member.squad).padStart(2, '0')}・第${this.toChineseNum(member.squad)}班</span>
+            <span class="dossier-room-chip">RM ${String(member.room).padStart(2, '0')}・第${this.toChineseNum(member.room)}寢</span>
           </div>
           <span class="dossier-duty-tag">🎖️ ${this.escapeHtml(member.duty || '一般兵')}</span>
         </div>
@@ -2145,12 +2151,12 @@ const APP = {
     const roomPillBar = document.getElementById('room-quick-pill-bar');
     if (roomPillBar) {
       const suitePairs = [
-        { a: 1, b: 2, label: '第 1 & 2 寢', badge: '20人套房' },
-        { a: 3, b: 4, label: '第 3 & 4 寢', badge: '20人套房' },
-        { a: 5, b: 6, label: '第 5 & 6 寢', badge: '20人套房' },
-        { a: 7, b: 8, label: '第 7 & 8 寢', badge: '20人套房' },
-        { a: 9, b: 10, label: '第 9 & 10 寢', badge: '20人套房' },
-        { a: 11, b: 12, label: '第 11 & 12 寢', badge: '9人 (12空寢)' }
+        { a: 1, b: 2, label: '第 1 & 2 寢', badge: '18人套房' },
+        { a: 3, b: 4, label: '第 3 & 4 寢', badge: '18人套房' },
+        { a: 5, b: 6, label: '第 5 & 6 寢', badge: '18人套房' },
+        { a: 7, b: 8, label: '第 7 & 8 寢', badge: '18人套房' },
+        { a: 9, b: 10, label: '第 9 & 10 寢', badge: '18人套房' },
+        { a: 11, b: 12, label: '第 11 & 12 寢', badge: '8人 (12空寢)' }
       ];
 
       roomPillBar.innerHTML = suitePairs.map(s => {
@@ -2172,23 +2178,24 @@ const APP = {
     // 渲染雙寢一套房（橫向 3 欄 / 手機上下排版）
     bunksGrid.innerHTML = `
       <div class="dorm-suite-container">
-        <!-- 左翼：第 ${roomA} 寢 (10人房標準配置) -->
+        <!-- 左翼：第 ${roomA} 寢 (標準配置) -->
         ${this.createRoomWingHtml(roomA, roomNum === roomA)}
 
         <!-- 中間：兩寢共用專屬獨立衛浴與廁所 -->
         ${this.createSharedBathroomWingHtml(roomA, roomB)}
 
-        <!-- 右翼：第 ${roomB} 寢 (10人房，若第12寢則為備用空寢) -->
+        <!-- 右翼：第 ${roomB} 寢 (若第12寢則為備用空寢) -->
         ${roomB === 12 ? this.createEmptyRoomWingHtml(12, roomNum === 12) : this.createRoomWingHtml(roomB, roomNum === roomB)}
       </div>
     `;
   },
 
-  // 渲染單間 10 人寢室 (5 組雙層鋼床 = 10 個床位，1號下鋪為帶班班長)
+  // 渲染單間寢室
   createRoomWingHtml(roomNum, isSelected) {
     const roomMembers = this.allMembers.filter(m => Number(m.room) === roomNum);
+    roomMembers.sort((a, b) => String(a.id).localeCompare(String(b.id)));
     const leaderInfo = MOCK_DATA.squadLeaders[roomNum] || { name: '帶班班長', rank: '帶班幹部', quote: '（待幹部填寫帶班期勉）' };
-    const capacityText = roomNum === 11 ? '9 人滿編 (含班長)' : '10 人滿編 (含班長)';
+    const capacityText = roomNum === 11 ? '8 人滿編' : '9 人滿編';
 
     return `
       <div class="dorm-room-wing ${isSelected ? 'is-selected-room' : ''}">
@@ -3915,8 +3922,8 @@ const APP = {
             <!-- 戰術中繼徽章 -->
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin-top:0.35rem;">
               <span class="dossier-code-chip" style="font-size:0.75rem;">ID #${cleanId}</span>
-              <span class="dossier-squad-chip" style="font-size:0.75rem;">SQD 0${member.squad}・第${this.toChineseNum(member.squad)}班 (${(typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[member.squad]) || ''})</span>
-              <span class="dossier-room-chip" style="font-size:0.75rem;">RM 0${member.room}・第${this.toChineseNum(member.room)}寢</span>
+              <span class="dossier-squad-chip" style="font-size:0.75rem;">SQD ${String(member.squad).padStart(2, '0')}・第${this.toChineseNum(member.squad)}班 (${(typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[member.squad]) || ''})</span>
+              <span class="dossier-room-chip" style="font-size:0.75rem;">RM ${String(member.room).padStart(2, '0')}・第${this.toChineseNum(member.room)}寢</span>
               <span class="dossier-duty-tag" style="font-size:0.75rem;">🎖️ ${this.escapeHtml(member.duty || '一般兵')}</span>
             </div>
 
