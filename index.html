@@ -11,19 +11,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.3.31">
+  <link rel="stylesheet" href="css/style.css?v=3.4.0">
 </head>
 <body>
 
   <!-- ==========================================================================
-       頂部導覽列 (Site Header - 戰術固定狀態條)
+       頂部導覽列 (Site Header)
        ========================================================================== -->
   <header class="site-header">
     <div class="header-container">
       <div class="brand-section" onclick="APP.navigate('home')">
         <div class="brand-badge" title="陸軍步兵第153旅 步兵第一營第三連">
           <!-- 陸軍五角星徽章圖示 -->
-          <svg viewBox="0 0 24 24">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
             <path d="M12 2l2.4 7.2h7.6l-6.2 4.5 2.4 7.3-6.2-4.6-6.2 4.6 2.4-7.3-6.2-4.5h7.6z"/>
           </svg>
         </div>
@@ -31,8 +31,6 @@
           <h1>
             <span class="brand-title-desktop">272梯 陸軍153旅 1B3C</span>
             <span class="brand-title-mobile">1B3C</span>
-            <span class="tactical-code-badge">[ 153R 1B 3C ]</span>
-            <span class="tactical-status-badge" id="header-tactical-status-badge">[ 宜蘭金六結・新訓受訓中 ]</span>
           </h1>
           <p>步兵第一營第三連 結訓同袍通訊錄</p>
         </div>
@@ -59,11 +57,9 @@
           </button>
         </div>
 
-
-
         <!-- 手機版選單切換按鈕 -->
         <button class="mobile-menu-toggle" onclick="APP.toggleMobileDrawer()" aria-label="切換選單">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="3" y1="12" x2="21" y2="12"></line>
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -93,22 +89,25 @@
       <!-- 主選單區 -->
       <div>
         <div class="nav-section-title">
-          <span>🎖️ 連隊核心</span>
+          <span>連隊核心</span>
         </div>
         <ul class="nav-list">
           <li>
             <button class="nav-item-btn active" data-nav="home" onclick="APP.navigate('home')">
-              <span class="nav-label">🏠 153R1B3C 首頁</span>
+              <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+              <span class="nav-label">首頁總覽</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="formation" onclick="APP.navigate('formation')">
-              <span class="nav-label">🪖 講話隊形</span>
+              <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              <span class="nav-label">講話隊形 (98員)</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="cadres" onclick="APP.navigate('cadres')">
-              <span class="nav-label">🎖️ 各班帶班幹部</span>
+              <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+              <span class="nav-label">各班帶班幹部</span>
             </button>
           </li>
         </ul>
@@ -117,62 +116,62 @@
       <!-- 班級名冊 (第一~九班) - 可收放 -->
       <div>
         <div class="nav-section-title collapsible-header" onclick="APP.toggleNavSection('squads')" title="點擊收放班級選單">
-          <span>👥 班級名冊 (第一~九班)</span>
+          <span>班級名冊 (1~9班)</span>
           <span class="collapse-icon" id="collapse-icon-squads">▾</span>
         </div>
         <ul class="nav-list collapsible-list" id="nav-squads-list">
           <li>
             <button class="nav-item-btn" data-nav="squad-1" onclick="APP.navigate('squad', 1)">
-              <span class="nav-label">第一班</span>
-              <span class="nav-badge">13001~011</span>
+              <span class="nav-label">第一班・打飯班</span>
+              <span class="nav-badge">11人</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="squad-2" onclick="APP.navigate('squad', 2)">
-              <span class="nav-label">第二班</span>
-              <span class="nav-badge">13012~022</span>
+              <span class="nav-label">第二班・兵工班</span>
+              <span class="nav-badge">11人</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="squad-3" onclick="APP.navigate('squad', 3)">
-              <span class="nav-label">第三班</span>
-              <span class="nav-badge">13023~033</span>
+              <span class="nav-label">第三班・器材班</span>
+              <span class="nav-badge">11人</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="squad-4" onclick="APP.navigate('squad', 4)">
-              <span class="nav-label">第四班</span>
-              <span class="nav-badge">13034~044</span>
+              <span class="nav-label">第四班・資收班</span>
+              <span class="nav-badge">11人</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="squad-5" onclick="APP.navigate('squad', 5)">
-              <span class="nav-label">第五班</span>
-              <span class="nav-badge">13045~055</span>
+              <span class="nav-label">第五班・內掃班</span>
+              <span class="nav-badge">11人</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="squad-6" onclick="APP.navigate('squad', 6)">
-              <span class="nav-label">第六班</span>
-              <span class="nav-badge">13056~066</span>
+              <span class="nav-label">第六班・洗衣班</span>
+              <span class="nav-badge">11人</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="squad-7" onclick="APP.navigate('squad', 7)">
-              <span class="nav-label">第七班</span>
-              <span class="nav-badge">13067~077</span>
+              <span class="nav-label">第七班・外掃班</span>
+              <span class="nav-badge">11人</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="squad-8" onclick="APP.navigate('squad', 8)">
-              <span class="nav-label">第八班</span>
-              <span class="nav-badge">13078~088</span>
+              <span class="nav-label">第八班・公差班</span>
+              <span class="nav-badge">11人</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="squad-9" onclick="APP.navigate('squad', 9)">
-              <span class="nav-label">第九班</span>
-              <span class="nav-badge">13089~098</span>
+              <span class="nav-label">第九班・公差班</span>
+              <span class="nav-badge">10人</span>
             </button>
           </li>
         </ul>
@@ -181,44 +180,44 @@
       <!-- 寢室配置 (兩寢一套房模組) - 可收放 -->
       <div>
         <div class="nav-section-title collapsible-header" onclick="APP.toggleNavSection('rooms')" title="點擊收放寢室選單">
-          <span>🛏️ 寢室套房配置 (共 6 組)</span>
+          <span>寢室套房配置</span>
           <span class="collapse-icon" id="collapse-icon-rooms">▾</span>
         </div>
         <ul class="nav-list collapsible-list" id="nav-rooms-list">
           <li>
             <button class="nav-item-btn" data-nav="room-1" onclick="APP.navigate('room', 1)">
               <span class="nav-label">第 1 & 2 寢套房</span>
-              <span class="nav-badge">20人 (含班長)</span>
+              <span class="nav-badge">18人</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="room-3" onclick="APP.navigate('room', 3)">
               <span class="nav-label">第 3 & 4 寢套房</span>
-              <span class="nav-badge">20人 (含班長)</span>
+              <span class="nav-badge">18人</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="room-5" onclick="APP.navigate('room', 5)">
               <span class="nav-label">第 5 & 6 寢套房</span>
-              <span class="nav-badge">20人 (含班長)</span>
+              <span class="nav-badge">18人</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="room-7" onclick="APP.navigate('room', 7)">
               <span class="nav-label">第 7 & 8 寢套房</span>
-              <span class="nav-badge">20人 (含班長)</span>
+              <span class="nav-badge">18人</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="room-9" onclick="APP.navigate('room', 9)">
               <span class="nav-label">第 9 & 10 寢套房</span>
-              <span class="nav-badge">20人 (含班長)</span>
+              <span class="nav-badge">18人</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="room-11" onclick="APP.navigate('room', 11)">
               <span class="nav-label">第 11 & 12 寢套房</span>
-              <span class="nav-badge">9人 (12空寢)</span>
+              <span class="nav-badge">8人</span>
             </button>
           </li>
         </ul>
@@ -227,22 +226,25 @@
       <!-- 互動專區 -->
       <div>
         <div class="nav-section-title">
-          <span>🔥 互動專區</span>
+          <span>互動專區</span>
         </div>
         <ul class="nav-list">
           <li>
             <button class="nav-item-btn" data-nav="legends" onclick="APP.navigate('legends')">
-              <span class="nav-label">⚡ 傳奇版</span>
+              <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span class="nav-label">同袍傳奇榜</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="diaries" onclick="APP.navigate('diaries')">
-              <span class="nav-label">📖 大兵日記</span>
+              <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+              <span class="nav-label">大兵日記 (莒光簿)</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="reports" onclick="APP.navigate('reports')">
-              <span class="nav-label">📬 問題回報與密碼處理</span>
+              <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <span class="nav-label">問題回報與密碼處理</span>
             </button>
           </li>
         </ul>
@@ -255,45 +257,34 @@
 
       <!-- 1. 首頁總覽 (Home View) -->
       <section id="view-home" class="view-section active">
-        <!-- 英雄橫幅 (現代軍事戰術檔案風格) -->
+        <!-- 英雄橫幅 (簡約現代軍事實用風格) -->
         <div class="hero-banner tactical-hero-dossier">
-          <div class="hud-bracket bracket-tl"></div>
-          <div class="hud-bracket bracket-tr"></div>
-          <div class="hud-bracket bracket-bl"></div>
-          <div class="hud-bracket bracket-br"></div>
-
           <div class="hero-content">
             <div class="hero-tactical-badges">
-              <span class="tactical-badge-unit">[ 153R 1B 3C ]</span>
-              <span class="tactical-badge-status" id="hero-tactical-badge-status"><span class="status-pulse-dot"></span>[ 宜蘭金六結・新訓受訓中 ]</span>
-              <span class="tactical-badge-motto" id="hero-tactical-motto">🎖️ 陸軍272梯・第 11 天</span>
+              <span class="tactical-badge-unit">步一營第三連</span>
+              <span class="tactical-badge-status" id="hero-tactical-badge-status"><span class="status-pulse-dot"></span>宜蘭金六結・新訓受訓中</span>
+              <span class="tactical-badge-motto" id="hero-tactical-motto">陸軍272梯・第 18 天</span>
             </div>
             <h2 class="hero-title" id="hero-main-title">精實鍛鍊・金六結新訓中</h2>
-            <div class="hero-dossier-code">ROCA 153R-1B-3C // TAIWAN ARMY ACTIVE SERVICE DOSSIER</div>
             <p class="hero-desc" id="hero-main-desc">
-              目前正於宜蘭金六結營區進行第一階段新兵專長入伍訓練，同甘共苦、揮灑熱血汗水！<br>
-              四個月的革命情感，一輩子的真摯兄弟！
+              四個月的革命情感，一輩子的真摯兄弟！全連 98 員弟兄齊心戮力、榮耀結訓！
             </p>
             <div class="hero-stats-grid">
               <div class="hero-stat-card">
-                <div class="stat-num" id="hero-stat-days-num">11<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">/124天</span></div>
-                <div class="stat-label" id="hero-stat-days-label">役期進度 (剩 113 天)</div>
-                <div class="stat-sublabel" id="hero-stat-days-sub">SERVICE PROGRESS</div>
+                <div class="stat-num" id="hero-stat-days-num">18<span class="stat-unit">/113天</span></div>
+                <div class="stat-label" id="hero-stat-days-label">已服役期天數</div>
               </div>
               <div class="hero-stat-card">
-                <div class="stat-num">272<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">梯</span></div>
+                <div class="stat-num" id="hero-stat-progress-num">15.9<span class="stat-unit">%</span></div>
+                <div class="stat-label" id="hero-stat-progress-label">役期進度 (剩 95 天)</div>
+              </div>
+              <div class="hero-stat-card">
+                <div class="stat-num">272<span class="stat-unit">梯</span></div>
                 <div class="stat-label">常備兵役梯次</div>
-                <div class="stat-sublabel">COHORT BATCH</div>
               </div>
               <div class="hero-stat-card">
-                <div class="stat-num" id="stat-members-count">98</div>
-                <div class="stat-label">三連弟兄同袍</div>
-                <div class="stat-sublabel">PLATOON COHORTS</div>
-              </div>
-              <div class="hero-stat-card">
-                <div class="stat-num" id="hero-stat-stage-num" style="font-size:1.15rem; color:var(--tactical-amber);">金六結新訓</div>
-                <div class="stat-label" id="hero-stat-stage-label">當前訓練階段</div>
-                <div class="stat-sublabel" id="hero-stat-stage-sub">PHASE 1 // JINLIUJIE</div>
+                <div class="stat-num" id="stat-members-count">98<span class="stat-unit">員</span></div>
+                <div class="stat-label">全連弟兄滿編</div>
               </div>
             </div>
           </div>
@@ -308,11 +299,11 @@
         <div class="dormitory-feature-card">
           <div class="dormitory-header">
             <div class="dormitory-title-group">
-              <span class="dormitory-badge">🏢 興安專案・金六結南屏樓</span>
+              <span class="dormitory-badge">興安專案・金六結南屏樓</span>
               <h3 class="dormitory-title">陸軍金六結營區新建生活大樓・以「家」為核心的現代化營舍</h3>
             </div>
             <a href="https://www.ydn.com.tw/tw/News/ugC_News_Detail.aspx?ID=623746" target="_blank" rel="noopener noreferrer" class="btn-news-link" title="另開新視窗閱讀青年日報完整報導">
-              <span>📰 青年日報專題報導 ↗</span>
+              <span>青年日報專題報導 ↗</span>
             </a>
           </div>
 
@@ -323,7 +314,7 @@
                 <span class="dormitory-watermark-text">
                   📷 陸軍金六結營區新建生活大樓，以「家」的溫馨概念為設計核心，全面提升基礎設施品質。（記者林睿奕攝）
                 </span>
-                <span class="dormitory-click-hint">🔗 點擊瀏覽新聞原文</span>
+                <span class="dormitory-click-hint">點擊瀏覽新聞原文 ↗</span>
               </div>
             </div>
           </a>
@@ -336,20 +327,23 @@
         </div>
 
         <!-- 講話隊形 入口推薦橫幅 -->
-        <div class="tactical-banner-card" onclick="APP.navigate('formation')" style="cursor:pointer; background:linear-gradient(135deg, #1d2a21 0%, #111813 100%); border:1.5px solid var(--tactical-amber); border-radius:var(--radius-md); padding:1.15rem 1.35rem; margin-top:2rem; margin-bottom:1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; box-shadow:0 4px 20px rgba(0,0,0,0.4); transition: transform 0.2s ease, box-shadow 0.2s ease;">
+        <div class="tactical-banner-card" onclick="APP.navigate('formation')" style="cursor:pointer; background:linear-gradient(135deg, #1d2a21 0%, #111813 100%); border:1px solid rgba(74, 88, 68, 0.7); border-radius:var(--radius-md); padding:1.25rem 1.4rem; margin-top:2rem; margin-bottom:1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; box-shadow:0 4px 20px rgba(0,0,0,0.35); transition: transform 0.2s ease, border-color 0.2s ease;">
           <div style="display:flex; align-items:center; gap:1rem;">
-            <div style="font-size:2.2rem; background:rgba(255,159,28,0.15); width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1.5px solid var(--tactical-amber); flex-shrink:0;">🪖</div>
+            <div style="background:rgba(217,155,38,0.12); width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid var(--tactical-amber); flex-shrink:0; color:var(--tactical-amber);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </div>
             <div>
               <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                <h3 style="font-size:1.18rem; font-weight:900; color:#ffffff; margin:0;">🪖 講話隊形</h3>
+                <h3 style="font-size:1.15rem; font-weight:800; color:#ffffff; margin:0;">講話隊形</h3>
+                <span class="badge" style="background:rgba(217,155,38,0.18); color:var(--tactical-amber); border:1px solid rgba(217,155,38,0.4); padding:2px 6px; border-radius:4px; font-size:0.75rem;">98員滿編</span>
               </div>
-              <p style="font-size:0.84rem; color:#cbd5cb; margin:0.35rem 0 0; line-height:1.45;">
-                連集合場 講話隊形。觸碰大兵人頭可查看姓名與詳細資訊。
+              <p style="font-size:0.85rem; color:#94a3b8; margin:0.35rem 0 0; line-height:1.45;">
+                連集合場講話隊形。觸碰大兵人頭可快速定位同袍、查看基本資料與各班站位。
               </p>
             </div>
           </div>
-          <button class="btn-primary" style="white-space:nowrap; padding:8px 16px; font-size:0.88rem; font-weight:800; flex-shrink:0;">
-            進入講話隊形 ➔
+          <button class="btn-primary" style="white-space:nowrap; padding:8px 16px; font-size:0.88rem; font-weight:700; flex-shrink:0;">
+            進入講話隊形 →
           </button>
         </div>
 
@@ -369,15 +363,20 @@
         <div style="margin-top: 2.5rem;">
           <div class="section-header">
             <div class="section-header-title">
-              <h2>🔥 熱門按讚精選與連隊回憶</h2>
-              <span class="tag">弟兄狂讚榜</span>
+              <h2>熱門按讚精選與連隊回憶</h2>
+              <span class="tag">弟兄精選</span>
             </div>
             <div class="toolbar-actions">
-              <button class="btn-secondary" onclick="APP.navigate('legends')">⚡ 傳奇榜</button>
-              <button class="btn-primary" onclick="APP.navigate('diaries')">📖 大兵日記</button>
+              <button class="btn-secondary" onclick="APP.navigate('legends')">同袍傳奇榜</button>
+              <button class="btn-primary" onclick="APP.navigate('diaries')">大兵日記</button>
             </div>
           </div>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+            <div id="home-latest-legend">
+              <!-- 最新傳奇預覽 -->
+            </div>
+            <div id="home-latest-diary">
+              <!-- 最新日記預覽 -->
             <div id="home-latest-legend">
               <!-- 最新傳奇預覽 -->
             </div>
@@ -1036,7 +1035,7 @@
     <div class="modal-card bottom-sheet-card">
       <div class="bottom-sheet-drag-handle"></div>
       <div class="modal-header">
-        <h3 id="detail-modal-title">📄 同袍戰術檔案 (DOSSIER)</h3>
+        <h3 id="detail-modal-title">📄 同袍個人檔案</h3>
         <button class="modal-close-btn" onclick="APP.closeModal('modal-member-detail')">&times;</button>
       </div>
       <div class="modal-body" id="detail-modal-body">
@@ -1051,9 +1050,9 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- 載入核心腳本 (循序載入) -->
-  <script src="js/config.js?v=3.3.31"></script>
-  <script src="js/mockData.js?v=3.3.31"></script>
-  <script src="js/api.js?v=3.3.31"></script>
-  <script src="js/app.js?v=3.3.31"></script>
+  <script src="js/config.js?v=3.4.0"></script>
+  <script src="js/mockData.js?v=3.4.0"></script>
+  <script src="js/api.js?v=3.4.0"></script>
+  <script src="js/app.js?v=3.4.0"></script>
 </body>
 </html>

@@ -866,24 +866,21 @@ const APP = {
       const daysUntil = Math.ceil((startDate - today) / msPerDay);
       return {
         stageCode: 'PRE_ENLIST',
-        headerBadge: '[ 蓄勢待發・即將入伍 ]',
-        heroBadge: '[ 階段：入伍集結準備 ]',
+        headerBadge: '蓄勢待發・即將入伍',
+        heroBadge: '入伍集結準備中',
         badgeClass: 'stage-pre',
         heroTitle: '蓄勢待發・金六結即將成軍',
         heroDesc: '272梯 步兵第一營第三連即將成軍！準備迎接金六結精實淬鍊與迷彩青春！',
-        mottoTag: `🎖️ 陸軍272梯・倒數 ${daysUntil} 天入伍`,
+        mottoTag: `陸軍272梯・倒數 ${daysUntil} 天入伍`,
         stageName: '入伍準備期',
-        stageSublabel: 'PRE-ENLISTMENT',
         daysServed: 0,
         daysTotal: totalDays,
         daysRemaining: totalDays,
         progressPercent: 0,
-        statDaysValue: `${daysUntil}<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">天後</span>`,
-        statDaysLabel: '入伍倒數 (8/12報到)',
-        statDaysSub: 'COUNTDOWN',
-        statStageValue: '入伍準備',
-        statStageLabel: '當前訓練階段',
-        statStageSub: 'STAGE 0'
+        statDaysValue: `0<span class="stat-unit">/${totalDays}天</span>`,
+        statDaysLabel: '已服役期天數',
+        statProgressValue: `0<span class="stat-unit">%</span>`,
+        statProgressLabel: `役期進度 (剩 ${totalDays} 天)`
       };
     } else if (today >= startDate && today < phase2Date) {
       // 第一階段：宜蘭金六結新訓受訓中 (8/12 ~ 10/14，10/14撥交)
@@ -893,24 +890,21 @@ const APP = {
 
       return {
         stageCode: 'PHASE1_JINLIUJIE',
-        headerBadge: '[ 宜蘭金六結・新訓受訓中 ]',
-        heroBadge: '[ 階段一：金六結入伍受訓 ]',
+        headerBadge: '宜蘭金六結・新訓受訓中',
+        heroBadge: '第一階段：金六結入伍受訓',
         badgeClass: 'stage-jinliujie',
         heroTitle: '精實鍛鍊・金六結新訓中',
-        heroDesc: `目前正於宜蘭金六結營區進行第一階段新兵入伍訓練 (08/12~10/14)，揮灑汗水、同甘共苦！<br>軍事訓練役已完成 ${progressPercent}%（已服役 ${daysServed}/${totalDays} 天），距離 12/02 零時光榮結訓還有 ${daysRemaining} 天！`,
-        mottoTag: `🎖️ 金六結新訓・第 ${daysServed} 天`,
-        stageName: '金六結新訓 (08/12~10/14)',
-        stageSublabel: 'PHASE 1 // JINLIUJIE',
+        heroDesc: `目前正於宜蘭金六結營區進行第一階段新兵專長入伍訓練，同甘共苦、揮灑熱血汗水！四個月的革命情感，一輩子的真摯兄弟！`,
+        mottoTag: `金六結新訓・第 ${daysServed} 天`,
+        stageName: '第一階段・金六結新訓',
         daysServed: daysServed,
         daysTotal: totalDays,
         daysRemaining: daysRemaining,
         progressPercent: progressPercent,
-        statDaysValue: `${daysServed}<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">/${totalDays}天</span>`,
-        statDaysLabel: `役期進度 (剩 ${daysRemaining} 天)`,
-        statDaysSub: `PROGRESS ${progressPercent}%`,
-        statStageValue: '金六結新訓',
-        statStageLabel: '當前階段 (第一階段)',
-        statStageSub: 'PHASE 1 // JINLIUJIE'
+        statDaysValue: `${daysServed}<span class="stat-unit">/${totalDays}天</span>`,
+        statDaysLabel: '已服役期天數',
+        statProgressValue: `${progressPercent}<span class="stat-unit">%</span>`,
+        statProgressLabel: `役期進度 (剩 ${daysRemaining} 天)`
       };
     } else if (today >= phase2Date && today < endDate) {
       // 第二階段：下部隊專精戰訓實務 (10/15 ~ 12/01)
@@ -921,47 +915,41 @@ const APP = {
 
       return {
         stageCode: 'PHASE2_TROOP',
-        headerBadge: '[ 下部隊實務・二階段戰訓中 ]',
-        heroBadge: '[ 階段二：下部隊實務戰訓 ]',
+        headerBadge: '下部隊實務・二階段戰訓中',
+        heroBadge: '第二階段：部隊訓練實務',
         badgeClass: 'stage-troops',
         heroTitle: '戰力堅強・下部隊實務階段',
-        heroDesc: `已圓滿完成金六結第一階段新訓 (10/14撥交)，目前進入第二階段部隊訓練實務戰訓！<br>總役期已達成 ${progressPercent}%，倒數 ${daysRemaining} 天 12/02 零時光榮結訓生效！`,
-        mottoTag: `🎖️ 下部隊實務・第 ${phase2DaysServed} 天`,
-        stageName: '部隊訓練實務 (10/15~12/01)',
-        stageSublabel: 'PHASE 2 // ACTIVE UNIT',
+        heroDesc: `已圓滿完成金六結第一階段新訓 (10/14撥交)，目前進入第二階段部隊訓練實務戰訓！全連弟兄齊心戮力、邁向光榮結訓！`,
+        mottoTag: `部隊實務・第 ${phase2DaysServed} 天`,
+        stageName: '第二階段・部隊訓練實務',
         daysServed: daysServed,
         daysTotal: totalDays,
         daysRemaining: daysRemaining,
         progressPercent: progressPercent,
-        statDaysValue: `${daysServed}<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">/${totalDays}天</span>`,
-        statDaysLabel: `役期進度 (剩 ${daysRemaining} 天)`,
-        statDaysSub: `PROGRESS ${progressPercent}%`,
-        statStageValue: '部隊訓練',
-        statStageLabel: '當前階段 (第二階段)',
-        statStageSub: 'PHASE 2 // TROOPS'
+        statDaysValue: `${daysServed}<span class="stat-unit">/${totalDays}天</span>`,
+        statDaysLabel: '已服役期天數',
+        statProgressValue: `${progressPercent}<span class="stat-unit">%</span>`,
+        statProgressLabel: `役期進度 (剩 ${daysRemaining} 天)`
       };
     } else {
       // 結訓/光榮退伍 (>= 2026/12/02)
       return {
         stageCode: 'DISCHARGED',
-        headerBadge: '[ 光榮退伍・任務達成 ]',
-        heroBadge: '[ 任務圓滿達成・光榮退伍 ]',
+        headerBadge: '光榮退伍・任務達成',
+        heroBadge: '任務圓滿達成・光榮退伍',
         badgeClass: 'stage-discharged',
         heroTitle: '光榮退伍・任務達成',
-        heroDesc: '紀念我們在宜蘭金六結與部隊共同揮灑汗水、鑑測行軍、打靶刺槍的迷彩歲月。<br>115年12月2日零時結訓令正式生效！四個月的革命情感，一輩子的真摯兄弟！結訓快樂，江湖再見！',
-        mottoTag: '🎖️ 陸軍272梯・全連結訓',
-        stageName: '光榮退伍',
-        stageSublabel: 'MISSION ACCOMPLISHED',
+        heroDesc: '紀念我們在宜蘭金六結與部隊共同揮灑汗水、鑑測行軍、打靶刺槍的迷彩歲月。115年12月2日零時結訓令正式生效！四個月的革命情感，一輩子的真摯兄弟！',
+        mottoTag: '陸軍272梯・全連結訓',
+        stageName: '光榮退伍・結訓令生效',
         daysServed: totalDays,
         daysTotal: totalDays,
         daysRemaining: 0,
         progressPercent: 100,
-        statDaysValue: `${totalDays}<span class="stat-unit" style="font-size:0.9rem; margin-left:2px;">天</span>`,
+        statDaysValue: `${totalDays}<span class="stat-unit">天</span>`,
         statDaysLabel: '役期總日數 (8/12~12/02)',
-        statDaysSub: 'MISSION ACCOMPLISHED',
-        statStageValue: '光榮退伍',
-        statStageLabel: '結訓任務狀態',
-        statStageSub: 'HONORABLE DISCHARGE'
+        statProgressValue: `100<span class="stat-unit">%</span>`,
+        statProgressLabel: '役期任務圓滿達成'
       };
     }
   },
@@ -970,14 +958,7 @@ const APP = {
   updateServiceStatusUI() {
     const stage = this.getServiceStageData();
 
-    // 1. 頂部導覽列狀態徽章
-    const headerBadge = document.getElementById('header-tactical-status-badge');
-    if (headerBadge) {
-      headerBadge.textContent = stage.headerBadge;
-      headerBadge.className = `tactical-status-badge ${stage.badgeClass}`;
-    }
-
-    // 2. 英雄橫幅狀態徽章與標題
+    // 1. 英雄橫幅狀態徽章與標題
     const heroBadge = document.getElementById('hero-tactical-badge-status');
     if (heroBadge) {
       heroBadge.innerHTML = `<span class="status-pulse-dot"></span>${stage.heroBadge}`;
@@ -993,27 +974,24 @@ const APP = {
     const heroDesc = document.getElementById('hero-main-desc');
     if (heroDesc) heroDesc.innerHTML = stage.heroDesc;
 
-    // 3. 統計卡片數值與標籤
+    // 2. 統計卡片數值與標籤 (4格量化指標完美對稱)
     const statDaysNum = document.getElementById('hero-stat-days-num');
     if (statDaysNum) statDaysNum.innerHTML = stage.statDaysValue;
 
     const statDaysLabel = document.getElementById('hero-stat-days-label');
     if (statDaysLabel) statDaysLabel.textContent = stage.statDaysLabel;
 
-    const statDaysSub = document.getElementById('hero-stat-days-sub');
-    if (statDaysSub) statDaysSub.textContent = stage.statDaysSub;
+    const statProgressNum = document.getElementById('hero-stat-progress-num');
+    if (statProgressNum) statProgressNum.innerHTML = stage.statProgressValue;
 
-    const statStageNum = document.getElementById('hero-stat-stage-num');
-    if (statStageNum) statStageNum.textContent = stage.statStageValue;
+    const statProgressLabel = document.getElementById('hero-stat-progress-label');
+    if (statProgressLabel) statProgressLabel.textContent = stage.statProgressLabel;
 
-    const statStageLabel = document.getElementById('hero-stat-stage-label');
-    if (statStageLabel) statStageLabel.textContent = stage.statStageLabel;
-
-    const statStageSub = document.getElementById('hero-stat-stage-sub');
-    if (statStageSub) statStageSub.textContent = stage.statStageSub;
+    const statMembersCount = document.getElementById('stat-members-count');
+    if (statMembersCount) statMembersCount.innerHTML = `${(this.allMembers && this.allMembers.length) || 98}<span class="stat-unit">員</span>`;
   },
 
-  // 0. 軍旅役期時光軸渲染 (依國軍官方公文：入伍 8/12 ~ 結訓退伍 12/02，懇親 8/21，抽籤 9/30，鑑測 10/5~8，下部隊 10/15)
+  // 0. 軍旅役期時光軸渲染 (合併單一清晰進度條 + 里程碑節點，杜絕重複資訊)
   renderTimeline() {
     const container = document.getElementById('military-timeline-section');
     if (!container) return;
@@ -1022,47 +1000,15 @@ const APP = {
       this.timeline = this.normalizeTimeline(MOCK_DATA.timeline);
     }
 
-    // 計算今日日期 (以 YYYY-MM-DD 比較)
+    const stage = this.getServiceStageData();
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    const startDate = new Date(2026, 7, 12);  // 2026-08-12 (入伍)
-    const phase2Date = new Date(2026, 9, 15); // 2026-10-15 (下部隊)
-    const endDate = new Date(2026, 11, 2);    // 2026-12-02 (退伍結訓令生效)
-
     const msPerDay = 1000 * 60 * 60 * 24;
-    const totalDays = 113; // 8/12 ~ 12/02 總役期 113 天 (115/12/02 零時生效)
-    
-    let daysServed = 0;
-    let daysRemaining = totalDays;
-    let progressPercent = 0;
 
-    if (today < startDate) {
-      daysServed = 0;
-      daysRemaining = totalDays;
-      progressPercent = 0;
-    } else if (today >= endDate) {
-      daysServed = totalDays;
-      daysRemaining = 0;
-      progressPercent = 100;
-    } else {
-      daysServed = Math.max(1, Math.round((today - startDate) / msPerDay) + 1);
-      daysRemaining = Math.max(0, totalDays - daysServed);
-      progressPercent = Math.min(100, Math.max(0, Math.round((daysServed / totalDays) * 100)));
-    }
-
-    // 役期兩階段狀態判斷 (第一階段金六結新訓 08/12~10/14 ➔ 第二階段部隊訓練 10/15~12/01 ➔ 光榮退伍 12/02)
-    const isP1Active = today >= startDate && today < phase2Date;
-    const isP1Done = today >= phase2Date;
-    const isP2Active = today >= phase2Date && today < endDate;
-    const isP2Done = today >= endDate;
-    const isDischarged = today >= endDate;
-
-    // 役期起迄日
     const startItem = this.timeline[0] || { date: '2026-08-12', display_date: '08/12' };
     const endItem = this.timeline[this.timeline.length - 1] || { date: '2026-12-02', display_date: '12/02' };
 
-    // 里程碑 HTML
+    // 里程碑節點 HTML
     const milestonesHtml = this.timeline.map((m, index) => {
       const parts = String(m.date).split('-');
       let mDate;
@@ -1077,26 +1023,26 @@ const APP = {
       let statusClass = 'status-upcoming';
 
       if (today > mDate) {
-        statusBadge = '<span class="milestone-status-tag tag-completed">✅ 已達成</span>';
+        statusBadge = '<span class="milestone-status-tag tag-completed">已達成</span>';
         statusClass = 'status-completed';
       } else if (today.getTime() === mDate.getTime()) {
-        statusBadge = '<span class="milestone-status-tag tag-today">🔥 今日進行中</span>';
+        statusBadge = '<span class="milestone-status-tag tag-today">今日進行中</span>';
         statusClass = 'status-today';
       } else {
         const daysDiff = Math.ceil((mDate - today) / msPerDay);
-        statusBadge = `<span class="milestone-status-tag tag-upcoming">⏳ 倒數 ${daysDiff} 天</span>`;
+        statusBadge = `<span class="milestone-status-tag tag-upcoming">倒數 ${daysDiff} 天</span>`;
         statusClass = 'status-upcoming';
       }
 
       return `
         <div class="timeline-step-item ${statusClass}" data-step="${index + 1}">
           <div class="timeline-node-marker">
-            <div class="timeline-node-icon">${m.icon}</div>
+            <div class="timeline-node-dot"></div>
           </div>
           <div class="timeline-card">
             <div class="timeline-card-header">
               <div class="timeline-date-capsule">
-                <span class="date-num">📅 ${this.escapeHtml(m.display_date)}</span>
+                <span class="date-num">${this.escapeHtml(m.display_date)}</span>
                 <span class="milestone-badge">${this.escapeHtml(m.badge)}</span>
               </div>
               ${statusBadge}
@@ -1112,77 +1058,39 @@ const APP = {
       <div class="timeline-panel">
         <div class="timeline-header-bar">
           <div class="timeline-title-wrap">
-            <div class="timeline-flag-badge">🎖️ 272梯・軍旅役期時光軸</div>
-            <h3 class="timeline-main-title">從金六結入伍到光榮退伍・重要里程碑動態</h3>
+            <div class="timeline-flag-badge">軍旅役期時光軸</div>
+            <h3 class="timeline-main-title">重要軍旅里程碑動態</h3>
           </div>
-          <div class="timeline-date-range">
-            <span>入伍 <strong>${startItem.display_date || '08/12'}</strong></span>
-            <span class="range-arrow">➔</span>
-            <span>懇親 <strong>08/21</strong></span>
-            <span class="range-arrow">➔</span>
-            <span>抽籤 <strong>09/30</strong></span>
-            <span class="range-arrow">➔</span>
-            <span>下部隊 <strong>10/15</strong></span>
-            <span class="range-arrow">➔</span>
-            <span>退伍 <strong>${endItem.display_date || '12/02'}</strong></span>
+          <div class="timeline-summary-badge">
+            <span class="summary-phase">${stage.stageName}</span>
+            <span class="summary-divider">•</span>
+            <span class="summary-count">已服役 <strong>${stage.daysServed}</strong> / ${stage.daysTotal} 天 (剩餘 <strong>${stage.daysRemaining}</strong> 天)</span>
           </div>
         </div>
 
-        <!-- 役期兩階段戰術受訓歷程 (合併展示於時光軸模組) -->
-        <div class="timeline-stage-stepper">
-          <div class="timeline-stage-pill ${isP1Done ? 'completed' : (isP1Active ? 'active' : 'upcoming')}">
-            <span class="stage-pill-icon">${isP1Done ? '✅' : (isP1Active ? '🪖' : '⏳')}</span>
-            <div class="stage-pill-text">
-              <span class="stage-pill-name">第一階段・金六結新訓</span>
-              <span class="stage-pill-date">08/12 ~ 10/14 ${isP1Active ? '・進行中' : (isP1Done ? '・已結訓' : '')}</span>
+        <!-- 單一俐落的全景役期進度條 -->
+        <div class="service-progress-container">
+          <div class="service-progress-meta">
+            <div class="meta-start">
+              <span class="meta-label">入伍報到</span>
+              <strong class="meta-date">${startItem.date.replace(/-/g, '/')}</strong>
             </div>
-          </div>
-          <div class="stage-flow-arrow">➔</div>
-          <div class="timeline-stage-pill ${isP2Done ? 'completed' : (isP2Active ? 'active' : 'upcoming')}">
-            <span class="stage-pill-icon">${isP2Done ? '✅' : (isP2Active ? '⚔️' : '⏳')}</span>
-            <div class="stage-pill-text">
-              <span class="stage-pill-name">第二階段・部隊訓練</span>
-              <span class="stage-pill-date">10/15 ~ 12/01 ${isP2Active ? '・進行中' : (isP2Done ? '・已結業' : '')}</span>
+            <div class="meta-center">
+              <span class="meta-pct-badge">${stage.progressPercent}% 完成</span>
             </div>
-          </div>
-          <div class="stage-flow-arrow">➔</div>
-          <div class="timeline-stage-pill ${isDischarged ? 'completed active' : 'upcoming'}">
-            <span class="stage-pill-icon">${isDischarged ? '🎖️' : '🏁'}</span>
-            <div class="stage-pill-text">
-              <span class="stage-pill-name">光榮結訓・領結訓令</span>
-              <span class="stage-pill-date">12/02 零時生效</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 役期動態進度儀表板 -->
-        <div class="service-progress-card">
-          <div class="service-stats-row">
-            <div class="service-stat-box">
-              <span class="service-stat-label">📅 入伍日期</span>
-              <strong class="service-stat-val">${startItem.date.replace(/-/g, '/')}</strong>
-            </div>
-            <div class="service-stat-box highlight-box">
-              <span class="service-stat-label">⏰ 役期倒數</span>
-              <strong class="service-stat-val text-gold">${daysRemaining === 0 ? '🎉 光榮結訓' : `剩餘 ${daysRemaining} 天`}</strong>
-            </div>
-            <div class="service-stat-box">
-              <span class="service-stat-label">🎖️ 退伍日期</span>
-              <strong class="service-stat-val">${endItem.date.replace(/-/g, '/')}</strong>
-            </div>
-            <div class="service-stat-box">
-              <span class="service-stat-label">📊 役期進度</span>
-              <strong class="service-stat-val">${progressPercent}% (${daysServed}/${totalDays}天)</strong>
+            <div class="meta-end">
+              <span class="meta-label">光榮退伍</span>
+              <strong class="meta-date">${endItem.date.replace(/-/g, '/')}</strong>
             </div>
           </div>
           <div class="service-progress-track">
-            <div class="service-progress-fill" style="width: ${progressPercent}%;">
-              <span class="service-progress-glow"></span>
+            <div class="service-progress-fill" style="width: ${stage.progressPercent}%;">
+              <span class="service-progress-pin">${stage.progressPercent}%</span>
             </div>
           </div>
         </div>
 
-        <!-- 時間軸節點列表 -->
+        <!-- 清楚簡約的里程碑卡片列表 -->
         <div class="timeline-steps-track">
           ${milestonesHtml}
         </div>
@@ -2001,36 +1909,24 @@ const APP = {
 
     return `
       <div class="member-card tactical-dossier-card ${isMe ? 'is-current-user' : ''}" id="card-${member.id}">
-        <!-- Tactical HUD Corner Accents -->
-        <div class="dossier-corner corner-tl"></div>
-        <div class="dossier-corner corner-tr"></div>
-        <div class="dossier-corner corner-bl"></div>
-        <div class="dossier-corner corner-br"></div>
-
         <!-- Dossier Top Status Strip -->
         <div class="dossier-top-strip">
           <div class="dossier-id-chips">
-            <span class="dossier-code-chip">ID #${member.id}</span>
-            <span class="dossier-squad-chip">SQD ${String(member.squad).padStart(2, '0')}・第${this.toChineseNum(member.squad)}班</span>
-            <span class="dossier-room-chip">RM ${String(member.room).padStart(2, '0')}・第${this.toChineseNum(member.room)}寢</span>
+            <span class="dossier-code-chip">#${member.id}</span>
+            <span class="dossier-squad-chip">第${this.toChineseNum(member.squad)}班</span>
+            <span class="dossier-room-chip">第${this.toChineseNum(member.room)}寢</span>
           </div>
-          <span class="dossier-duty-tag">🎖️ ${this.escapeHtml(member.duty || '一般兵')}</span>
+          <span class="dossier-duty-tag">${this.escapeHtml(member.duty || '一般兵')}</span>
         </div>
 
         <div class="member-card-header">
-          <!-- 3D 翻轉頭像容器 (包含四角戰術十字標 Crosshairs +) -->
-          <div class="avatar-flip-container tactical-avatar-frame" onclick="APP.toggleCardFlip(this, event, '${member.id}')" title="點擊 3D 翻轉切換照片 (大兵 ⇋ 便服)">
-            <!-- 4 Corner Tactical Crosshairs (+) -->
-            <span class="tactical-crosshair crosshair-tl">+</span>
-            <span class="tactical-crosshair crosshair-tr">+</span>
-            <span class="tactical-crosshair crosshair-bl">+</span>
-            <span class="tactical-crosshair crosshair-br">+</span>
-
+          <!-- 3D 翻轉頭像容器 -->
+          <div class="avatar-flip-container tactical-avatar-frame" onclick="APP.toggleCardFlip(this, event, '${member.id}')" title="點擊切換照片 (軍裝照 ⇋ 便服照)">
             <div class="avatar-flip-card" id="flip-card-${member.id}">
               <div class="avatar-face avatar-face-front">${milAvatarHtml}</div>
               <div class="avatar-face avatar-face-back">${civAvatarHtml}</div>
             </div>
-            <span class="flip-tag-badge flip-tag-front" id="flip-tag-${member.id}">🪖 大兵</span>
+            <span class="flip-tag-badge flip-tag-front" id="flip-tag-${member.id}">軍裝</span>
           </div>
 
           <div class="member-header-text">
@@ -2040,11 +1936,11 @@ const APP = {
               ${!member.name ? '<span class="tag-pending-badge">(待填寫)</span>' : ''}
             </h3>
             <div class="member-callsign-box">
-              <span class="callsign-label">CALLSIGN // 綽號:</span>
+              <span class="callsign-label">綽號:</span>
               <strong class="callsign-val">${this.escapeHtml(member.nickname || '未填寫')}</strong>
             </div>
             <div class="flip-hint-text" onclick="APP.toggleCardFlip(this.closest('.member-card').querySelector('.avatar-flip-container'), event, '${member.id}')">
-              <span>🔄 點擊照片翻轉 (大兵 ⇋ 便服)</span>
+              <span>🔄 點擊照片翻轉 (軍裝 ⇋ 便服)</span>
             </div>
           </div>
         </div>
@@ -2052,30 +1948,30 @@ const APP = {
         <!-- Bento Grid Specs Row -->
         <div class="dossier-bento-grid">
           <div class="bento-cell bento-duty">
-            <span class="bento-cell-label">🎖️ RANK / DUTY 職責</span>
+            <span class="bento-cell-label">建制職責</span>
             <span class="bento-cell-val">${this.escapeHtml(member.duty || '一般兵')}</span>
           </div>
           ${member.interests ? `
           <div class="bento-cell bento-interests">
-            <span class="bento-cell-label">🎨 SPECS 專長興趣</span>
+            <span class="bento-cell-label">專長興趣</span>
             <span class="bento-cell-val">${this.escapeHtml(member.interests)}</span>
           </div>` : ''}
           ${member.dream ? `
           <div class="bento-cell bento-dream">
-            <span class="bento-cell-label">🌟 TARGET 未來目標</span>
+            <span class="bento-cell-label">未來目標</span>
             <span class="bento-cell-val">${this.escapeHtml(member.dream)}</span>
           </div>` : ''}
         </div>
 
-        <!-- Dossier Transcript / 結訓感言 (外層卡片展示原本的 bio 欄位) -->
+        <!-- Dossier Transcript / 結訓感言 -->
         <div class="member-bio dossier-transcript">
-          <div class="transcript-tag">💬 TRANSCRIPT // 結訓感言</div>
+          <div class="transcript-tag">💬 結訓感言</div>
           <div class="transcript-body">${this.escapeHtml(member.bio || (member.name ? '金六結 153R 1B3C 結訓快樂！' : '（尚未填寫結訓感言...）'))}</div>
         </div>
 
         <!-- Direct Action Buttons & View Dossier Drawer Trigger -->
         <div class="member-dossier-action-bar">
-          <button class="btn-view-dossier" onclick="APP.showMemberDetail('${member.id}')" title="開啟完整同袍戰術檔案 (Bottom Sheet / Drawer)">
+          <button class="btn-view-dossier" onclick="APP.showMemberDetail('${member.id}')" title="開啟完整同袍個人檔案">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
               <polyline points="14 2 14 8 20 8"></polyline>
@@ -2083,7 +1979,7 @@ const APP = {
               <line x1="16" y1="17" x2="8" y2="17"></line>
               <polyline points="10 9 9 9 8 9"></polyline>
             </svg>
-            <span>檢視完整檔案 (View Dossier)</span>
+            <span>檢視完整檔案 →</span>
           </button>
         </div>
 
@@ -3895,77 +3791,72 @@ const APP = {
       : cleanId.substring(Math.max(0, cleanId.length - 2));
 
     const titleEl = document.getElementById('detail-modal-title');
-    if (titleEl) titleEl.innerHTML = `<span style="font-family:var(--font-mono); color:var(--tactical-amber);">DOSSIER //</span> #${cleanId} ${this.escapeHtml(displayName)}`;
+    if (titleEl) titleEl.innerHTML = `#${cleanId} ${this.escapeHtml(displayName)} 個人檔案`;
 
     const bodyEl = document.getElementById('detail-modal-body');
     if (bodyEl) {
       const milPhoto = member.avatar_military || member.avatar_url;
-      const milHtml = milPhoto ? `<img src="${milPhoto}" alt="大兵照">` : `<span>🪖 ${initials}</span>`;
+      const milHtml = milPhoto ? `<img src="${milPhoto}" alt="軍裝照">` : `<span>${initials}</span>`;
 
       const civPhoto = member.avatar_civilian;
-      const civHtml = civPhoto ? `<img src="${civPhoto}" alt="便服照">` : `<span>🕶️ ${initials}</span>`;
+      const civHtml = civPhoto ? `<img src="${civPhoto}" alt="便服照">` : `<span>${initials}</span>`;
 
       bodyEl.innerHTML = `
         <div class="bottom-sheet-dossier-wrapper">
           <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:0.65rem;">
-            <!-- 3D 翻轉證件照容器 (含四角十字標) -->
-            <div class="avatar-flip-container tactical-avatar-frame" style="width:105px; height:140px;" onclick="APP.toggleCardFlip(this, event, 'detail-${cleanId}')" title="點擊 3D 翻轉切換照片 (大兵 ⇋ 便服)">
-              <span class="tactical-crosshair crosshair-tl">+</span>
-              <span class="tactical-crosshair crosshair-tr">+</span>
-              <span class="tactical-crosshair crosshair-bl">+</span>
-              <span class="tactical-crosshair crosshair-br">+</span>
-
+            <!-- 3D 翻轉證件照容器 -->
+            <div class="avatar-flip-container tactical-avatar-frame" style="width:105px; height:140px;" onclick="APP.toggleCardFlip(this, event, 'detail-${cleanId}')" title="點擊切換照片 (軍裝 ⇋ 便服)">
               <div class="avatar-flip-card" id="flip-card-detail-${cleanId}">
                 <div class="avatar-face avatar-face-front">${milHtml}</div>
                 <div class="avatar-face avatar-face-back">${civHtml}</div>
               </div>
-              <span class="flip-tag-badge flip-tag-front" id="flip-tag-detail-${cleanId}">🪖 大兵</span>
+              <span class="flip-tag-badge flip-tag-front" id="flip-tag-detail-${cleanId}">軍裝</span>
             </div>
 
             <div class="flip-hint-text" style="cursor:pointer;" onclick="APP.toggleCardFlip(this.previousElementSibling, event, 'detail-${cleanId}')">
-              <span>🔄 點擊照片體驗 3D 翻轉 (大兵 ⇋ 便服)</span>
+              <span>🔄 點擊照片翻轉 (軍裝 ⇋ 便服)</span>
             </div>
 
             <div style="margin-top:0.25rem;">
-              <h3 style="font-size:1.45rem; font-weight:900; color:#ffffff; letter-spacing:0.5px;">${this.escapeHtml(displayName)}</h3>
+              <h3 style="font-size:1.4rem; font-weight:800; color:#ffffff; letter-spacing:0.5px;">${this.escapeHtml(displayName)}</h3>
               <div class="member-callsign-box" style="margin-top:0.25rem; display:inline-flex;">
-                <span class="callsign-label">CALLSIGN // 綽號:</span>
+                <span class="callsign-label">綽號:</span>
                 <strong class="callsign-val">${this.escapeHtml(member.nickname || '未填寫')}</strong>
               </div>
             </div>
 
             <!-- 戰術中繼徽章 -->
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin-top:0.35rem;">
-              <span class="dossier-code-chip" style="font-size:0.75rem;">ID #${cleanId}</span>
-              <span class="dossier-squad-chip" style="font-size:0.75rem;">SQD ${String(member.squad).padStart(2, '0')}・第${this.toChineseNum(member.squad)}班 (${(typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[member.squad]) || ''})</span>
-              <span class="dossier-room-chip" style="font-size:0.75rem;">RM ${String(member.room).padStart(2, '0')}・第${this.toChineseNum(member.room)}寢</span>
-              <span class="dossier-duty-tag" style="font-size:0.75rem;">🎖️ ${this.escapeHtml(member.duty || '一般兵')}</span>
+              <span class="dossier-code-chip" style="font-size:0.75rem;">#${cleanId}</span>
+              <span class="dossier-squad-chip" style="font-size:0.75rem;">第${this.toChineseNum(member.squad)}班 (${(typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[member.squad]) || ''})</span>
+              <span class="dossier-room-chip" style="font-size:0.75rem;">第${this.toChineseNum(member.room)}寢</span>
+              <span class="dossier-duty-tag" style="font-size:0.75rem;">${this.escapeHtml(member.duty || '一般兵')}</span>
             </div>
 
             <!-- Bento Specs -->
             <div class="dossier-bento-grid" style="width:100%; margin-top:0.6rem;">
               <div class="bento-cell bento-duty">
-                <span class="bento-cell-label">🎖️ RANK / DUTY 職責</span>
+                <span class="bento-cell-label">建制職責</span>
                 <span class="bento-cell-val">${this.escapeHtml(member.duty || '一般兵')}</span>
               </div>
               ${member.interests ? `
               <div class="bento-cell bento-interests">
-                <span class="bento-cell-label">🎨 SPECS 專長興趣</span>
+                <span class="bento-cell-label">專長興趣</span>
                 <span class="bento-cell-val">${this.escapeHtml(member.interests)}</span>
               </div>` : ''}
               ${member.dream ? `
               <div class="bento-cell bento-dream">
-                <span class="bento-cell-label">🌟 TARGET 未來目標</span>
+                <span class="bento-cell-label">未來目標</span>
                 <span class="bento-cell-val">${this.escapeHtml(member.dream)}</span>
               </div>` : ''}
             </div>
           </div>
 
-          <!-- 結訓感言與自我介紹 (點進去才看得到自我介紹) -->
+          <!-- 結訓感言與自我介紹 -->
           <div class="dossier-details-section" style="margin-top:1rem; display:flex; flex-direction:column; gap:0.75rem;">
-            <!-- 結訓感言 (原本的 bio 欄位) -->
+            <!-- 結訓感言 -->
             <div class="member-bio dossier-transcript">
-              <div class="transcript-tag">💬 TRANSCRIPT // 結訓感言</div>
+              <div class="transcript-tag">💬 結訓感言</div>
               <div class="transcript-body" style="font-size:0.92rem; line-height:1.6;">
                 ${this.escapeHtml(member.bio || (hasName ? '金六結 153R 1B3C 結訓快樂！江湖相見！' : '（尚未填寫結訓感言...）'))}
               </div>
