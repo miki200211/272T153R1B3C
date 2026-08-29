@@ -3991,7 +3991,7 @@ textarea.form-control {
 }
 
 /* ==========================================================================
-   連方隊 (Company Formation) - 連集合場 ㄇ 字型戰術隊伍排隊樣式
+   連方隊 (Company Formation) - 連集合場 U 字型戰術隊伍排隊樣式 (直U直 + 橫)
    ========================================================================== */
 
 .formation-container {
@@ -4005,7 +4005,7 @@ textarea.form-control {
   background: radial-gradient(circle at 50% 12%, #1e2a22 0%, #0e140f 100%);
   border: 1.5px solid var(--tactical-olive-border);
   border-radius: var(--radius-lg);
-  padding: 1.75rem 1.25rem 2.25rem;
+  padding: 1.5rem 1rem 2rem;
   position: relative;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -4026,38 +4026,127 @@ textarea.form-control {
   pointer-events: none;
 }
 
-/* ㄇ 字型排隊外層架構 (U-Shape / M-Shape Formation Layout) */
-.formation-u-shape {
+/* U 字型排隊外層架構 (直 U 直 + 橫) */
+.formation-u-ground {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
-  min-width: 1100px; /* 支援桌機完整 ㄇ 字型排開與橫向滾動 */
+  gap: 1.5rem;
+  min-width: 1080px;
   position: relative;
   z-index: 10;
 }
 
-/* 上方橫排 (Top Row: 左 9,8,7 班 ｜ 中間值星官 ｜ 右 1,2,3 班) */
-.formation-top-row {
+/* 上半部：左翼直隊 ｜ 中央值星官 ｜ 右翼直隊 */
+.formation-u-upper {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  gap: 1.25rem;
-  align-items: center;
+  gap: 1.5rem;
+  align-items: start;
 }
 
-/* 中央值星官指揮台 */
-.formation-officer-center {
+/* 左翼與右翼的直向縱隊區塊 */
+.formation-vertical-flank {
+  background: rgba(18, 25, 20, 0.85);
+  border: 1px solid rgba(74, 88, 68, 0.6);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 0.75rem 1rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+}
+
+.flank-header {
+  text-align: center;
+  padding-bottom: 0.45rem;
+  border-bottom: 1.5px dashed var(--tactical-olive-border);
+  margin-bottom: 0.75rem;
+}
+
+.flank-title {
+  font-size: 0.96rem;
+  font-weight: 900;
+  color: var(--tactical-amber);
+  letter-spacing: 0.5px;
+}
+
+.flank-subtitle {
+  font-size: 0.7rem;
+  color: #95a798;
+  margin-top: 0.15rem;
+  font-weight: 600;
+}
+
+/* 3 班縱隊直向並排容器 */
+.flank-columns-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.squad-vertical-column {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 0 0.5rem;
+  gap: 0.45rem;
+  background: rgba(25, 33, 27, 0.5);
+  border: 1px solid var(--tactical-charcoal-border);
+  border-radius: 6px;
+  padding: 0.45rem 0.25rem;
+}
+
+.squad-col-pill {
+  width: 100%;
+  text-align: center;
+  background: var(--tactical-charcoal-elevated);
+  border: 1px solid var(--tactical-olive-border);
+  border-radius: 4px;
+  padding: 0.3rem 0.15rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+}
+
+.squad-col-pill:hover {
+  transform: scale(1.03);
+  border-color: var(--tactical-amber);
+}
+
+.squad-col-pill-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.squad-col-pill-duty {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--tactical-amber);
+  margin-top: 1px;
+}
+
+.squad-col-heads-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+/* 中央區域 (值星官) */
+.formation-u-center-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 200px;
+  padding-top: 0.5rem;
 }
 
 .formation-podium {
   background: linear-gradient(135deg, #243026 0%, #17211a 100%);
   border: 2px solid var(--tactical-amber);
   border-radius: var(--radius-md);
-  padding: 0.85rem 1.75rem;
+  padding: 0.85rem 1.5rem;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -4066,7 +4155,7 @@ textarea.form-control {
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   user-select: none;
-  min-width: 190px;
+  min-width: 170px;
   text-align: center;
 }
 
@@ -4079,8 +4168,8 @@ textarea.form-control {
   background: linear-gradient(90deg, #dc2626 0%, #ffffff 50%, #2563eb 100%);
   color: #000;
   font-weight: 900;
-  font-size: 0.72rem;
-  padding: 2px 12px;
+  font-size: 0.7rem;
+  padding: 2px 10px;
   border-radius: 999px;
   letter-spacing: 1px;
   margin-bottom: 0.35rem;
@@ -4097,116 +4186,72 @@ textarea.form-control {
 }
 
 .formation-officer-desc {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--tactical-amber);
   margin-top: 0.25rem;
   font-weight: 700;
 }
 
-/* 下方/底側橫排 (Bottom Row: 中央二排 4, 5, 6 班) */
-.formation-bottom-row {
+/* 下半部：中央底側橫向橫隊 (4, 5, 6 班) */
+.formation-u-bottom {
   display: flex;
   justify-content: center;
   width: 100%;
 }
 
-.formation-wing-center {
-  width: 100%;
-  max-width: 900px;
-}
-
-/* 排組區塊 (Platoon Wings) */
-.formation-wing {
-  background: rgba(18, 25, 20, 0.85);
+.formation-horizontal-base {
+  background: rgba(18, 25, 20, 0.88);
   border: 1px solid rgba(74, 88, 68, 0.6);
   border-radius: var(--radius-md);
-  padding: 0.9rem 1rem 1.1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  padding: 0.85rem 1.25rem 1rem;
   box-shadow: 0 4px 16px rgba(0,0,0,0.4);
   backdrop-filter: blur(4px);
+  width: 100%;
+  max-width: 720px;
 }
 
-.platoon-wing-header {
-  text-align: center;
-  padding-bottom: 0.45rem;
-  border-bottom: 1.5px dashed var(--tactical-olive-border);
-}
-
-.platoon-wing-title {
-  font-size: 0.98rem;
-  font-weight: 900;
-  color: var(--tactical-amber);
-  letter-spacing: 0.5px;
-}
-
-.platoon-wing-subtitle {
-  font-size: 0.72rem;
-  color: #95a798;
-  margin-top: 0.15rem;
-  font-weight: 600;
-}
-
-/* 班級橫列容器 */
-.squad-rows-container {
+.horizontal-rows-stack {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.55rem;
 }
 
-/* 橫向單班排隊列 (Horizontal Squad Row) */
 .squad-horizontal-row {
   background: rgba(25, 33, 27, 0.65);
   border: 1px solid var(--tactical-charcoal-border);
   border-radius: 6px;
-  padding: 0.45rem 0.65rem;
+  padding: 0.35rem 0.55rem;
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  transition: border-color 0.2s ease;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
-.squad-horizontal-row:hover {
-  border-color: var(--tactical-olive-border);
-}
-
-.squad-row-header {
+.squad-row-header-right {
   flex-shrink: 0;
-  width: 82px;
+  width: 74px;
   text-align: center;
   background: var(--tactical-charcoal-elevated);
   border: 1px solid var(--tactical-olive-border);
   border-radius: 4px;
-  padding: 0.35rem 0.2rem;
+  padding: 0.3rem 0.15rem;
+  cursor: pointer;
   transition: transform 0.15s ease, border-color 0.15s ease;
   user-select: none;
 }
 
-.squad-row-header:hover {
+.squad-row-header-right:hover {
   transform: scale(1.03);
   border-color: var(--tactical-amber);
 }
 
-.squad-row-badge {
-  font-size: 0.76rem;
-  font-weight: 800;
-  color: #ffffff;
-}
-
-.squad-row-duty {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--tactical-amber);
-  margin-top: 1px;
-}
-
-/* 橫向人頭排隊軌道 (1~11 號弟兄) */
-.squad-heads-track {
+.squad-heads-horizontal-track {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  justify-content: center;
+  gap: 0.35rem;
   flex-wrap: nowrap;
+  flex: 1;
 }
 
 /* 班兵人頭節點 (Soldier Head Node) */
@@ -4220,17 +4265,17 @@ textarea.form-control {
   border-radius: 6px;
   transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
   user-select: none;
-  width: 38px;
+  width: 36px;
 }
 
 .soldier-head-node:hover, .soldier-head-node.active {
-  transform: scale(1.22);
+  transform: scale(1.25);
   z-index: 60;
 }
 
 .soldier-avatar-bubble {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   border: 1.5px solid #4a5844;
   background: #19211b;
@@ -4239,13 +4284,13 @@ textarea.form-control {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.6);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .soldier-head-node.is-leader .soldier-avatar-bubble {
   border: 2px solid #f59e0b;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.65);
 }
 
 .soldier-head-node.is-current-user .soldier-avatar-bubble {
@@ -4267,25 +4312,25 @@ textarea.form-control {
 }
 
 .soldier-helmet-icon {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   line-height: 1;
 }
 
 .soldier-head-name {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 800;
   color: #e2e8f0;
   text-align: center;
-  max-width: 44px;
+  max-width: 42px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .soldier-head-seq {
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: 0.55rem;
   color: #94a3b8;
   font-weight: 700;
 }
@@ -4307,7 +4352,7 @@ textarea.form-control {
 
 .soldier-me-badge {
   position: absolute;
-  bottom: 18px;
+  bottom: 16px;
   left: -2px;
   background: #22c55e;
   color: #000;

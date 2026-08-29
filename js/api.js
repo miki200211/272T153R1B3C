@@ -6,7 +6,7 @@
 const API = {
   // 初始化本機快取資料庫（當尚未連接 GAS 或離線時使用）
   initLocalStore(forceReset = false) {
-    const versionKey = '153r1b3c_data_v6_clean_legends_diaries';
+    const versionKey = '153r1b3c_data_v7_99_members';
     const isVersionMatch = localStorage.getItem(versionKey) === 'true';
 
     if (!localStorage.getItem(CONFIG.STORAGE_KEYS.MEMBERS_CACHE) || forceReset || !isVersionMatch) {

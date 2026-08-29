@@ -154,17 +154,17 @@ const MOCK_DATA = {
     };
 
     for (let squad = 1; squad <= 9; squad++) {
-      // 1~7班 11人, 8班 10人, 9班 11人 = 98人
-      const squadCount = (squad === 8) ? 10 : 11;
+      // 1~9班皆為 11人滿編 = 全連 99人
+      const squadCount = 11;
       const squadDuty = squadDutyMap[squad] || '一般兵';
 
       for (let i = 0; i < squadCount; i++) {
         const id = String(currentIdNum);
 
-        // 計算寢室 (1~10寢每寢9人，第11寢8人)
+        // 計算寢室 (1~11寢每寢9人，共99人)
         const room = roomIndex;
         inRoomCount++;
-        if (roomIndex <= 10 && inRoomCount === 9) {
+        if (roomIndex <= 11 && inRoomCount === 9) {
           roomIndex++;
           inRoomCount = 0;
         }

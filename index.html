@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.3.21">
+  <link rel="stylesheet" href="css/style.css?v=3.3.22">
 </head>
 <body>
 
@@ -166,13 +166,13 @@
           <li>
             <button class="nav-item-btn" data-nav="squad-8" onclick="APP.navigate('squad', 8)">
               <span class="nav-label">第八班</span>
-              <span class="nav-badge">13078~087</span>
+              <span class="nav-badge">13078~088</span>
             </button>
           </li>
           <li>
             <button class="nav-item-btn" data-nav="squad-9" onclick="APP.navigate('squad', 9)">
               <span class="nav-label">第九班</span>
-              <span class="nav-badge">13088~098</span>
+              <span class="nav-badge">13089~099</span>
             </button>
           </li>
         </ul>
@@ -286,7 +286,7 @@
                 <div class="stat-sublabel">COHORT BATCH</div>
               </div>
               <div class="hero-stat-card">
-                <div class="stat-num" id="stat-members-count">98</div>
+                <div class="stat-num" id="stat-members-count">99</div>
                 <div class="stat-label">三連弟兄同袍</div>
                 <div class="stat-sublabel">PLATOON COHORTS</div>
               </div>
@@ -342,10 +342,10 @@
             <div>
               <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
                 <h3 style="font-size:1.18rem; font-weight:900; color:#ffffff; margin:0;">🪖 連集合場・連方隊戰術隊形排列</h3>
-                <span class="badge" style="background:var(--tactical-amber); color:#000; font-weight:900; font-size:0.7rem; padding:2px 8px; border-radius:4px;">98人滿編排列</span>
+                <span class="badge" style="background:var(--tactical-amber); color:#000; font-weight:900; font-size:0.7rem; padding:2px 8px; border-radius:4px;">99人滿編排列</span>
               </div>
               <p style="font-size:0.84rem; color:#cbd5cb; margin:0.35rem 0 0; line-height:1.45;">
-                前方司令台值星官指揮，<strong>右邊 1~3 班</strong>（一排）、<strong>中間 4~6 班</strong>（二排）、<strong>左方 7~9 班</strong>（三排）。觸碰大兵人頭即時知曉姓名與完整檔案！
+                連集合場 U 字型隊形：<strong>左側 9~7 班</strong>（直向縱隊）、<strong>中央 4~6 班</strong>（橫向橫隊，第6員正對值星官）、<strong>右側 1~3 班</strong>（直向縱隊）。觸碰大兵人頭即時知曉姓名！
               </p>
             </div>
           </div>
@@ -393,8 +393,8 @@
       <section id="view-formation" class="view-section">
         <div class="section-header">
           <div class="section-header-title">
-            <h2>🪖 連方隊・連集合場戰術隊形</h2>
-            <span class="tag">全連 98 位弟兄建制排列</span>
+            <h2>🪖 連方隊・連集合場 U 字型隊伍排列</h2>
+            <span class="tag">全連 99 位弟兄建制排列</span>
           </div>
           <div class="toolbar-actions">
             <button class="btn-secondary" onclick="APP.findMyFormationPosition()" style="font-size:0.82rem; padding:6px 12px;" title="在方隊中快速定位我的大兵頭像">
@@ -612,7 +612,7 @@
           <span style="font-size: 1.3rem;">👥</span>
           <div>
             <h3 style="margin: 0; font-size: 1.05rem;">選擇班級名冊</h3>
-            <p style="margin: 0; font-size: 0.75rem; opacity: 0.85;">全連共九個建制班級 (13001 ~ 13098)</p>
+            <p style="margin: 0; font-size: 0.75rem; opacity: 0.85;">全連共九個建制班級 (13001 ~ 13099)</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="APP.closeModal('modal-select-squad')">&times;</button>
@@ -678,8 +678,8 @@
         <div class="modal-body">
           <div class="form-group">
             <label for="login-id">弟兄學號 (ID)</label>
-            <input type="text" id="login-id" class="form-control" placeholder="例：13005 (13001 ~ 13098)" required autocomplete="username">
-            <span class="form-hint">請輸入 5 位數弟兄學號 (13001 ~ 13098)</span>
+            <input type="text" id="login-id" class="form-control" placeholder="例：13005 (13001 ~ 13099)" required autocomplete="username">
+            <span class="form-hint">請輸入 5 位數弟兄學號 (13001 ~ 13099)</span>
           </div>
           <div class="form-group">
             <label for="login-password">密碼</label>
@@ -1052,9 +1052,9 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- 載入核心腳本 (循序載入) -->
-  <script src="js/config.js?v=3.3.21"></script>
-  <script src="js/mockData.js?v=3.3.21"></script>
-  <script src="js/api.js?v=3.3.21"></script>
-  <script src="js/app.js?v=3.3.21"></script>
+  <script src="js/config.js?v=3.3.22"></script>
+  <script src="js/mockData.js?v=3.3.22"></script>
+  <script src="js/api.js?v=3.3.22"></script>
+  <script src="js/app.js?v=3.3.22"></script>
 </body>
 </html>

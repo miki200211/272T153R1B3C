@@ -1431,17 +1431,17 @@ const APP = {
     `;
   },
 
-  // 1.5 連方隊渲染 (連集合場 ㄇ 字型戰術隊形：左側 9,8,7 班、中央值星官、右側 1,2,3 班，底側 4,5,6 班，橫向排開)
+  // 1.5 連方隊渲染 (連集合場 U 字型隊形：直U直 + 橫；左翼987班頭在下、中央456班頭在右第6員對值星官、右翼123班頭在上、值星官在正上方)
   renderFormationView() {
     const container = document.getElementById('formation-view-container');
     if (!container) return;
 
-    // 確保有成員資料
+    // 確保有成員資料 (共 99 員)
     if (!this.allMembers || this.allMembers.length === 0) {
       this.allMembers = this.normalizeMembers(MOCK_DATA.getInitialMembers());
     }
 
-    // 依班級分組 (1~9 班)
+    // 依班級分組 (1~9 班，每班 11 人)
     const squadMap = {};
     for (let s = 1; s <= 9; s++) {
       squadMap[s] = [];
@@ -1451,164 +1451,222 @@ const APP = {
       if (squadMap[sq]) squadMap[sq].push(m);
     });
 
-    // 排序各班 (依學號排序，第一位即為班頭)
+    // 排序各班 (依學號由小到大排序，index 0 為 1 號班頭，index 10 為 11 號班兵)
     for (let s = 1; s <= 9; s++) {
       squadMap[s].sort((a, b) => String(a.id).localeCompare(String(b.id)));
     }
 
-    // 值星官預設
-    const dutyOfficer = {
-      rank: '上士',
-      name: '潘品濬',
-      title: '第一排 第 1 班 班長'
-    };
+    // 單兵人頭節點渲染函式
+    const renderNodeHtml = (m, isLeader) => {
+      if (!m) return `<div style="width:36px; height:46px; opacity:0; pointer-events:none;"></div>`;
+      const isCurrentUser = this.currentUser && String(this.currentUser.id).trim() === String(m.id).trim();
 
-    // 橫向單班渲染函式 (每班 1~11 號弟兄橫向排開)
-    const renderSquadRowHtml = (sNum) => {
-      const members = squadMap[sNum] || [];
-      const dutyName = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[sNum]) || '';
-      const dutyIcon = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTY_ICONS && CONFIG.SQUAD_DUTY_ICONS[sNum]) || '👥';
-
-      let headsHtml = '';
-      for (let idx = 0; idx < 11; idx++) {
-        const m = members[idx];
-        if (!m) {
-          // 第 8 班 10 人滿編，第 11 員透明佔位符保持整齊對齊
-          headsHtml += `<div style="width:38px; height:50px; opacity:0; pointer-events:none;"></div>`;
-          continue;
-        }
-
-        const isLeader = idx === 0;
-        const isCurrentUser = this.currentUser && String(this.currentUser.id).trim() === String(m.id).trim();
-
-        let avatarInner = '';
-        if (m.avatar_military) {
-          avatarInner = `<img src="${this.formatImageUrl(m.avatar_military)}" class="soldier-avatar-img" alt="${this.escapeHtml(m.name)}" loading="lazy">`;
-        } else if (m.avatar_civilian) {
-          avatarInner = `<img src="${this.formatImageUrl(m.avatar_civilian)}" class="soldier-avatar-img" alt="${this.escapeHtml(m.name)}" loading="lazy">`;
-        } else {
-          avatarInner = `<span class="soldier-helmet-icon">🪖</span>`;
-        }
-
-        const cleanSeq = String(m.id).substring(Math.max(0, String(m.id).length - 2));
-
-        headsHtml += `
-          <div class="soldier-head-node ${isLeader ? 'is-leader' : ''} ${isCurrentUser ? 'is-current-user' : ''}"
-               id="formation-node-${m.id}"
-               data-member-id="${m.id}"
-               onclick="APP.handleFormationSoldierClick('${m.id}')"
-               onmouseenter="APP.handleFormationSoldierHover('${m.id}')">
-            
-            <div class="soldier-avatar-bubble">
-              ${avatarInner}
-            </div>
-
-            ${isLeader ? `<span class="soldier-leader-badge">班頭</span>` : ''}
-            ${isCurrentUser ? `<span class="soldier-me-badge">我</span>` : ''}
-
-            <div class="soldier-head-name">${this.escapeHtml(m.name)}</div>
-            <div class="soldier-head-seq">#${cleanSeq}</div>
-
-            <!-- 懸停與觸碰戰術 HUD 卡片 -->
-            <div class="formation-soldier-tooltip">
-              <div class="tooltip-header-row">
-                <span class="tooltip-name">${this.escapeHtml(m.name)}</span>
-                <span class="tooltip-id">#${m.id}</span>
-              </div>
-              <div class="tooltip-body-row">
-                <div><strong>班級：</strong>第 ${this.toChineseNum(m.squad)} 班 (${dutyName})</div>
-                <div><strong>職責：</strong>${this.escapeHtml(m.duty || dutyName)}</div>
-                <div><strong>寢室：</strong>第 ${this.toChineseNum(m.room)} 寢</div>
-                ${m.nickname ? `<div><strong>綽號：</strong>${this.escapeHtml(m.nickname)}</div>` : ''}
-              </div>
-              <div class="tooltip-tap-hint">👆 點擊開啟個人完整檔案</div>
-            </div>
-          </div>
-        `;
+      let avatarInner = '';
+      if (m.avatar_military) {
+        avatarInner = `<img src="${this.formatImageUrl(m.avatar_military)}" class="soldier-avatar-img" alt="${this.escapeHtml(m.name)}" loading="lazy">`;
+      } else if (m.avatar_civilian) {
+        avatarInner = `<img src="${this.formatImageUrl(m.avatar_civilian)}" class="soldier-avatar-img" alt="${this.escapeHtml(m.name)}" loading="lazy">`;
+      } else {
+        avatarInner = `<span class="soldier-helmet-icon">🪖</span>`;
       }
 
+      const cleanSeq = String(m.id).substring(Math.max(0, String(m.id).length - 2));
+      const dutyName = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[m.squad]) || '';
+
       return `
-        <div class="squad-horizontal-row" id="formation-squad-${sNum}">
-          <div class="squad-row-header" onclick="APP.navigate('squad', ${sNum})" style="cursor:pointer;" title="點擊切換至第${this.toChineseNum(sNum)}班名冊">
-            <div class="squad-row-badge">${dutyIcon} 第 ${this.toChineseNum(sNum)} 班</div>
-            <div class="squad-row-duty">${dutyName}</div>
+        <div class="soldier-head-node ${isLeader ? 'is-leader' : ''} ${isCurrentUser ? 'is-current-user' : ''}"
+             id="formation-node-${m.id}"
+             data-member-id="${m.id}"
+             onclick="APP.handleFormationSoldierClick('${m.id}')"
+             onmouseenter="APP.handleFormationSoldierHover('${m.id}')">
+          
+          <div class="soldier-avatar-bubble">
+            ${avatarInner}
           </div>
-          <div class="squad-heads-track">
-            ${headsHtml}
+
+          ${isLeader ? `<span class="soldier-leader-badge">班頭</span>` : ''}
+          ${isCurrentUser ? `<span class="soldier-me-badge">我</span>` : ''}
+
+          <div class="soldier-head-name">${this.escapeHtml(m.name)}</div>
+          <div class="soldier-head-seq">#${cleanSeq}</div>
+
+          <!-- 懸停與觸碰戰術 HUD 卡片 -->
+          <div class="formation-soldier-tooltip">
+            <div class="tooltip-header-row">
+              <span class="tooltip-name">${this.escapeHtml(m.name)}</span>
+              <span class="tooltip-id">#${m.id}</span>
+            </div>
+            <div class="tooltip-body-row">
+              <div><strong>班級：</strong>第 ${this.toChineseNum(m.squad)} 班 (${dutyName})</div>
+              <div><strong>職責：</strong>${this.escapeHtml(m.duty || dutyName)}</div>
+              <div><strong>寢室：</strong>第 ${this.toChineseNum(m.room)} 寢</div>
+              ${m.nickname ? `<div><strong>綽號：</strong>${this.escapeHtml(m.nickname)}</div>` : ''}
+            </div>
+            <div class="tooltip-tap-hint">👆 點擊開啟個人完整檔案</div>
           </div>
         </div>
       `;
     };
 
-    // 產生三大排塊 HTML
-    const leftWingHtml = [9, 8, 7].map(sNum => renderSquadRowHtml(sNum)).join('');
-    const rightWingHtml = [1, 2, 3].map(sNum => renderSquadRowHtml(sNum)).join('');
-    const centerWingHtml = [4, 5, 6].map(sNum => renderSquadRowHtml(sNum)).join('');
+    // 1. 左翼直向縱隊 (左邊最外側 9 班、中間 8 班、最內側 7 班；班頭在下方)
+    const leftSquads = [9, 8, 7];
+    const leftWingHtml = leftSquads.map(sNum => {
+      const members = squadMap[sNum] || [];
+      const dutyName = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[sNum]) || '';
+      const dutyIcon = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTY_ICONS && CONFIG.SQUAD_DUTY_ICONS[sNum]) || '👥';
+      const isInner = (sNum === 7);
+      const isOuter = (sNum === 9);
+      const locTag = isInner ? '(內側)' : (isOuter ? '(外側)' : '');
+
+      // 班頭在下方：從 11 號 (index 10) 往下排到 1 號班頭 (index 0)
+      let stackHtml = '';
+      for (let idx = 10; idx >= 0; idx--) {
+        const m = members[idx];
+        const isLeader = (idx === 0);
+        stackHtml += renderNodeHtml(m, isLeader);
+      }
+
+      return `
+        <div class="squad-vertical-column" id="formation-squad-${sNum}">
+          <div class="squad-col-pill" onclick="APP.navigate('squad', ${sNum})" title="切換至第${this.toChineseNum(sNum)}班名冊">
+            <div class="squad-col-pill-badge">${dutyIcon} 第 ${this.toChineseNum(sNum)} 班</div>
+            <div class="squad-col-pill-duty">${dutyName} ${locTag}</div>
+          </div>
+          <div class="squad-col-heads-stack">
+            ${stackHtml}
+          </div>
+          <div style="font-size:0.58rem; color:var(--tactical-amber); font-weight:800; margin-top:2px;">▲ 班頭在下方</div>
+        </div>
+      `;
+    }).join('');
+
+    // 2. 右翼直向縱隊 (右邊最內側 1 班、中間 2 班、最外側 3 班；班頭在上方)
+    const rightSquads = [1, 2, 3];
+    const rightWingHtml = rightSquads.map(sNum => {
+      const members = squadMap[sNum] || [];
+      const dutyName = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[sNum]) || '';
+      const dutyIcon = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTY_ICONS && CONFIG.SQUAD_DUTY_ICONS[sNum]) || '👥';
+      const isInner = (sNum === 1);
+      const isOuter = (sNum === 3);
+      const locTag = isInner ? '(內側)' : (isOuter ? '(外側)' : '');
+
+      // 班頭在上方：從 1 號班頭 (index 0) 往下排到 11 號 (index 10)
+      let stackHtml = '';
+      for (let idx = 0; idx <= 10; idx++) {
+        const m = members[idx];
+        const isLeader = (idx === 0);
+        stackHtml += renderNodeHtml(m, isLeader);
+      }
+
+      return `
+        <div class="squad-vertical-column" id="formation-squad-${sNum}">
+          <div class="squad-col-pill" onclick="APP.navigate('squad', ${sNum})" title="切換至第${this.toChineseNum(sNum)}班名冊">
+            <div class="squad-col-pill-badge">${dutyIcon} 第 ${this.toChineseNum(sNum)} 班</div>
+            <div class="squad-col-pill-duty">${dutyName} ${locTag}</div>
+          </div>
+          <div style="font-size:0.58rem; color:var(--tactical-amber); font-weight:800; margin-bottom:2px;">▼ 班頭在上方</div>
+          <div class="squad-col-heads-stack">
+            ${stackHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // 3. 中央底側橫向橫隊 (4, 5, 6 班：班頭在右邊，第 6 員置中正對上方值星官)
+    const centerSquads = [4, 5, 6];
+    const centerWingHtml = centerSquads.map(sNum => {
+      const members = squadMap[sNum] || [];
+      const dutyName = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[sNum]) || '';
+      const dutyIcon = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTY_ICONS && CONFIG.SQUAD_DUTY_ICONS[sNum]) || '👥';
+
+      // 班頭在右邊，第 6 員正對值星官：
+      // 從左至右排：11號 (idx 10), 10號, 9號, 8號, 7號, 6號 (idx 5 中軸), 5號, 4號, 3號, 2號, 1號班頭 (idx 0)
+      let trackHtml = '';
+      for (let idx = 10; idx >= 0; idx--) {
+        const m = members[idx];
+        const isLeader = (idx === 0);
+        trackHtml += renderNodeHtml(m, isLeader);
+      }
+
+      return `
+        <div class="squad-horizontal-row" id="formation-squad-${sNum}">
+          <div class="squad-heads-horizontal-track">
+            ${trackHtml}
+          </div>
+          <div class="squad-row-header-right" onclick="APP.navigate('squad', ${sNum})" title="切換至第${this.toChineseNum(sNum)}班名冊">
+            <div style="font-size:0.74rem; font-weight:900; color:#fff;">${dutyIcon} 第${this.toChineseNum(sNum)}班</div>
+            <div style="font-size:0.62rem; font-weight:700; color:var(--tactical-amber);">${dutyName}</div>
+            <div style="font-size:0.52rem; color:#95a798;">(班頭在右 ➔)</div>
+          </div>
+        </div>
+      `;
+    }).join('');
 
     container.innerHTML = `
-      <!-- 連集合場 ㄇ 字型操場與排列主體 -->
+      <!-- 連集合場 U 字型操場與排列主體 -->
       <div class="formation-parade-ground">
         
         <!-- 隊列指示標題橫條 -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; padding:0 0.5rem; color:#95a798; font-size:0.78rem; font-weight:700; border-bottom:1px dashed var(--tactical-olive-border); padding-bottom:0.65rem; min-width:1100px;">
-          <span>👈 【左側】第三排 (9, 8, 7 班)</span>
-          <span style="color:var(--tactical-amber); font-size:0.85rem;">★ 步一營第三連「連方隊 (ㄇ字型開勾隊形)」・全連 98 員橫向排開 ★</span>
-          <span>【右側】第一排 (1, 2, 3 班) 👉</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; padding:0 0.5rem; color:#95a798; font-size:0.78rem; font-weight:700; border-bottom:1px dashed var(--tactical-olive-border); padding-bottom:0.65rem; min-width:1080px;">
+          <span>👈 【左側縱隊】三排 (9外, 8中, 7內・班頭在下方)</span>
+          <span style="color:var(--tactical-amber); font-size:0.85rem;">★ 步一營第三連「連方隊 (連集合場 U 字型隊伍)」・全連 99 員滿編排列 ★</span>
+          <span>【右側縱隊】一排 (1內, 2中, 3外・班頭在上方) 👉</span>
         </div>
 
-        <div class="formation-u-shape">
+        <div class="formation-u-ground">
           
-          <!-- 上半部 (Top Row: 左 9,8,7 班 ｜ 中央值星官 ｜ 右 1,2,3 班) -->
-          <div class="formation-top-row">
+          <!-- 上半部 (直 U 直) -->
+          <div class="formation-u-upper">
             
-            <!-- 左側三排 (9, 8, 7 班) -->
-            <div class="formation-wing formation-wing-left">
-              <div class="platoon-wing-header">
-                <div class="platoon-wing-title">🥉 第三排 (左側・9, 8, 7 班)</div>
-                <div class="platoon-wing-subtitle">第 9 班 (公差) ・ 第 8 班 (公差) ・ 第 7 班 (外掃)</div>
+            <!-- 左翼：第三排 (9, 8, 7 班 縱隊) -->
+            <div class="formation-vertical-flank">
+              <div class="flank-header">
+                <div class="flank-title">🥉 第三排 (左翼直向縱隊)</div>
+                <div class="flank-subtitle">9班 (外側) ｜ 8班 (中間) ｜ 7班 (內側)・班頭在下方</div>
               </div>
-              <div class="squad-rows-container">
+              <div class="flank-columns-container">
                 ${leftWingHtml}
               </div>
             </div>
 
-            <!-- 中央值星官指揮台 -->
-            <div class="formation-officer-center">
-              <div class="formation-podium" onclick="APP.showOfficerCadreDetail()" title="點擊查看連值星官">
+            <!-- 中央開口：值星官席位 -->
+            <div class="formation-u-center-stage">
+              <div class="formation-podium" onclick="APP.showOfficerCadreDetail()" title="連值星官">
                 <div class="formation-sash-badge">⭐ 本週部隊值星帶</div>
                 <div class="formation-officer-title">
-                  <span>🎖️ 連值星官</span>
-                </div>
-                <div style="font-size:1.05rem; font-weight:900; color:#fff; margin-top:0.15rem;">
-                  ${this.escapeHtml(dutyOfficer.rank)} ${this.escapeHtml(dutyOfficer.name)}
+                  <span>🎖️ 值星官</span>
                 </div>
                 <div class="formation-officer-desc">
-                  📍 連集合場中央指揮位置
+                  📍 連集合場指揮位置
                 </div>
+              </div>
+              <div style="margin-top:2.5rem; color:var(--tactical-amber); font-size:0.75rem; font-weight:800; text-align:center; opacity:0.85;">
+                <div>⬇️ 中軸線對齊 ⬇️</div>
+                <div style="font-size:0.68rem; color:#95a798; margin-top:2px;">(正對下方二排各班第 6 員)</div>
               </div>
             </div>
 
-            <!-- 右側一排 (1, 2, 3 班) -->
-            <div class="formation-wing formation-wing-right">
-              <div class="platoon-wing-header">
-                <div class="platoon-wing-title">🥇 第一排 (右側・1, 2, 3 班)</div>
-                <div class="platoon-wing-subtitle">第 1 班 (打飯) ・ 第 2 班 (兵工) ・ 第 3 班 (器材)</div>
+            <!-- 右翼：第一排 (1, 2, 3 班 縱隊) -->
+            <div class="formation-vertical-flank">
+              <div class="flank-header">
+                <div class="flank-title">🥇 第一排 (右翼直向縱隊)</div>
+                <div class="flank-subtitle">1班 (內側) ｜ 2班 (中間) ｜ 3班 (外側)・班頭在上方</div>
               </div>
-              <div class="squad-rows-container">
+              <div class="flank-columns-container">
                 ${rightWingHtml}
               </div>
             </div>
 
           </div>
 
-          <!-- 下半部 (Bottom Row: 中央二排 4, 5, 6 班) -->
-          <div class="formation-bottom-row">
-            <div class="formation-wing formation-wing-center">
-              <div class="platoon-wing-header">
-                <div class="platoon-wing-title">🥈 第二排 (中央底側・4, 5, 6 班)</div>
-                <div class="platoon-wing-subtitle">第 4 班 (資收) ・ 第 5 班 (內掃) ・ 第 6 班 (洗衣)</div>
+          <!-- 下半部 (橫隊)：中央二排 4, 5, 6 班 -->
+          <div class="formation-u-bottom">
+            <div class="formation-horizontal-base">
+              <div class="flank-header">
+                <div class="flank-title">🥈 第二排 (中央底側橫向橫隊)</div>
+                <div class="flank-subtitle">第 4 班 (前) ｜ 第 5 班 (中) ｜ 第 6 班 (後)・班頭在右邊，第 6 員正對值星官</div>
               </div>
-              <div class="squad-rows-container">
+              <div class="horizontal-rows-stack">
                 ${centerWingHtml}
               </div>
             </div>
@@ -1646,9 +1704,9 @@ const APP = {
       myNode.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
 
       const sq = Number(this.currentUser.squad) || 1;
-      let pName = '一排 (右翼)';
-      if (sq >= 4 && sq <= 6) pName = '二排 (中央)';
-      if (sq >= 7 && sq <= 9) pName = '三排 (左翼)';
+      let pName = '一排 (右翼直隊)';
+      if (sq >= 4 && sq <= 6) pName = '二排 (中央橫隊)';
+      if (sq >= 7 && sq <= 9) pName = '三排 (左翼直隊)';
 
       const dutyName = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[sq]) || '';
       this.showToast(`📍 報告！您在【${pName} 第 ${this.toChineseNum(sq)} 班・${dutyName}】！`, 'success');
@@ -1663,7 +1721,7 @@ const APP = {
 
     this.showToast('📢 全連注意！開始連方隊點名報數！', 'info');
 
-    // 依序為全連 98 位弟兄彈出報數氣泡
+    // 依序為全連 99 位弟兄彈出報數氣泡
     let count = 0;
     nodes.forEach((node, idx) => {
       setTimeout(() => {
@@ -1680,14 +1738,14 @@ const APP = {
         setTimeout(() => bubble.remove(), 2200);
 
         if (count === nodes.length) {
-          this.showToast('🎖️ 報告連值星官！步三連全連 98 員到齊！無人缺席！', 'success');
+          this.showToast('🎖️ 報告值星官！步三連全連 99 員到齊！無人缺席！', 'success');
         }
       }, idx * 25);
     });
   },
 
   showOfficerCadreDetail() {
-    this.showToast('🎖️ 連值星官：潘品濬 上士 (一排第一班班長)', 'info');
+    this.showToast('🎖️ 值星官：帶領步三連 99 員弟兄早晚點名與戰備操課！', 'info');
   },
 
   // 3. 班級名冊渲染 (支援全連 1~9 班 98 位弟兄跨班級即時搜尋)
@@ -1746,7 +1804,7 @@ const APP = {
           <div class="squad-leader-info" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; width: 100%;">
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
               <span class="badge" style="background:var(--tactical-charcoal-dark); color:var(--tactical-amber); padding: 3px 8px; border-radius: 4px; font-weight:800; font-family:var(--font-mono);">🌐 全連跨班級搜尋模式</span>
-              <strong style="color:#ffffff;">已為您搜尋第 1 ~ 9 班全部 98 位同袍資料</strong>
+              <strong style="color:#ffffff;">已為您搜尋第 1 ~ 9 班全部 99 位同袍資料</strong>
             </div>
             <button onclick="APP.clearSquadSearch()" style="background:#ef4444; color:#fff; border:none; border-radius:4px; padding:4px 10px; font-size:0.75rem; font-weight:800; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3);" title="清除搜尋並返回班級名冊">
               ✖ 清除搜尋
@@ -2253,7 +2311,7 @@ const APP = {
           <div style="font-size: 2.5rem; margin-bottom: 0.35rem;">📦</div>
           <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 0.35rem;">連隊備用空寢・庫房整備區</h4>
           <p style="font-size: 0.84rem; color: #64748b; line-height: 1.6; max-width: 300px; margin: 0 auto;">
-            本連 272 梯次全連 98 位弟兄已完整編配於第一至十一寢。第十二寢作為連隊預備寢室與軍品裝備庫房整備空間，無人員進駐。
+            本連 272 梯次全連 99 位弟兄已完整編配於第一至十一寢。第十二寢作為連隊預備寢室與軍品裝備庫房整備空間，無人員進駐。
           </p>
         </div>
 
