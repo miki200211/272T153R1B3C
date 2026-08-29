@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>272梯 陸軍153旅 1B3C 結訓紀念冊 (宜蘭金六結)</title>
   <meta name="description" content="272梯 陸軍步兵第153旅 步兵第一營第三連 (宜蘭金六結) 官方結訓數位紀念冊與通訊錄">
+  <!-- 防搜尋引擎公開爬蟲與快取索引 -->
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
   <!-- Favicon / 國軍徽章風格圖示 -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎖️</text></svg>">
   <!-- Google Fonts: JetBrains Mono (戰術中繼資料) & Noto Sans TC (清晰繁體中文) & Share Tech Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.4.0">
+  <link rel="stylesheet" href="css/style.css?v=3.5.0">
 </head>
 <body>
 
@@ -113,13 +115,13 @@
         </ul>
       </div>
 
-      <!-- 班級名冊 (第一~九班) - 可收放 -->
+      <!-- 班級名冊 (第一~九班) - 可收放手風琴選單 (預設收合) -->
       <div>
-        <div class="nav-section-title collapsible-header" onclick="APP.toggleNavSection('squads')" title="點擊收放班級選單">
+        <div class="nav-section-title collapsible-header" onclick="APP.toggleNavSection('squads')" title="點擊展開/收合班級選單">
           <span>班級名冊 (1~9班)</span>
-          <span class="collapse-icon" id="collapse-icon-squads">▾</span>
+          <span class="collapse-icon collapsed" id="collapse-icon-squads">▾</span>
         </div>
-        <ul class="nav-list collapsible-list" id="nav-squads-list">
+        <ul class="nav-list collapsible-list is-collapsed" id="nav-squads-list">
           <li>
             <button class="nav-item-btn" data-nav="squad-1" onclick="APP.navigate('squad', 1)">
               <span class="nav-label">第一班・打飯班</span>
@@ -177,13 +179,13 @@
         </ul>
       </div>
 
-      <!-- 寢室配置 (兩寢一套房模組) - 可收放 -->
+      <!-- 寢室配置 (兩寢一套房模組) - 可收放手風琴選單 (預設收合) -->
       <div>
-        <div class="nav-section-title collapsible-header" onclick="APP.toggleNavSection('rooms')" title="點擊收放寢室選單">
+        <div class="nav-section-title collapsible-header" onclick="APP.toggleNavSection('rooms')" title="點擊展開/收合寢室選單">
           <span>寢室套房配置</span>
-          <span class="collapse-icon" id="collapse-icon-rooms">▾</span>
+          <span class="collapse-icon collapsed" id="collapse-icon-rooms">▾</span>
         </div>
-        <ul class="nav-list collapsible-list" id="nav-rooms-list">
+        <ul class="nav-list collapsible-list is-collapsed" id="nav-rooms-list">
           <li>
             <button class="nav-item-btn" data-nav="room-1" onclick="APP.navigate('room', 1)">
               <span class="nav-label">第 1 & 2 寢套房</span>
@@ -1050,9 +1052,9 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- 載入核心腳本 (循序載入) -->
-  <script src="js/config.js?v=3.4.0"></script>
-  <script src="js/mockData.js?v=3.4.0"></script>
-  <script src="js/api.js?v=3.4.0"></script>
-  <script src="js/app.js?v=3.4.0"></script>
+  <script src="js/config.js?v=3.5.0"></script>
+  <script src="js/mockData.js?v=3.5.0"></script>
+  <script src="js/api.js?v=3.5.0"></script>
+  <script src="js/app.js?v=3.5.0"></script>
 </body>
 </html>

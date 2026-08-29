@@ -242,6 +242,18 @@ const APP = {
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         this.closeAllModals();
+        this.closeUserMenu();
+      }
+    });
+
+    // 點擊外部區域自動關閉行動端使用者下拉選單
+    document.addEventListener('click', (e) => {
+      const userPopover = document.getElementById('user-menu-popover');
+      const mobileTrigger = document.querySelector('.user-profile-mobile-trigger');
+      if (userPopover && userPopover.classList.contains('active')) {
+        if (!userPopover.contains(e.target) && (!mobileTrigger || !mobileTrigger.contains(e.target))) {
+          this.closeUserMenu();
+        }
       }
     });
   },
@@ -530,12 +542,14 @@ const APP = {
       this.renderCadresView();
     } else if (viewName === 'squad') {
       this.selectedSquad = param !== null ? Number(param) : (this.selectedSquad || 1);
+      this.toggleNavSection('squads', true);
       const squadSec = document.getElementById('view-squad');
       if (squadSec) squadSec.classList.add('active');
       this.setActiveNavBtn(`squad-${this.selectedSquad}`);
       this.renderSquadView();
     } else if (viewName === 'room') {
       this.selectedRoom = param !== null ? Number(param) : (this.selectedRoom || 1);
+      this.toggleNavSection('rooms', true);
       const roomSec = document.getElementById('view-room');
       if (roomSec) roomSec.classList.add('active');
       const suiteNavId = Math.floor((this.selectedRoom - 1) / 2) * 2 + 1;
@@ -1879,17 +1893,37 @@ const APP = {
       ? `<img src="${civPhoto}" alt="便服照" onerror="this.onerror=null; this.parentElement.innerHTML='🕶️ ${initials}'">` 
       : `<span>🕶️ ${initials}</span>`;
 
-    const igButton = member.ig 
-      ? `<button class="btn-social btn-ig" onclick="APP.openInstagram('${this.escapeHtml(member.ig)}')" title="查看 Instagram: @${this.escapeHtml(member.ig)}">
-          <span>📸 IG: @${this.escapeHtml(member.ig)}</span>
-         </button>` 
-      : `<button class="btn-social btn-ig" style="opacity: 0.45; cursor: not-allowed;" title="未填寫 IG">📸 未填寫</button>`;
+    const isLoggedIn = Boolean(this.currentUser);
 
-    const lineButton = member.line 
-      ? `<button class="btn-social btn-line" onclick="APP.copyToClipboard('${this.escapeHtml(member.line)}', 'LINE ID')" title="點擊複製 LINE ID">
+    let igButton = '';
+    if (member.ig) {
+      if (isLoggedIn) {
+        igButton = `<button class="btn-social btn-ig" onclick="APP.openInstagram('${this.escapeHtml(member.ig)}')" title="查看 Instagram: @${this.escapeHtml(member.ig)}">
+          <span>📸 IG: @${this.escapeHtml(member.ig)}</span>
+        </button>`;
+      } else {
+        igButton = `<button class="btn-social btn-ig is-locked" onclick="APP.promptLoginToViewContact('Instagram (IG)')" title="🔒 個資防護：請先登入同袍帳號即可查看 IG">
+          <span>🔒 IG: 需登入解鎖</span>
+        </button>`;
+      }
+    } else {
+      igButton = `<button class="btn-social btn-ig" style="opacity: 0.45; cursor: not-allowed;" title="未填寫 IG">📸 未填寫</button>`;
+    }
+
+    let lineButton = '';
+    if (member.line) {
+      if (isLoggedIn) {
+        lineButton = `<button class="btn-social btn-line" onclick="APP.copyToClipboard('${this.escapeHtml(member.line)}', 'LINE ID')" title="點擊複製 LINE ID">
           <span>💬 LINE: ${this.escapeHtml(member.line)}</span>
-         </button>` 
-      : `<button class="btn-social btn-line" style="opacity: 0.45; cursor: not-allowed;" title="未填寫 LINE">💬 未填寫</button>`;
+        </button>`;
+      } else {
+        lineButton = `<button class="btn-social btn-line is-locked" onclick="APP.promptLoginToViewContact('LINE ID')" title="🔒 個資防護：請先登入同袍帳號即可複製 LINE ID">
+          <span>🔒 LINE: 需登入解鎖</span>
+        </button>`;
+      }
+    } else {
+      lineButton = `<button class="btn-social btn-line" style="opacity: 0.45; cursor: not-allowed;" title="未填寫 LINE">💬 未填寫</button>`;
+    }
 
     const editSelfBtn = isMe 
       ? `<button class="btn-edit-self" onclick="APP.openEditProfileModal()">
@@ -2025,19 +2059,28 @@ const APP = {
     }
   },
 
-  // 側邊欄分類選單收放切換 (班級名冊 / 寢室配置)
-  toggleNavSection(sectionKey) {
+  // 側邊欄分類選單收放切換 (支援手風琴 Accordion 互斥展開與自動展開)
+  toggleNavSection(sectionKey, forceOpen) {
     const listEl = document.getElementById(`nav-${sectionKey}-list`);
     const iconEl = document.getElementById(`collapse-icon-${sectionKey}`);
-    if (listEl) {
-      const isCollapsed = listEl.classList.toggle('is-collapsed');
-      if (iconEl) {
-        if (isCollapsed) {
-          iconEl.classList.add('collapsed');
-        } else {
-          iconEl.classList.remove('collapsed');
-        }
-      }
+    if (!listEl) return;
+
+    const currentlyCollapsed = listEl.classList.contains('is-collapsed');
+    const shouldOpen = forceOpen !== undefined ? forceOpen : currentlyCollapsed;
+
+    if (shouldOpen) {
+      // 手風琴互斥展開：展開此分類，自動收合另一分類
+      const otherSection = sectionKey === 'squads' ? 'rooms' : 'squads';
+      const otherList = document.getElementById(`nav-${otherSection}-list`);
+      const otherIcon = document.getElementById(`collapse-icon-${otherSection}`);
+      if (otherList) otherList.classList.add('is-collapsed');
+      if (otherIcon) otherIcon.classList.add('collapsed');
+
+      listEl.classList.remove('is-collapsed');
+      if (iconEl) iconEl.classList.remove('collapsed');
+    } else {
+      listEl.classList.add('is-collapsed');
+      if (iconEl) iconEl.classList.add('collapsed');
     }
   },
 
@@ -2495,6 +2538,26 @@ const APP = {
   // 使用者認證與登入狀態管理 (Auth & Profile)
   // =========================================================================
 
+  toggleUserMenu(event) {
+    if (event) event.stopPropagation();
+    const popover = document.getElementById('user-menu-popover');
+    if (popover) {
+      popover.classList.toggle('active');
+    }
+  },
+
+  closeUserMenu() {
+    const popover = document.getElementById('user-menu-popover');
+    if (popover) {
+      popover.classList.remove('active');
+    }
+  },
+
+  promptLoginToViewContact(contactType = '通訊資料') {
+    this.showToast(`🔒 個資防護：請先登入同袍帳號即可查看並複製 ${contactType}！`, 'warning');
+    this.openLoginModal();
+  },
+
   updateAuthUI() {
     const container = document.getElementById('auth-status-container');
     if (!container) return;
@@ -2516,14 +2579,50 @@ const APP = {
       const statusIdText = `#${cleanId}`;
 
       container.innerHTML = `
-        <div class="user-status-bar">
-          <div class="user-avatar-mini" onclick="APP.openEditProfileModal()" style="cursor:pointer;" title="點擊編輯個人資料">${avatarHtml}</div>
-          <div class="user-status-text" onclick="APP.openEditProfileModal()" style="cursor:pointer;" title="點擊編輯個人資料">
-            <span class="user-status-prefix">目前登入：</span><strong class="user-status-id">${statusIdText}</strong><span class="user-status-name"> (${this.escapeHtml(displayName)})</span>
+        <div class="user-profile-wrapper">
+          <!-- 桌面端水平狀態條 (>= 768px) -->
+          <div class="user-status-bar desktop-only">
+            <div class="user-avatar-mini" onclick="APP.openEditProfileModal()" style="cursor:pointer;" title="點擊編輯個人資料">${avatarHtml}</div>
+            <div class="user-status-text" onclick="APP.openEditProfileModal()" style="cursor:pointer;" title="點擊編輯個人資料">
+              <span class="user-status-prefix">目前登入：</span><strong class="user-status-id">${statusIdText}</strong><span class="user-status-name"> (${this.escapeHtml(displayName)})</span>
+            </div>
+            ${adminBadgeHtml}
+            <button class="btn-edit-header" onclick="APP.openEditProfileModal()" title="編輯我的個人檔案與照片">✏️ 編輯</button>
+            <button class="btn-logout" onclick="APP.handleLogout()">登出</button>
           </div>
-          ${adminBadgeHtml}
-          <button class="btn-edit-header" onclick="APP.openEditProfileModal()" title="編輯我的個人檔案與照片">✏️ 編輯</button>
-          <button class="btn-logout" onclick="APP.handleLogout()">登出</button>
+
+          <!-- 行動端單一頭像下拉膠囊按鈕 (< 768px 防擠壓) -->
+          <div class="user-profile-mobile-trigger mobile-only" onclick="APP.toggleUserMenu(event)" title="點擊開啟使用者選單">
+            <div class="user-avatar-mini">${avatarHtml}</div>
+            <span class="user-mobile-id">${statusIdText}</span>
+            <span class="user-mobile-arrow">▾</span>
+          </div>
+
+          <!-- 戰術浮動下拉選單 (User Menu Popover) -->
+          <div class="user-menu-popover" id="user-menu-popover" onclick="event.stopPropagation()">
+            <div class="user-menu-header">
+              <div class="user-avatar-mini" style="width:34px; height:34px; font-size:0.9rem;">${avatarHtml}</div>
+              <div class="user-menu-info">
+                <div class="user-menu-name">${this.escapeHtml(displayName)} ${adminBadgeHtml}</div>
+                <div class="user-menu-meta">學號 ${statusIdText}・第${this.toChineseNum(this.currentUser.squad || 1)}班</div>
+              </div>
+            </div>
+            <div class="user-menu-divider"></div>
+            <div class="user-menu-actions">
+              <button class="user-menu-item" onclick="APP.closeUserMenu(); APP.openEditProfileModal();">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <span>編輯個人檔案</span>
+              </button>
+              <button class="user-menu-item" onclick="APP.closeUserMenu(); APP.refreshData();">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                <span>同步雲端資料</span>
+              </button>
+              <button class="user-menu-item item-logout" onclick="APP.closeUserMenu(); APP.handleLogout();">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <span>登出同袍帳號</span>
+              </button>
+            </div>
+          </div>
         </div>
       `;
     } else {
@@ -2736,10 +2835,10 @@ const APP = {
     this.currentUser = null;
     CONFIG.clearCurrentUser();
     this.updateAuthUI();
+    this.closeUserMenu();
     this.showToast('已安全登出', 'info');
 
-    if (this.currentView === 'squad') this.renderSquadView();
-    if (this.currentView === 'room') this.renderRoomView();
+    this.navigate(this.currentView, this.currentView === 'squad' ? this.selectedSquad : (this.currentView === 'room' ? this.selectedRoom : null));
   },
 
   // =========================================================================
@@ -3862,9 +3961,9 @@ const APP = {
               </div>
             </div>
 
-            <!-- 個人自我介紹 (Excel 新增的 self_intro 欄位，點進來完整檔案才展示) -->
+            <!-- 個人自我介紹 -->
             <div class="member-bio dossier-transcript" style="border-left-color: var(--tactical-green-light); background: rgba(34, 197, 94, 0.07);">
-              <div class="transcript-tag" style="color: var(--tactical-green-light);">📝 DOSSIER BIO // 個人自我介紹</div>
+              <div class="transcript-tag" style="color: var(--tactical-green-light);">📝 個人自我介紹</div>
               <div class="transcript-body" style="font-size:0.92rem; line-height:1.6; color:#f1f5f2;">
                 ${this.escapeHtml(member.self_intro || '（尚未填寫個人自我介紹與詳細自傳...）')}
               </div>
@@ -3873,8 +3972,15 @@ const APP = {
 
           <!-- 社群聯絡與動作 -->
           <div style="margin-top:1.15rem; display:grid; grid-template-columns:1fr 1fr; gap:0.6rem;">
-            ${member.ig ? `<button class="btn-social btn-ig" onclick="APP.openInstagram('${this.escapeHtml(member.ig)}')">📸 IG: @${this.escapeHtml(member.ig)}</button>` : `<button class="btn-social btn-ig" style="opacity:0.45; cursor:not-allowed;">📸 未填寫 IG</button>`}
-            ${member.line ? `<button class="btn-social btn-line" onclick="APP.copyToClipboard('${this.escapeHtml(member.line)}', 'LINE ID')">💬 複製 LINE ID</button>` : `<button class="btn-social btn-line" style="opacity:0.45; cursor:not-allowed;">💬 未填寫 LINE</button>`}
+            ${this.currentUser ? `
+              ${member.ig ? `<button class="btn-social btn-ig" onclick="APP.openInstagram('${this.escapeHtml(member.ig)}')">📸 IG: @${this.escapeHtml(member.ig)}</button>` : `<button class="btn-social btn-ig" style="opacity:0.45; cursor:not-allowed;">📸 未填寫 IG</button>`}
+              ${member.line ? `<button class="btn-social btn-line" onclick="APP.copyToClipboard('${this.escapeHtml(member.line)}', 'LINE ID')">💬 複製 LINE ID</button>` : `<button class="btn-social btn-line" style="opacity:0.45; cursor:not-allowed;">💬 未填寫 LINE</button>`}
+            ` : `
+              <div class="guest-privacy-notice" style="grid-column:1/-1;">
+                <span>🔒 依個資防護原則，同袍詳細通訊資料（LINE / IG）僅對登入同袍開放</span>
+                <button class="btn-login-quick" onclick="APP.closeModal('modal-member-detail'); APP.openLoginModal();">立即登入驗證</button>
+              </div>
+            `}
             ${(this.currentUser && String(this.currentUser.id) === String(cleanId)) ? `<button class="btn-primary" style="grid-column:1/-1; padding:0.6rem;" onclick="APP.closeModal('modal-member-detail'); APP.openEditProfileModal();">✏️ 編輯我的個人檔案與照片</button>` : ''}
             ${(this.isAdmin() && String(member.id) !== '13055') ? `<button class="btn-admin-reset" style="grid-column:1/-1;" onclick="APP.handleAdminResetPassword('${member.id}')">🔑 管理員重設此弟兄密碼</button>` : ''}
           </div>
