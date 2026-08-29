@@ -10,7 +10,7 @@ const CONFIG = {
   ADMIN_CONTACT_ID: '13055', // 忘記密碼聯繫窗口
   
   // Google Apps Script (GAS) 部署 Web App URL
-  DEFAULT_GAS_API_URL: 'https://script.google.com/macros/s/AKfycbzCLO1sSbB35Rv3sZidYy36gknXwXfiUsR1C2UjfeGOd1UguwRwgJ0go083_22eh2GxmA/exec',
+  DEFAULT_GAS_API_URL: 'https://script.google.com/macros/s/AKfycbzyykbxjA4xYxCAo2XWy3BRdMN-dwiiOzSRCmq6X5KXBdXD0kf2J7x0xCRVIvBePm4seQ/exec',
 
   // 各班建制公差與任務對照表 (一班打飯、二班兵工、三班器材、四班資收、五班內掃、六班洗衣、七班外掃、八班公差、九班公差)
   SQUAD_DUTIES: {
@@ -54,7 +54,7 @@ const CONFIG = {
   // 取得目前有效的 GAS API 網址
   getGasApiUrl() {
     const saved = localStorage.getItem(this.STORAGE_KEYS.GAS_URL);
-    if (saved && !saved.includes('AKfycbzCLO1sSbB35Rv3sZidYy36gknXwXfiUsR1C2UjfeGOd1UguwRwgJ0go083_22eh2GxmA')) {
+    if (saved && !saved.includes('AKfycbzyykbxjA4xYxCAo2XWy3BRdMN-dwiiOzSRCmq6X5KXBdXD0kf2J7x0xCRVIvBePm4seQ')) {
       localStorage.setItem(this.STORAGE_KEYS.GAS_URL, this.DEFAULT_GAS_API_URL);
       return this.DEFAULT_GAS_API_URL;
     }
