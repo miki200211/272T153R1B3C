@@ -1304,7 +1304,8 @@ const APP = {
         const topDiary = uniqueDiaries[0];
         const likesInfo = this.getDiaryLikes(topDiary);
         const authorMember = this.allMembers.find(m => String(m.id) === String(topDiary.author_id));
-        const authorName = authorMember && authorMember.name ? authorMember.name : `弟兄 #${topDiary.author_id}`;
+        const squadNum = (authorMember && authorMember.squad) ? Number(authorMember.squad) : null;
+        const squadText = squadNum ? ` (第${this.toChineseNum(squadNum)}班)` : '';
 
         latestDiaryEl.innerHTML = `
           <div class="jukuang-notebook-card top-diary-home-card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
@@ -1321,7 +1322,7 @@ const APP = {
               </div>
             </div>
             <div class="jukuang-footer">
-              <span class="jukuang-author-info">✍️ 作者：#${topDiary.author_id} (${this.escapeHtml(authorName)})</span>
+              <span class="jukuang-author-info">✍️ 撰寫人：#${topDiary.author_id}${squadText}</span>
               <div style="display: flex; align-items: center; gap: 0.65rem;">
                 <button class="btn-like-action ${likesInfo.isLiked ? 'is-liked' : ''}" onclick="APP.toggleLikeDiary('${likesInfo.key}', event)" title="為這篇日記點讚">
                   <span class="like-icon">${likesInfo.isLiked ? '❤️' : '🤍'}</span>
@@ -2528,7 +2529,8 @@ const APP = {
     listContainer.innerHTML = uniqueDiaries.map((d, index) => {
       const likesInfo = this.getDiaryLikes(d);
       const authorMember = this.allMembers.find(m => String(m.id) === String(d.author_id));
-      const authorName = authorMember && authorMember.name ? `${authorMember.name} (第${this.toChineseNum(authorMember.squad)}班)` : `弟兄 #${d.author_id}`;
+      const squadNum = (authorMember && authorMember.squad) ? Number(authorMember.squad) : null;
+      const squadText = squadNum ? ` (第${this.toChineseNum(squadNum)}班)` : '';
 
       let rankBadgeHtml = '';
       if (index === 0 && likesInfo.count > 0) {
@@ -2561,7 +2563,7 @@ const APP = {
 
           <div class="jukuang-footer">
             <span class="jukuang-author-info">
-              ✍️ 撰寫人：#${d.author_id} ${this.escapeHtml(authorName)}
+              ✍️ 撰寫人：#${d.author_id}${squadText}
             </span>
             <div style="display: flex; align-items: center; gap: 0.75rem;">
               <button class="btn-like-action ${likesInfo.isLiked ? 'is-liked' : ''}" onclick="APP.toggleLikeDiary('${likesInfo.key}', event)" title="為這篇心得點讚">
