@@ -81,7 +81,7 @@ function doPost(e) {
   } catch (err) {
     return createJsonResponse({
       success: false,
-      message: '伺服器端發生錯誤: ' + err.toString()
+      message: '伺服器端發生錯誤: ' + cleanErrorMessage(err)
     });
   }
 }
@@ -98,12 +98,24 @@ function doGet(e) {
 }
 
 /**
- * 產生 JSON 格式輸出回應 (含 CORS 支援)
+ * 產生 JSON 格式輸出回應 (含 CORS 支援與電子郵件隱私過濾)
  */
 function createJsonResponse(data) {
+  if (data && data.message) {
+    data.message = cleanErrorMessage(data.message);
+  }
   const output = ContentService.createTextOutput(JSON.stringify(data));
   output.setMimeType(ContentService.MimeType.JSON);
   return output;
+}
+
+function cleanErrorMessage(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/g, '')
+    .replace(/nkust\.edu\.tw/gi, '')
+    .replace(/c110170106/gi, '')
+    .trim();
 }
 
 /**

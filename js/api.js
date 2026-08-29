@@ -60,6 +60,9 @@ const API = {
       }
 
       const result = await response.json();
+      if (result && result.message) {
+        result.message = this.sanitizeText(result.message);
+      }
       return result;
     } catch (error) {
       clearTimeout(timeoutId);
@@ -79,17 +82,27 @@ const API = {
         return {
           ...fallbackResult,
           code: 'WARN-LOCAL-FALLBACK',
-          message: `${fallbackResult.message || '操作成功'} (已先暫存於本機瀏覽器)`
+          message: `${this.sanitizeText(fallbackResult.message || '操作成功')} (已先暫存於本機瀏覽器)`
         };
       }
 
-      const errMessage = error && error.message ? error.message : String(error);
+      const rawErrMsg = error && error.message ? error.message : String(error);
+      const errMessage = this.sanitizeText(rawErrMsg);
       return {
         success: false,
         code: 'ERR-NET-FAIL',
         message: `[ERR-NET-FAIL] 網路連線或跨域請求異常 (${errMessage})`
       };
     }
+  },
+
+  sanitizeText(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/g, '')
+      .replace(/nkust\.edu\.tw/gi, '')
+      .replace(/c110170106/gi, '')
+      .trim();
   },
 
   // 本機 LocalStorage 模擬邏輯 (離線與 Demo 支援)

@@ -3729,11 +3729,12 @@ const APP = {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
+    const safeMessage = this.sanitizeText(message);
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `
       <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : '🎖️'}</span>
-      <span>${this.escapeHtml(message)}</span>
+      <span>${this.escapeHtml(safeMessage)}</span>
     `;
 
     container.appendChild(toast);
@@ -3746,9 +3747,19 @@ const APP = {
     }, 3500);
   },
 
-  escapeHtml(str) {
+  sanitizeText(str) {
     if (!str) return '';
     return String(str)
+      .replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/g, '')
+      .replace(/nkust\.edu\.tw/gi, '')
+      .replace(/c110170106/gi, '')
+      .trim();
+  },
+
+  escapeHtml(str) {
+    if (!str) return '';
+    const sanitized = this.sanitizeText(str);
+    return String(sanitized)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
