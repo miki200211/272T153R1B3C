@@ -1426,15 +1426,13 @@ const APP = {
     `;
   },
 
-  // 3. 班級名冊渲染 (支援全連 1~9 班 98 位弟兄跨班級即時搜尋 & 公差職位快速篩選)
+  // 3. 班級名冊渲染 (支援全連 1~9 班 98 位弟兄跨班級即時搜尋)
   renderSquadView() {
     const isSearching = Boolean(this.searchQuery && this.searchQuery.length > 0);
     const query = (this.searchQuery || '').toLowerCase();
-    const currentDuty = this.selectedDuty || 'ALL';
     const titleEl = document.getElementById('squad-view-title');
     const squadNum = this.selectedSquad;
     const squadPillBar = document.getElementById('squad-quick-pill-bar');
-    const dutyFilterBar = document.getElementById('duty-filter-bar');
     const leaderBannerEl = document.getElementById('squad-leader-banner');
     const countTag = document.getElementById('squad-member-count-tag');
     const membersGrid = document.getElementById('squad-members-grid');
@@ -1457,7 +1455,7 @@ const APP = {
         const squadStr = `第${this.toChineseNum(m.squad)}班 ${m.squad}班`;
         const roomStr = `第${this.toChineseNum(m.room)}寢 ${m.room}寢`;
 
-        const matchQuery = id.includes(query) ||
+        return id.includes(query) ||
                name.includes(query) ||
                nickname.includes(query) ||
                duty.includes(query) ||
@@ -1469,12 +1467,6 @@ const APP = {
                line.includes(query) ||
                squadStr.includes(query) ||
                roomStr.includes(query);
-
-        if (!matchQuery) return false;
-        if (currentDuty !== 'ALL') {
-          return duty.includes(currentDuty.toLowerCase());
-        }
-        return true;
       });
 
       if (titleEl) {
@@ -1499,16 +1491,8 @@ const APP = {
         `;
       }
     } else {
-      // 正常指定班級瀏覽模式 (結合公差職位篩選)
-      displayMembers = this.allMembers.filter(m => {
-        const inSquad = Number(m.squad) === squadNum;
-        if (!inSquad) return false;
-        if (currentDuty !== 'ALL') {
-          const dutyStr = String(m.duty || '一般兵').toLowerCase();
-          return dutyStr.includes(currentDuty.toLowerCase());
-        }
-        return true;
-      });
+      // 正常指定班級瀏覽模式
+      displayMembers = this.allMembers.filter(m => Number(m.squad) === squadNum);
 
       if (titleEl) {
         const squadDuty = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[squadNum]) ? `・${CONFIG.SQUAD_DUTIES[squadNum]}` : '';
@@ -1543,31 +1527,6 @@ const APP = {
       }
     }
 
-    // 職位/公差快速篩選橫條更新 (Duty Filter Chips)
-    if (dutyFilterBar) {
-      const dutyList = [
-        { key: 'ALL', label: '全部職位 (ALL)' },
-        { key: '班頭', label: '🎖️ 班頭' },
-        { key: '打飯', label: '🍚 打飯班 (1班)' },
-        { key: '兵工', label: '🛠️ 兵工班 (2班)' },
-        { key: '器材', label: '🏋️ 器材班 (3班)' },
-        { key: '資收', label: '♻️ 資收班 (4班)' },
-        { key: '內掃', label: '🧹 內掃班 (5班)' },
-        { key: '洗衣', label: '👕 洗衣班 (6班)' },
-        { key: '外掃', label: '🌿 外掃班 (7班)' },
-        { key: '公差', label: '⚡ 公差班 (8/9班)' }
-      ];
-
-      dutyFilterBar.innerHTML = dutyList.map(item => {
-        const isActive = (currentDuty === item.key);
-        return `
-          <button class="duty-chip ${isActive ? 'active' : ''}" onclick="APP.setDutyFilter('${item.key}')" title="篩選職位：${item.label}">
-            <span>${item.label}</span>
-          </button>
-        `;
-      }).join('');
-    }
-
     // 班級快捷橫條更新
     if (squadPillBar) {
       squadPillBar.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
@@ -1593,9 +1552,8 @@ const APP = {
           <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 1.5rem; background:var(--tactical-charcoal-card); border-radius:var(--radius-md); border:1.5px dashed var(--tactical-olive-border);">
             <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🔍</div>
             <p style="font-size: 1.15rem; font-weight: 800; color: #ffffff;">查無符合條件之弟兄同袍資料</p>
-            <p style="font-size: 0.85rem; color: #cbd5cb; margin-top: 0.35rem;">請嘗試調整公差職位篩選或搜尋其他學號、姓名關鍵字</p>
+            <p style="font-size: 0.85rem; color: #cbd5cb; margin-top: 0.35rem;">請嘗試搜尋其他學號、姓名或綽號關鍵字</p>
             <div style="display:flex; gap:0.5rem; justify-content:center; margin-top:1rem; flex-wrap:wrap;">
-              ${(currentDuty !== 'ALL') ? `<button onclick="APP.setDutyFilter('ALL')" class="btn-secondary" style="padding:6px 14px; font-size:0.85rem; cursor:pointer;">重設公差篩選</button>` : ''}
               ${isSearching ? `<button onclick="APP.clearSquadSearch()" class="btn-primary" style="padding:6px 14px; font-size:0.85rem; cursor:pointer;">✖ 清除搜尋關鍵字</button>` : ''}
             </div>
           </div>
@@ -1604,11 +1562,6 @@ const APP = {
         membersGrid.innerHTML = displayMembers.map(m => this.createMemberCardHtml(m)).join('');
       }
     }
-  },
-
-  setDutyFilter(duty) {
-    this.selectedDuty = duty || 'ALL';
-    this.renderSquadView();
   },
 
   handleSearch(query) {
