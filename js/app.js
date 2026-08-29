@@ -465,7 +465,7 @@ const APP = {
     // 更新手機版底部快捷導覽 active 樣式 (傳奇版與大兵日記均對應「互動區」)
     document.querySelectorAll('.mobile-bottom-btn').forEach(btn => btn.classList.remove('active'));
     let bottomNavTarget = viewName;
-    if (viewName === 'legends' || viewName === 'diaries' || viewName === 'reports') {
+    if (viewName === 'legends' || viewName === 'diaries' || viewName === 'reports' || viewName === 'formation') {
       bottomNavTarget = 'interaction';
     }
     const bottomBtn = document.querySelector(`.mobile-bottom-btn[data-bottom-nav="${bottomNavTarget}"]`);
@@ -630,9 +630,16 @@ const APP = {
     if (grid) {
       const items = [
         {
+          view: 'formation',
+          icon: '🪖',
+          title: '講話隊形',
+          subtitle: '連集合場・弟兄站位與點名報數',
+          badge: '98 員滿編'
+        },
+        {
           view: 'legends',
           icon: '⚡',
-          title: '傳奇版',
+          title: '傳奇榜',
           subtitle: '三連英雄事蹟・狂讚排行榜',
           badge: `${this.legends.length} 則事蹟`
         },
@@ -1785,7 +1792,7 @@ const APP = {
           <div class="squad-leader-info" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; width: 100%;">
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
               <span class="badge" style="background:var(--tactical-charcoal-dark); color:var(--tactical-amber); padding: 3px 8px; border-radius: 4px; font-weight:800; font-family:var(--font-mono);">🌐 全連跨班級搜尋模式</span>
-              <strong style="color:#ffffff;">已為您搜尋第 1 ~ 9 班全部 99 位同袍資料</strong>
+              <strong style="color:#ffffff;">已為您搜尋第 1 ~ 9 班全部 98 位同袍資料</strong>
             </div>
             <button onclick="APP.clearSquadSearch()" style="background:#ef4444; color:#fff; border:none; border-radius:4px; padding:4px 10px; font-size:0.75rem; font-weight:800; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3);" title="清除搜尋並返回班級名冊">
               ✖ 清除搜尋
@@ -2292,7 +2299,7 @@ const APP = {
           <div style="font-size: 2.5rem; margin-bottom: 0.35rem;">📦</div>
           <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 0.35rem;">連隊備用空寢・庫房整備區</h4>
           <p style="font-size: 0.84rem; color: #64748b; line-height: 1.6; max-width: 300px; margin: 0 auto;">
-            本連 272 梯次全連 99 位弟兄已完整編配於第一至十一寢。第十二寢作為連隊預備寢室與軍品裝備庫房整備空間，無人員進駐。
+            本連 272 梯次全連 98 位弟兄已完整編配於第一至十一寢。第十二寢作為連隊預備寢室與軍品裝備庫房整備空間，無人員進駐。
           </p>
         </div>
 
