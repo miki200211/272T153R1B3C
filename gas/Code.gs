@@ -937,13 +937,13 @@ function setupDatabase(targetSs) {
   };
 
   for (let sq = 1; sq <= 9; sq++) {
-    const count = 11;
+    const count = (sq === 9) ? 10 : 11;
     const squadDuty = squadDutyMap[sq] || '一般兵';
     for (let i = 0; i < count; i++) {
       const id = String(idNum);
       const room = roomIdx;
       inRoom++;
-      if (roomIdx <= 11 && inRoom === 9) {
+      if (roomIdx <= 10 && inRoom === 9) {
         roomIdx++;
         inRoom = 0;
       }

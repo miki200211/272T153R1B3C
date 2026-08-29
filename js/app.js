@@ -1436,12 +1436,12 @@ const APP = {
     const container = document.getElementById('formation-view-container');
     if (!container) return;
 
-    // 確保有成員資料 (共 99 員)
+    // 確保有成員資料 (共 98 員)
     if (!this.allMembers || this.allMembers.length === 0) {
       this.allMembers = this.normalizeMembers(MOCK_DATA.getInitialMembers());
     }
 
-    // 依班級分組 (1~9 班，每班 11 人)
+    // 依班級分組 (1~8 班各 11 人、9 班 10 人)
     const squadMap = {};
     for (let s = 1; s <= 9; s++) {
       squadMap[s] = [];
@@ -1451,7 +1451,7 @@ const APP = {
       if (squadMap[sq]) squadMap[sq].push(m);
     });
 
-    // 排序各班 (依學號由小到大排序，index 0 為 1 號班頭，index 10 為 11 號班兵)
+    // 排序各班 (依學號由小到大排序，index 0 為 1 號班頭，最後一位為該班班尾)
     for (let s = 1; s <= 9; s++) {
       squadMap[s].sort((a, b) => String(a.id).localeCompare(String(b.id)));
     }
@@ -1508,7 +1508,7 @@ const APP = {
       `;
     };
 
-    // 1. 左翼直向縱隊 (左邊最外側 9 班、中間 8 班、最內側 7 班；班頭在下方)
+    // 1. 左翼直向縱隊 (左邊最外側 9 班[10人]、中間 8 班[11人]、最內側 7 班[11人]；班頭在下方)
     const leftSquads = [9, 8, 7];
     const leftWingHtml = leftSquads.map(sNum => {
       const members = squadMap[sNum] || [];
@@ -1519,6 +1519,7 @@ const APP = {
       const locTag = isInner ? '(內側)' : (isOuter ? '(外側)' : '');
 
       // 班頭在下方：從 11 號 (index 10) 往下排到 1 號班頭 (index 0)
+      // 第 9 班為 10 人，index 10 為空，頂部呈現透明佔位符保持班頭對齊
       let stackHtml = '';
       for (let idx = 10; idx >= 0; idx--) {
         const m = members[idx];
@@ -1540,7 +1541,7 @@ const APP = {
       `;
     }).join('');
 
-    // 2. 右翼直向縱隊 (右邊最內側 1 班、中間 2 班、最外側 3 班；班頭在上方)
+    // 2. 右翼直向縱隊 (右邊最內側 1 班[11人]、中間 2 班[11人]、最外側 3 班[11人]；班頭在上方)
     const rightSquads = [1, 2, 3];
     const rightWingHtml = rightSquads.map(sNum => {
       const members = squadMap[sNum] || [];
@@ -1572,7 +1573,7 @@ const APP = {
       `;
     }).join('');
 
-    // 3. 中央底側橫向橫隊 (4, 5, 6 班：班頭在右邊，第 6 員置中正對上方值星官)
+    // 3. 中央底側橫向橫隊 (4, 5, 6 班各 11人：班頭在右邊，第 6 員置中正對上方值星官)
     const centerSquads = [4, 5, 6];
     const centerWingHtml = centerSquads.map(sNum => {
       const members = squadMap[sNum] || [];
@@ -1608,9 +1609,9 @@ const APP = {
         
         <!-- 隊列指示標題橫條 -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; padding:0 0.5rem; color:#95a798; font-size:0.78rem; font-weight:700; border-bottom:1px dashed var(--tactical-olive-border); padding-bottom:0.65rem; min-width:1080px;">
-          <span>👈 【左側縱隊】三排 (9外, 8中, 7內・班頭在下方)</span>
-          <span style="color:var(--tactical-amber); font-size:0.85rem;">★ 步一營第三連「連方隊 (連集合場 U 字型隊伍)」・全連 99 員滿編排列 ★</span>
-          <span>【右側縱隊】一排 (1內, 2中, 3外・班頭在上方) 👉</span>
+          <span>👈 【左側縱隊】三排 (9外[10人], 8中[11人], 7內[11人]・班頭在下方)</span>
+          <span style="color:var(--tactical-amber); font-size:0.85rem;">★ 步一營第三連「連方隊 (連集合場 U 字型隊伍)」・全連 98 員滿編排列 ★</span>
+          <span>【右側縱隊】一排 (1內, 2中, 3外[各11人]・班頭在上方) 👉</span>
         </div>
 
         <div class="formation-u-ground">
@@ -1622,7 +1623,7 @@ const APP = {
             <div class="formation-vertical-flank">
               <div class="flank-header">
                 <div class="flank-title">🥉 第三排 (左翼直向縱隊)</div>
-                <div class="flank-subtitle">9班 (外側) ｜ 8班 (中間) ｜ 7班 (內側)・班頭在下方</div>
+                <div class="flank-subtitle">9班 (外側・10人) ｜ 8班 (中間・11人) ｜ 7班 (內側・11人)・班頭在下方</div>
               </div>
               <div class="flank-columns-container">
                 ${leftWingHtml}
@@ -1650,7 +1651,7 @@ const APP = {
             <div class="formation-vertical-flank">
               <div class="flank-header">
                 <div class="flank-title">🥇 第一排 (右翼直向縱隊)</div>
-                <div class="flank-subtitle">1班 (內側) ｜ 2班 (中間) ｜ 3班 (外側)・班頭在上方</div>
+                <div class="flank-subtitle">1班 (內側・11人) ｜ 2班 (中間・11人) ｜ 3班 (外側・11人)・班頭在上方</div>
               </div>
               <div class="flank-columns-container">
                 ${rightWingHtml}
@@ -1664,7 +1665,7 @@ const APP = {
             <div class="formation-horizontal-base">
               <div class="flank-header">
                 <div class="flank-title">🥈 第二排 (中央底側橫向橫隊)</div>
-                <div class="flank-subtitle">第 4 班 (前) ｜ 第 5 班 (中) ｜ 第 6 班 (後)・班頭在右邊，第 6 員正對值星官</div>
+                <div class="flank-subtitle">第 4 班 (前・11人) ｜ 第 5 班 (中・11人) ｜ 第 6 班 (後・11人)・班頭在右邊，第 6 員正對值星官</div>
               </div>
               <div class="horizontal-rows-stack">
                 ${centerWingHtml}
@@ -1721,7 +1722,7 @@ const APP = {
 
     this.showToast('📢 全連注意！開始連方隊點名報數！', 'info');
 
-    // 依序為全連 99 位弟兄彈出報數氣泡
+    // 依序為全連 98 位弟兄彈出報數氣泡
     let count = 0;
     nodes.forEach((node, idx) => {
       setTimeout(() => {
@@ -1738,14 +1739,14 @@ const APP = {
         setTimeout(() => bubble.remove(), 2200);
 
         if (count === nodes.length) {
-          this.showToast('🎖️ 報告值星官！步三連全連 99 員到齊！無人缺席！', 'success');
+          this.showToast('🎖️ 報告值星官！步三連全連 98 員到齊！無人缺席！', 'success');
         }
       }, idx * 25);
     });
   },
 
   showOfficerCadreDetail() {
-    this.showToast('🎖️ 值星官：帶領步三連 99 員弟兄早晚點名與戰備操課！', 'info');
+    this.showToast('🎖️ 值星官：帶領步三連 98 員弟兄早晚點名與戰備操課！', 'info');
   },
 
   // 3. 班級名冊渲染 (支援全連 1~9 班 98 位弟兄跨班級即時搜尋)
