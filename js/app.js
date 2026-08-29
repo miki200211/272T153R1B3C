@@ -2933,40 +2933,159 @@ const APP = {
 
   // 渲染問題回報與密碼處理中心頁面
   renderReportsView() {
-    const listContainer = document.getElementById('reports-list-container');
-    const filterBar = document.getElementById('reports-filter-bar');
-    const countTag = document.getElementById('reports-count-tag');
+    const sectionEl = document.getElementById('view-reports');
+    if (!sectionEl) return;
 
-    if (!listContainer) return;
-
+    const isAdmin = this.isAdmin();
     const allReports = this.reports || [];
+    const myId = this.currentUser ? String(this.currentUser.id).trim() : '';
+    const mySessionReports = JSON.parse(localStorage.getItem('153r1b3c_my_submitted_reports') || '[]');
+
+    if (!isAdmin) {
+      // ==========================================
+      // 【一般弟兄 / 訪客視圖】
+      // 只能提交回報與查看自己提交的項目，嚴格隱藏其他人的回報與忘記密碼
+      // ==========================================
+      const myReports = allReports.filter(r => (myId && String(r.author_id).trim() === myId) || mySessionReports.includes(Number(r.report_id)));
+
+      sectionEl.innerHTML = `
+        <div class="section-header">
+          <div class="section-header-title">
+            <h2>📬 連隊問題與意見回報</h2>
+            <span class="tag" style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;">🔒 隱私保護・僅管理員可見</span>
+          </div>
+        </div>
+
+        <p class="section-desc" style="color: #64748b; font-size: 0.88rem; margin-top: -0.5rem; margin-bottom: 1.25rem;">
+          本表單供連隊弟兄回報系統問題、操作疑問、忘記密碼或提出改善建議。<br>
+          <strong>所有回報僅有系統管理員（13055）於後台可見並協助處理</strong>，其他弟兄無法看到您的回報內容與忘記密碼資訊，請安心填寫！
+        </p>
+
+        <!-- 直接內嵌回報表單 -->
+        <div class="report-form-card" style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: var(--radius-md); padding: 1.5rem; box-shadow: 0 4px 14px rgba(0,0,0,0.04); margin-bottom: 2rem;">
+          <h3 style="font-size: 1.15rem; color: #0f172a; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>✍️</span> 填寫問題回報 / 忘記密碼申請
+          </h3>
+
+          <form id="form-direct-report" onsubmit="APP.handleDirectReportSubmit(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="direct-report-type" style="font-weight: 700; font-size: 0.84rem; color: #334155;">回報類別 <span style="color: #ef4444;">*</span></label>
+                <select id="direct-report-type" class="form-control" onchange="APP.handleDirectReportTypeChange(this.value)">
+                  <option value="forgot_password">🔒 忘記密碼申請 (申請恢復為預設學號)</option>
+                  <option value="feedback" selected>💡 系統建議與回饋</option>
+                  <option value="bug">🐛 系統錯誤回報 (Bug Report)</option>
+                  <option value="profile_fix">📝 個人資料修正申請</option>
+                  <option value="other">💬 其他問題</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="direct-report-author-id" style="font-weight: 700; font-size: 0.84rem; color: #334155;">您的學號 (ID) <span style="color: #ef4444;">*</span></label>
+                <input type="text" id="direct-report-author-id" class="form-control" placeholder="例：13008" value="${myId}" required ${myId ? 'readonly style="background:#f8fafc;"' : ''}>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="direct-report-author-name" style="font-weight: 700; font-size: 0.84rem; color: #334155;">您的姓名 / 稱呼</label>
+                <input type="text" id="direct-report-author-name" class="form-control" placeholder="例：陳小豪" value="${this.currentUser ? (this.currentUser.name || '') : ''}">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="direct-report-title" style="font-weight: 700; font-size: 0.84rem; color: #334155;">回報標題 <span style="color: #ef4444;">*</span></label>
+                <input type="text" id="direct-report-title" class="form-control" placeholder="簡短描述問題主旨" required>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0.85rem;">
+              <label for="direct-report-content" style="font-weight: 700; font-size: 0.84rem; color: #334155;">詳細說明與內文 <span style="color: #ef4444;">*</span></label>
+              <textarea id="direct-report-content" class="form-control" rows="4" placeholder="請詳細說明遇到的問題、忘記密碼原因或改善建議..." required></textarea>
+            </div>
+
+            <div id="direct-forgot-pwd-tip" style="display: none; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-sm); padding: 0.65rem 0.85rem; font-size: 0.8rem; color: #b91c1c; line-height: 1.4; margin-bottom: 0.85rem;">
+              💡 <strong>忘記密碼處理說明：</strong> 管理員收到申請後，會將您的密碼恢復為「預設學號」，您便可重新登入並自訂新密碼。
+            </div>
+
+            <div style="display: flex; justify-content: flex-end;">
+              <button type="submit" class="btn-primary" id="btn-direct-submit-report" style="padding: 0.65rem 1.4rem; font-size: 0.92rem;">
+                🚀 確認送出回報 / 申請
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 我的回報紀錄清單 -->
+        <div style="margin-top: 1.5rem;">
+          <h3 style="font-size: 1.15rem; color: #0f172a; margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>📋</span> 我的回報與處理進度 (僅本人可見)
+          </h3>
+
+          <div class="reports-list-grid" id="my-reports-list-container">
+            ${myReports.length > 0 ? myReports.map(report => {
+              const typeInfo = this.getReportTypeInfo(report.type);
+              const isResolved = (report.status === 'resolved');
+              const isForgotPassword = (report.type === 'forgot_password');
+              const timeDisplay = this.formatDateDisplay(report.created_at || report.updated_at);
+
+              return `
+                <div class="report-card ${isForgotPassword ? 'card-forgot-pwd' : ''}">
+                  <div class="report-card-header">
+                    <div class="report-tags-row">
+                      <span class="report-type-badge ${typeInfo.colorClass}">${typeInfo.icon} ${typeInfo.label}</span>
+                      <span class="report-status-badge ${isResolved ? 'status-resolved' : 'status-pending'}">
+                        ${isResolved ? '✅ 管理員已處理' : '⏳ 管理員處理中'}
+                      </span>
+                    </div>
+                    <div class="report-meta-time">📅 ${timeDisplay}</div>
+                  </div>
+
+                  <div class="report-card-title-row">
+                    <h3 class="report-title">${this.escapeHtml(report.title || '無標題回報')}</h3>
+                  </div>
+
+                  <div class="report-content-body">
+                    ${this.escapeHtml(report.content || '')}
+                  </div>
+
+                  ${report.admin_reply ? `
+                    <div class="report-admin-reply-box">
+                      <div class="reply-header">
+                        <span class="badge-admin" style="font-size: 0.75rem;">👑 連隊管理員 (13055) 官方回覆</span>
+                        <span class="reply-time" style="font-size: 0.75rem; color: #64748b;">${this.formatDateDisplay(report.updated_at)}</span>
+                      </div>
+                      <div class="reply-content">${this.escapeHtml(report.admin_reply)}</div>
+                    </div>
+                  ` : `
+                    <div style="font-size: 0.8rem; color: #64748b; font-style: italic; padding: 0.4rem 0;">
+                      ⏳ 管理員正在處理中，處理完畢後將於此處顯示官方回覆與通知...
+                    </div>
+                  `}
+                </div>
+              `;
+            }).join('') : `
+              <div class="empty-state-box" style="text-align: center; padding: 2.5rem 1.5rem; background: #ffffff; border-radius: var(--radius-md); border: 1.5px dashed #cbd5e1;">
+                <div style="font-size: 2.2rem; margin-bottom: 0.4rem;">📬</div>
+                <h4 style="font-size: 1.05rem; color: #334155; margin-bottom: 0.25rem;">您目前尚無提交過回報紀錄</h4>
+                <p style="font-size: 0.82rem; color: #64748b;">若有任何操作疑問、忘記密碼或連隊建議，請填寫上方表單送出！</p>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    // ==========================================
+    // 【13055 系統管理員後台視圖】
+    // 可以看到全連所有人提交的回報、忘記密碼名單、一鍵重設密碼與官方回覆
+    // ==========================================
     const forgotCount = allReports.filter(r => r.type === 'forgot_password').length;
     const feedbackCount = allReports.filter(r => r.type === 'feedback').length;
     const bugCount = allReports.filter(r => r.type === 'bug').length;
     const resolvedCount = allReports.filter(r => r.status === 'resolved').length;
     const pendingCount = allReports.filter(r => r.status !== 'resolved').length;
 
-    if (countTag) {
-      countTag.textContent = `共 ${allReports.length} 則 (待處理 ${pendingCount})`;
-    }
-
-    // 渲染篩選膠囊
-    if (filterBar) {
-      const filters = [
-        { key: 'all', label: `全部 (${allReports.length})` },
-        { key: 'forgot_password', label: `🔒 忘記密碼 (${forgotCount})` },
-        { key: 'feedback', label: `💡 系統建議 (${feedbackCount})` },
-        { key: 'bug', label: `🐛 錯誤回報 (${bugCount})` },
-        { key: 'resolved', label: `✅ 已處理回覆 (${resolvedCount})` }
-      ];
-
-      filterBar.innerHTML = filters.map(f => {
-        const isActive = (this.currentReportFilter === f.key);
-        return `<button class="duty-pill ${isActive ? 'active' : ''}" onclick="APP.setReportFilter('${f.key}')">${f.label}</button>`;
-      }).join('');
-    }
-
-    // 依目前條件過濾
     let filteredReports = allReports;
     if (this.currentReportFilter === 'resolved') {
       filteredReports = allReports.filter(r => r.status === 'resolved');
@@ -2974,88 +3093,191 @@ const APP = {
       filteredReports = allReports.filter(r => r.type === this.currentReportFilter);
     }
 
-    if (filteredReports.length === 0) {
-      listContainer.innerHTML = `
-        <div class="empty-state-box" style="grid-column: 1 / -1; text-align: center; padding: 3rem 1.5rem; background: #ffffff; border-radius: var(--radius-md); border: 1.5px dashed #cbd5e1;">
-          <div style="font-size: 2.8rem; margin-bottom: 0.6rem;">📬</div>
-          <h4 style="font-size: 1.15rem; color: #334155; margin-bottom: 0.35rem;">目前尚無此類別的回報紀錄</h4>
-          <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.25rem;">若您有系統操作問題、忘記密碼或功能改進建議，歡迎立即提交！</p>
-          <button class="btn-primary" onclick="APP.openReportModal()">✍️ 提交問題回報 / 申請重設密碼</button>
+    sectionEl.innerHTML = `
+      <div class="section-header">
+        <div class="section-header-title">
+          <h2>👑 連隊問題回報與密碼處理後台</h2>
+          <span class="tag" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;">
+            共 ${allReports.length} 則 (待處理 ${pendingCount} / 🔒 忘記密碼 ${forgotCount})
+          </span>
         </div>
-      `;
+        <div class="toolbar-actions">
+          <button class="btn-primary" onclick="APP.openReportModal()">✍️ 手動新增回報項目</button>
+        </div>
+      </div>
+
+      <p class="section-desc" style="color: #64748b; font-size: 0.88rem; margin-top: -0.5rem; margin-bottom: 1.25rem;">
+        👑 <strong>管理員後台專屬控制台：</strong> 僅有您（13055）能看見全連弟兄的忘記密碼申請與問題回報名單，可針對忘記密碼弟兄直接「一鍵重設密碼」並撰寫官方回覆。
+      </p>
+
+      <!-- 類別篩選膠囊 -->
+      <div class="duty-filter-bar" id="reports-filter-bar" style="margin-bottom: 1.25rem;">
+        <button class="duty-pill ${this.currentReportFilter === 'all' ? 'active' : ''}" onclick="APP.setReportFilter('all')">全部 (${allReports.length})</button>
+        <button class="duty-pill ${this.currentReportFilter === 'forgot_password' ? 'active' : ''}" onclick="APP.setReportFilter('forgot_password')">🔒 忘記密碼申請 (${forgotCount})</button>
+        <button class="duty-pill ${this.currentReportFilter === 'feedback' ? 'active' : ''}" onclick="APP.setReportFilter('feedback')">💡 系統建議 (${feedbackCount})</button>
+        <button class="duty-pill ${this.currentReportFilter === 'bug' ? 'active' : ''}" onclick="APP.setReportFilter('bug')">🐛 錯誤回報 (${bugCount})</button>
+        <button class="duty-pill ${this.currentReportFilter === 'resolved' ? 'active' : ''}" onclick="APP.setReportFilter('resolved')">✅ 已處理回覆 (${resolvedCount})</button>
+      </div>
+
+      <!-- 回報清單列表容器 -->
+      <div class="reports-list-grid" id="reports-list-container">
+        ${filteredReports.length > 0 ? filteredReports.map(report => {
+          const typeInfo = this.getReportTypeInfo(report.type);
+          const isResolved = (report.status === 'resolved');
+          const isForgotPassword = (report.type === 'forgot_password');
+          const authorId = String(report.author_id || '').trim();
+          const authorName = String(report.author_name || '').trim();
+          const authorDisplay = authorName ? `${authorName} (學號 #${authorId})` : (authorId ? `弟兄 #${authorId}` : '匿名弟兄');
+          const timeDisplay = this.formatDateDisplay(report.created_at || report.updated_at);
+
+          // 管理員一鍵重設密碼按鈕
+          const adminResetBtn = (isForgotPassword && !isResolved) 
+            ? `<button class="btn-admin-reset-pwd" onclick="APP.handleQuickResetPasswordFromReport('${report.report_id}', '${authorId}')" title="一鍵將學號 #${authorId} 密碼恢復為預設">
+                🔑 一鍵重設 #${authorId} 密碼為預設
+               </button>`
+            : '';
+
+          // 管理員回覆按鈕
+          const adminReplyBtn = `
+            <button class="btn-admin-reply" onclick="APP.openAdminReplyModal('${report.report_id}')" title="管理員官方回覆">
+              💬 ${isResolved ? '修改官方回覆' : '官方回覆 / 標示處理'}
+            </button>
+          `;
+
+          return `
+            <div class="report-card ${isForgotPassword ? 'card-forgot-pwd' : ''}" id="report-${report.report_id}">
+              <div class="report-card-header">
+                <div class="report-tags-row">
+                  <span class="report-type-badge ${typeInfo.colorClass}">${typeInfo.icon} ${typeInfo.label}</span>
+                  <span class="report-status-badge ${isResolved ? 'status-resolved' : 'status-pending'}">
+                    ${isResolved ? '✅ 已完成處理' : '⏳ 處理中 / 待確認'}
+                  </span>
+                </div>
+                <div class="report-meta-time">📅 ${timeDisplay}</div>
+              </div>
+
+              <div class="report-card-title-row">
+                <h3 class="report-title">${this.escapeHtml(report.title || '無標題回報')}</h3>
+                <div class="report-author-chip">👤 ${this.escapeHtml(authorDisplay)}</div>
+              </div>
+
+              <div class="report-content-body">
+                ${this.escapeHtml(report.content || '')}
+              </div>
+
+              ${report.admin_reply ? `
+                <div class="report-admin-reply-box">
+                  <div class="reply-header">
+                    <span class="badge-admin" style="font-size: 0.75rem;">👑 連隊管理員 (13055) 官方回覆</span>
+                    <span class="reply-time" style="font-size: 0.75rem; color: #64748b;">${this.formatDateDisplay(report.updated_at)}</span>
+                  </div>
+                  <div class="reply-content">${this.escapeHtml(report.admin_reply)}</div>
+                </div>
+              ` : ''}
+
+              <div class="report-admin-actions">
+                ${adminResetBtn}
+                ${adminReplyBtn}
+              </div>
+            </div>
+          `;
+        }).join('') : `
+          <div class="empty-state-box" style="text-align: center; padding: 3rem 1.5rem; background: #ffffff; border-radius: var(--radius-md); border: 1.5px dashed #cbd5e1;">
+            <div style="font-size: 2.8rem; margin-bottom: 0.6rem;">📬</div>
+            <h4 style="font-size: 1.15rem; color: #334155; margin-bottom: 0.35rem;">目前尚無此類別的回報紀錄</h4>
+            <p style="font-size: 0.85rem; color: #64748b;">目前沒有任何待處理項目。</p>
+          </div>
+        `}
+      </div>
+    `;
+  },
+
+  handleDirectReportTypeChange(type) {
+    const tipBox = document.getElementById('direct-forgot-pwd-tip');
+    const titleInput = document.getElementById('direct-report-title');
+    const authorIdInput = document.getElementById('direct-report-author-id');
+    const authorNameInput = document.getElementById('direct-report-author-name');
+
+    if (type === 'forgot_password') {
+      if (tipBox) tipBox.style.display = 'block';
+      if (titleInput && (!titleInput.value || titleInput.value.includes('【忘記密碼申請】') || titleInput.value.includes('系統建議'))) {
+        const idVal = authorIdInput ? authorIdInput.value.trim() : '';
+        const nameVal = authorNameInput ? authorNameInput.value.trim() : '';
+        titleInput.value = idVal ? `【忘記密碼申請】學號 #${idVal}${nameVal ? ' (' + nameVal + ')' : ''}` : '【忘記密碼申請】請求重設為預設學號密碼';
+      }
+    } else {
+      if (tipBox) tipBox.style.display = 'none';
+    }
+  },
+
+  async handleDirectReportSubmit(e) {
+    e.preventDefault();
+    if (this.isSubmitting) return;
+
+    const type = document.getElementById('direct-report-type').value;
+    const authorId = document.getElementById('direct-report-author-id').value.trim();
+    const authorName = document.getElementById('direct-report-author-name').value.trim();
+    const title = document.getElementById('direct-report-title').value.trim();
+    const content = document.getElementById('direct-report-content').value.trim();
+
+    if (!authorId || !title || !content) {
+      this.showToast('請填寫完整學號、標題與內文！', 'error');
       return;
     }
 
-    const isAdmin = this.isAdmin();
+    const submitBtn = document.getElementById('btn-direct-submit-report');
+    const originalBtnText = submitBtn ? submitBtn.textContent : '確認送出回報 / 申請';
 
-    listContainer.innerHTML = filteredReports.map(report => {
-      const typeInfo = this.getReportTypeInfo(report.type);
-      const isResolved = (report.status === 'resolved');
-      const isForgotPassword = (report.type === 'forgot_password');
-      const authorId = String(report.author_id || '').trim();
-      const authorName = String(report.author_name || '').trim();
-      const authorDisplay = authorName ? `${authorName} (學號 #${authorId})` : (authorId ? `弟兄 #${authorId}` : '匿名弟兄');
-      const timeDisplay = this.formatDateDisplay(report.created_at || report.updated_at);
+    this.isSubmitting = true;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ 上傳送出中，請稍候...';
+    }
 
-      // 管理員一鍵重設密碼按鈕
-      const adminResetBtn = (isAdmin && isForgotPassword && !isResolved) 
-        ? `<button class="btn-admin-reset-pwd" onclick="APP.handleQuickResetPasswordFromReport('${report.report_id}', '${authorId}')" title="一鍵將學號 #${authorId} 密碼恢復為預設">
-            🔑 一鍵重設 #${authorId} 密碼為預設
-           </button>`
-        : '';
+    this.showToast('⏳ 正在送出回報/申請至雲端...', 'info');
 
-      // 管理員回覆按鈕
-      const adminReplyBtn = isAdmin 
-        ? `<button class="btn-admin-reply" onclick="APP.openAdminReplyModal('${report.report_id}')" title="管理員官方回覆">
-            💬 ${isResolved ? '修改官方回覆' : '官方回覆 / 標示處理'}
-           </button>`
-        : '';
+    try {
+      const payload = {
+        type,
+        author_id: authorId,
+        author_name: authorName,
+        title,
+        content
+      };
 
-      return `
-        <div class="report-card ${isForgotPassword ? 'card-forgot-pwd' : ''}" id="report-${report.report_id}">
-          <!-- 卡片頂部資訊列 -->
-          <div class="report-card-header">
-            <div class="report-tags-row">
-              <span class="report-type-badge ${typeInfo.colorClass}">${typeInfo.icon} ${typeInfo.label}</span>
-              <span class="report-status-badge ${isResolved ? 'status-resolved' : 'status-pending'}">
-                ${isResolved ? '✅ 已完成處理' : '⏳ 處理中 / 待確認'}
-              </span>
-            </div>
-            <div class="report-meta-time">📅 ${timeDisplay}</div>
-          </div>
-
-          <!-- 卡片標題與發布者 -->
-          <div class="report-card-title-row">
-            <h3 class="report-title">${this.escapeHtml(report.title || '無標題回報')}</h3>
-            <div class="report-author-chip">👤 ${this.escapeHtml(authorDisplay)}</div>
-          </div>
-
-          <!-- 卡片內文 -->
-          <div class="report-content-body">
-            ${this.escapeHtml(report.content || '')}
-          </div>
-
-          <!-- 官方管理員回覆區 -->
-          ${report.admin_reply ? `
-            <div class="report-admin-reply-box">
-              <div class="reply-header">
-                <span class="badge-admin" style="font-size: 0.75rem;">👑 連隊管理員 (13055) 官方回覆</span>
-                <span class="reply-time" style="font-size: 0.75rem; color: #64748b;">${this.formatDateDisplay(report.updated_at)}</span>
-              </div>
-              <div class="reply-content">${this.escapeHtml(report.admin_reply)}</div>
-            </div>
-          ` : ''}
-
-          <!-- 管理員專屬操作列 -->
-          ${(adminResetBtn || adminReplyBtn) ? `
-            <div class="report-admin-actions">
-              ${adminResetBtn}
-              ${adminReplyBtn}
-            </div>
-          ` : ''}
-        </div>
-      `;
-    }).join('');
+      const result = await API.submitReport(payload);
+      if (result && result.success) {
+        if (result.data) {
+          this.reports.unshift(result.data);
+          const mySubmissions = JSON.parse(localStorage.getItem('153r1b3c_my_submitted_reports') || '[]');
+          if (result.data.report_id && !mySubmissions.includes(Number(result.data.report_id))) {
+            mySubmissions.push(Number(result.data.report_id));
+            localStorage.setItem('153r1b3c_my_submitted_reports', JSON.stringify(mySubmissions));
+          }
+        }
+        this.closeModal('modal-submit-report');
+        if (type === 'forgot_password') {
+          this.showToast('✅ 忘記密碼申請已成功送出！管理員（13055）將盡快為您重設密碼。', 'success');
+        } else {
+          this.showToast('✨ 問題回報已成功送出！感謝您的寶貴反饋。', 'success');
+        }
+        this.renderReportsView();
+      } else {
+        const errCode = (result && result.code) || 'ERR-REPORT-FAIL';
+        const errMsg = (result && result.message) || '送出失敗，請稍後重試';
+        this.showToast(`❌ [${errCode}] ${errMsg}`, 'error');
+      }
+    } catch (err) {
+      console.error('[ERR-JS-REPORT] 送出回報異常:', err);
+      const errDetail = err && err.message ? err.message : String(err);
+      this.showToast(`❌ 送出異常 (${errDetail})，請稍後重試`, 'error');
+    } finally {
+      this.isSubmitting = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+      }
+    }
   },
 
   // 開啟問題回報 / 忘記密碼申請彈窗

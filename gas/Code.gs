@@ -34,7 +34,7 @@ function doPost(e) {
         result = handleLogin(requestData);
         break;
       case 'getAllData':
-        result = handleGetAllData();
+        result = handleGetAllData(requestData);
         break;
       case 'updateProfile':
         result = handleUpdateProfile(requestData);
@@ -61,7 +61,7 @@ function doPost(e) {
         result = handleResetPassword(requestData);
         break;
       case 'getReports':
-        result = handleGetReports();
+        result = handleGetReports(requestData);
         break;
       case 'submitReport':
         result = handleSubmitReport(requestData);
@@ -188,7 +188,7 @@ function handleLogin(data) {
 /**
  * 2. 取得全站基礎資料 (包含所有成員、長官幹部、傳奇、日記)
  */
-function handleGetAllData() {
+function handleGetAllData(requestData) {
   const ss = getDatabaseSpreadsheet();
   if (!ss) return { success: false, message: '無法連接試算表資料庫' };
   
@@ -265,7 +265,7 @@ function handleGetAllData() {
     }
     return t;
   });
-  const reportsRes = handleGetReports();
+  const reportsRes = handleGetReports(requestData);
   const reports = (reportsRes && reportsRes.data) ? reportsRes.data : [];
 
   return {
@@ -602,7 +602,7 @@ function handleResetPassword(data) {
 /**
  * 7. 問題回報與忘記密碼申請處理常式 (Reports & Forgot Password)
  */
-function handleGetReports() {
+function handleGetReports(requestData) {
   const ss = getDatabaseSpreadsheet();
   if (!ss) return { success: false, message: '無法連接試算表資料庫' };
 
@@ -615,7 +615,18 @@ function handleGetReports() {
 
   const reports = getSheetDataAsObjects(sheet);
   reports.sort((a, b) => (b.report_id || 0) - (a.report_id || 0));
-  return { success: true, data: reports };
+
+  const userId = requestData ? String(requestData.user_id || '').trim() : '';
+  // 只有 13055 管理員可檢視全連所有人的忘記密碼與問題回報
+  if (userId === '13055') {
+    return { success: true, data: reports };
+  }
+
+  // 一般弟兄或未登入者：僅回傳自己學號提交的項目，嚴格隱藏其他人的回報與忘記密碼
+  const userReports = userId 
+    ? reports.filter(r => String(r.author_id).trim() === userId) 
+    : [];
+  return { success: true, data: userReports };
 }
 
 function handleSubmitReport(data) {

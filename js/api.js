@@ -131,11 +131,12 @@ const API = {
       }
 
       case 'getAllData': {
-        const members = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.MEMBERS_CACHE) || '[]');
-        const cadres = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.CADRES_CACHE) || '[]');
-        const legends = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.LEGENDS_CACHE) || '[]');
-        const diaries = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.DIARIES_CACHE) || '[]');
-        const reports = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.REPORTS_CACHE) || '[]');
+        const userId = (payload && payload.user_id) ? String(payload.user_id).trim() : (CONFIG.getCurrentUser() ? String(CONFIG.getCurrentUser().id) : '');
+        const allReports = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.REPORTS_CACHE) || '[]');
+        const visibleReports = (userId === '13055') 
+          ? allReports 
+          : (userId ? allReports.filter(r => String(r.author_id).trim() === userId) : []);
+
         return {
           success: true,
           data: {
@@ -151,7 +152,7 @@ const API = {
             }),
             legends,
             diaries,
-            reports
+            reports: visibleReports
           }
         };
       }
@@ -363,9 +364,13 @@ const API = {
       }
 
       case 'getReports': {
+        const userId = (payload && payload.user_id) ? String(payload.user_id).trim() : (CONFIG.getCurrentUser() ? String(CONFIG.getCurrentUser().id) : '');
         const reports = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.REPORTS_CACHE) || '[]');
         reports.sort((a, b) => (b.report_id || 0) - (a.report_id || 0));
-        return { success: true, data: reports };
+        const visibleReports = (userId === '13055') 
+          ? reports 
+          : (userId ? reports.filter(r => String(r.author_id).trim() === userId) : []);
+        return { success: true, data: visibleReports };
       }
 
       case 'submitReport': {
@@ -445,7 +450,8 @@ const API = {
     if (!forceRefresh && this._allDataCache && (now - this._allDataCacheTime < this._cacheTtlMs)) {
       return this._allDataCache;
     }
-    const res = await this.sendGasRequest('getAllData');
+    const currentUser = CONFIG.getCurrentUser();
+    const res = await this.sendGasRequest('getAllData', { user_id: currentUser ? currentUser.id : '' });
     if (res && res.success) {
       this._allDataCache = res;
       this._allDataCacheTime = Date.now();
@@ -500,7 +506,8 @@ const API = {
   },
 
   async getReports() {
-    return this.sendGasRequest('getReports');
+    const currentUser = CONFIG.getCurrentUser();
+    return this.sendGasRequest('getReports', { user_id: currentUser ? currentUser.id : '' });
   },
 
   async submitReport(reportData) {
