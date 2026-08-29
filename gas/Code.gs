@@ -60,6 +60,18 @@ function doPost(e) {
       case 'resetPassword':
         result = handleResetPassword(requestData);
         break;
+      case 'getReports':
+        result = handleGetReports();
+        break;
+      case 'submitReport':
+        result = handleSubmitReport(requestData);
+        break;
+      case 'replyReport':
+        result = handleReplyReport(requestData);
+        break;
+      case 'resetPasswordByReport':
+        result = handleResetPasswordByReport(requestData);
+        break;
       default:
         result = { success: false, message: '未知的 Action: ' + action };
         break;
@@ -253,7 +265,8 @@ function handleGetAllData() {
     }
     return t;
   });
-  timeline.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const reportsRes = handleGetReports();
+  const reports = (reportsRes && reportsRes.data) ? reportsRes.data : [];
 
   return {
     success: true,
@@ -262,7 +275,8 @@ function handleGetAllData() {
       cadres,
       legends,
       diaries,
-      timeline
+      timeline,
+      reports
     }
   };
 }
@@ -582,6 +596,166 @@ function handleResetPassword(data) {
   return {
     success: true,
     message: `已成功將帳號 ${cleanTarget} 的密碼恢復為預設！`
+  };
+}
+
+/**
+ * 7. 問題回報與忘記密碼申請處理常式 (Reports & Forgot Password)
+ */
+function handleGetReports() {
+  const ss = getDatabaseSpreadsheet();
+  if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+
+  let sheet = ss.getSheetByName('Reports');
+  if (!sheet) {
+    sheet = ss.insertSheet('Reports');
+    sheet.appendRow(['report_id', 'type', 'author_id', 'author_name', 'title', 'content', 'status', 'admin_reply', 'created_at', 'updated_at']);
+    return { success: true, data: [] };
+  }
+
+  const reports = getSheetDataAsObjects(sheet);
+  reports.sort((a, b) => (b.report_id || 0) - (a.report_id || 0));
+  return { success: true, data: reports };
+}
+
+function handleSubmitReport(data) {
+  const { type, author_id, author_name, title, content } = data;
+  if (!title || !content) {
+    return { success: false, message: '請填寫回報標題與內容' };
+  }
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const ss = getDatabaseSpreadsheet();
+    if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+
+    let sheet = ss.getSheetByName('Reports');
+    if (!sheet) {
+      sheet = ss.insertSheet('Reports');
+      sheet.appendRow(['report_id', 'type', 'author_id', 'author_name', 'title', 'content', 'status', 'admin_reply', 'created_at', 'updated_at']);
+    }
+
+    const values = sheet.getDataRange().getValues();
+    const reportId = values.length;
+    const nowStr = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy-MM-dd HH:mm');
+    const cleanType = String(type || 'feedback').trim();
+    const cleanAuthorId = String(author_id || '').trim();
+    const cleanAuthorName = String(author_name || '').trim();
+    const cleanTitle = String(title).trim();
+    const cleanContent = String(content).trim();
+    const status = 'pending'; // pending (待處理) / resolved (已完成)
+    const adminReply = '';
+
+    sheet.appendRow([reportId, cleanType, cleanAuthorId, cleanAuthorName, cleanTitle, cleanContent, status, adminReply, nowStr, nowStr]);
+
+    return {
+      success: true,
+      data: {
+        report_id: reportId,
+        type: cleanType,
+        author_id: cleanAuthorId,
+        author_name: cleanAuthorName,
+        title: cleanTitle,
+        content: cleanContent,
+        status: status,
+        admin_reply: adminReply,
+        created_at: nowStr,
+        updated_at: nowStr
+      },
+      message: '問題回報/密碼申請已成功送出！'
+    };
+  } catch (err) {
+    return { success: false, message: '伺服器繁忙，請稍後重試: ' + err.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function handleReplyReport(data) {
+  const { admin_id, report_id, admin_reply, status } = data;
+  if (String(admin_id) !== '13055') {
+    return { success: false, message: '權限不足！只有 13055 管理員可回覆回報問題。' };
+  }
+  if (!report_id) {
+    return { success: false, message: '缺少回報編號 report_id' };
+  }
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const ss = getDatabaseSpreadsheet();
+    if (!ss) return { success: false, message: '無法連接試算表資料庫' };
+
+    const sheet = ss.getSheetByName('Reports');
+    if (!sheet) return { success: false, message: 'Reports 資料表不存在' };
+
+    const values = sheet.getDataRange().getValues();
+    const headers = values[0];
+    const reportIdIdx = headers.indexOf('report_id');
+    const statusIdx = headers.indexOf('status');
+    const replyIdx = headers.indexOf('admin_reply');
+    const updateIdx = headers.indexOf('updated_at');
+
+    let targetRow = -1;
+    for (let i = 1; i < values.length; i++) {
+      if (String(values[i][reportIdIdx]) === String(report_id)) {
+        targetRow = i + 1;
+        break;
+      }
+    }
+
+    if (targetRow === -1) {
+      return { success: false, message: `找不到編號 #${report_id} 的回報項目` };
+    }
+
+    const nowStr = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy-MM-dd HH:mm');
+    const newStatus = status || 'resolved';
+    const newReply = admin_reply || '';
+
+    if (statusIdx !== -1) sheet.getRange(targetRow, statusIdx + 1).setValue(newStatus);
+    if (replyIdx !== -1) sheet.getRange(targetRow, replyIdx + 1).setValue(newReply);
+    if (updateIdx !== -1) sheet.getRange(targetRow, updateIdx + 1).setValue(nowStr);
+
+    return {
+      success: true,
+      message: `已成功回覆回報 #${report_id}！`,
+      data: {
+        report_id: Number(report_id),
+        status: newStatus,
+        admin_reply: newReply,
+        updated_at: nowStr
+      }
+    };
+  } catch (err) {
+    return { success: false, message: '更新失敗: ' + err.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function handleResetPasswordByReport(data) {
+  const { admin_id, report_id, target_id } = data;
+  if (String(admin_id) !== '13055') {
+    return { success: false, message: '權限不足！只有 13055 管理員可重設密碼。' };
+  }
+
+  // 1. 執行重設密碼
+  const resetRes = handleResetPassword({ admin_id, target_id });
+  if (!resetRes.success) return resetRes;
+
+  // 2. 更新回報狀態為已處理並填入回覆
+  const nowStr = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy-MM-dd HH:mm');
+  handleReplyReport({
+    admin_id,
+    report_id,
+    admin_reply: `已於 ${nowStr} 由管理員重設密碼為預設學號 #${target_id}，請重新登入！`,
+    status: 'resolved'
+  });
+
+  return {
+    success: true,
+    message: `已成功將弟兄 #${target_id} 密碼重設為預設，並更新回報狀態為已完成！`
   };
 }
 

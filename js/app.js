@@ -210,6 +210,8 @@ const APP = {
   legends: [],
   diaries: [],
   timeline: [],
+  reports: [],
+  currentReportFilter: 'all',
   searchQuery: '',
   tempMilitaryAvatarBase64: null,
   tempCivilianAvatarBase64: null,
@@ -394,6 +396,7 @@ const APP = {
         this.legends = response.data.legends || [];
         this.diaries = response.data.diaries || [];
         this.timeline = this.normalizeTimeline(response.data.timeline || response.data.milestones || MOCK_DATA.timeline);
+        this.reports = response.data.reports || MOCK_DATA.getInitialReports();
       } else {
         // 降級為 MOCK_DATA
         this.allMembers = this.normalizeMembers(MOCK_DATA.getInitialMembers());
@@ -401,6 +404,7 @@ const APP = {
         this.legends = MOCK_DATA.legends || [];
         this.diaries = MOCK_DATA.diaries || [];
         this.timeline = this.normalizeTimeline(MOCK_DATA.timeline);
+        this.reports = MOCK_DATA.getInitialReports();
       }
     } catch (e) {
       console.warn('載入資料異常，啟用預設資料庫:', e);
@@ -409,6 +413,7 @@ const APP = {
       this.legends = MOCK_DATA.legends || [];
       this.diaries = MOCK_DATA.diaries || [];
       this.timeline = this.normalizeTimeline(MOCK_DATA.timeline);
+      this.reports = MOCK_DATA.getInitialReports();
     }
 
     // 更新首頁統計數字與役期階段狀態
@@ -444,7 +449,7 @@ const APP = {
     // 更新手機版底部快捷導覽 active 樣式 (傳奇版與大兵日記均對應「互動區」)
     document.querySelectorAll('.mobile-bottom-btn').forEach(btn => btn.classList.remove('active'));
     let bottomNavTarget = viewName;
-    if (viewName === 'legends' || viewName === 'diaries') {
+    if (viewName === 'legends' || viewName === 'diaries' || viewName === 'reports') {
       bottomNavTarget = 'interaction';
     }
     const bottomBtn = document.querySelector(`.mobile-bottom-btn[data-bottom-nav="${bottomNavTarget}"]`);
@@ -489,6 +494,11 @@ const APP = {
       if (diariesSec) diariesSec.classList.add('active');
       this.setActiveNavBtn('diaries');
       this.renderDiariesView();
+    } else if (viewName === 'reports') {
+      const reportsSec = document.getElementById('view-reports');
+      if (reportsSec) reportsSec.classList.add('active');
+      this.setActiveNavBtn('reports');
+      this.renderReportsView();
     }
 
     // 滾動回頂部
@@ -609,6 +619,13 @@ const APP = {
           title: '大兵日記',
           subtitle: '軍旅心得隨筆・真摯圖文紀錄',
           badge: `${this.diaries.length} 篇日記`
+        },
+        {
+          view: 'reports',
+          icon: '📬',
+          title: '問題回報與密碼處理',
+          subtitle: '忘記密碼申請・系統建議與回覆',
+          badge: `${this.reports.length} 則回報`
         }
       ];
 
@@ -2889,6 +2906,413 @@ const APP = {
         submitBtn.disabled = false;
         submitBtn.textContent = originalBtnText;
       }
+    }
+  },
+
+  // =========================================================================
+  // 7. 問題回報與密碼處理中心 (Reports & Feedback Actions)
+  // =========================================================================
+
+  // 取得回報類別中文與圖示
+  getReportTypeInfo(type) {
+    const map = {
+      'forgot_password': { label: '忘記密碼申請', icon: '🔒', colorClass: 'badge-forgot-pwd' },
+      'feedback': { label: '系統建議', icon: '💡', colorClass: 'badge-feedback' },
+      'bug': { label: '錯誤回報', icon: '🐛', colorClass: 'badge-bug' },
+      'profile_fix': { label: '個資修正', icon: '📝', colorClass: 'badge-profile-fix' },
+      'other': { label: '其他問題', icon: '💬', colorClass: 'badge-other' }
+    };
+    return map[type] || { label: '連隊回報', icon: '📬', colorClass: 'badge-other' };
+  },
+
+  // 設定篩選標籤
+  setReportFilter(filter) {
+    this.currentReportFilter = filter;
+    this.renderReportsView();
+  },
+
+  // 渲染問題回報與密碼處理中心頁面
+  renderReportsView() {
+    const listContainer = document.getElementById('reports-list-container');
+    const filterBar = document.getElementById('reports-filter-bar');
+    const countTag = document.getElementById('reports-count-tag');
+
+    if (!listContainer) return;
+
+    const allReports = this.reports || [];
+    const forgotCount = allReports.filter(r => r.type === 'forgot_password').length;
+    const feedbackCount = allReports.filter(r => r.type === 'feedback').length;
+    const bugCount = allReports.filter(r => r.type === 'bug').length;
+    const resolvedCount = allReports.filter(r => r.status === 'resolved').length;
+    const pendingCount = allReports.filter(r => r.status !== 'resolved').length;
+
+    if (countTag) {
+      countTag.textContent = `共 ${allReports.length} 則 (待處理 ${pendingCount})`;
+    }
+
+    // 渲染篩選膠囊
+    if (filterBar) {
+      const filters = [
+        { key: 'all', label: `全部 (${allReports.length})` },
+        { key: 'forgot_password', label: `🔒 忘記密碼 (${forgotCount})` },
+        { key: 'feedback', label: `💡 系統建議 (${feedbackCount})` },
+        { key: 'bug', label: `🐛 錯誤回報 (${bugCount})` },
+        { key: 'resolved', label: `✅ 已處理回覆 (${resolvedCount})` }
+      ];
+
+      filterBar.innerHTML = filters.map(f => {
+        const isActive = (this.currentReportFilter === f.key);
+        return `<button class="duty-pill ${isActive ? 'active' : ''}" onclick="APP.setReportFilter('${f.key}')">${f.label}</button>`;
+      }).join('');
+    }
+
+    // 依目前條件過濾
+    let filteredReports = allReports;
+    if (this.currentReportFilter === 'resolved') {
+      filteredReports = allReports.filter(r => r.status === 'resolved');
+    } else if (this.currentReportFilter !== 'all') {
+      filteredReports = allReports.filter(r => r.type === this.currentReportFilter);
+    }
+
+    if (filteredReports.length === 0) {
+      listContainer.innerHTML = `
+        <div class="empty-state-box" style="grid-column: 1 / -1; text-align: center; padding: 3rem 1.5rem; background: #ffffff; border-radius: var(--radius-md); border: 1.5px dashed #cbd5e1;">
+          <div style="font-size: 2.8rem; margin-bottom: 0.6rem;">📬</div>
+          <h4 style="font-size: 1.15rem; color: #334155; margin-bottom: 0.35rem;">目前尚無此類別的回報紀錄</h4>
+          <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.25rem;">若您有系統操作問題、忘記密碼或功能改進建議，歡迎立即提交！</p>
+          <button class="btn-primary" onclick="APP.openReportModal()">✍️ 提交問題回報 / 申請重設密碼</button>
+        </div>
+      `;
+      return;
+    }
+
+    const isAdmin = this.isAdmin();
+
+    listContainer.innerHTML = filteredReports.map(report => {
+      const typeInfo = this.getReportTypeInfo(report.type);
+      const isResolved = (report.status === 'resolved');
+      const isForgotPassword = (report.type === 'forgot_password');
+      const authorId = String(report.author_id || '').trim();
+      const authorName = String(report.author_name || '').trim();
+      const authorDisplay = authorName ? `${authorName} (學號 #${authorId})` : (authorId ? `弟兄 #${authorId}` : '匿名弟兄');
+      const timeDisplay = this.formatDateDisplay(report.created_at || report.updated_at);
+
+      // 管理員一鍵重設密碼按鈕
+      const adminResetBtn = (isAdmin && isForgotPassword && !isResolved) 
+        ? `<button class="btn-admin-reset-pwd" onclick="APP.handleQuickResetPasswordFromReport('${report.report_id}', '${authorId}')" title="一鍵將學號 #${authorId} 密碼恢復為預設">
+            🔑 一鍵重設 #${authorId} 密碼為預設
+           </button>`
+        : '';
+
+      // 管理員回覆按鈕
+      const adminReplyBtn = isAdmin 
+        ? `<button class="btn-admin-reply" onclick="APP.openAdminReplyModal('${report.report_id}')" title="管理員官方回覆">
+            💬 ${isResolved ? '修改官方回覆' : '官方回覆 / 標示處理'}
+           </button>`
+        : '';
+
+      return `
+        <div class="report-card ${isForgotPassword ? 'card-forgot-pwd' : ''}" id="report-${report.report_id}">
+          <!-- 卡片頂部資訊列 -->
+          <div class="report-card-header">
+            <div class="report-tags-row">
+              <span class="report-type-badge ${typeInfo.colorClass}">${typeInfo.icon} ${typeInfo.label}</span>
+              <span class="report-status-badge ${isResolved ? 'status-resolved' : 'status-pending'}">
+                ${isResolved ? '✅ 已完成處理' : '⏳ 處理中 / 待確認'}
+              </span>
+            </div>
+            <div class="report-meta-time">📅 ${timeDisplay}</div>
+          </div>
+
+          <!-- 卡片標題與發布者 -->
+          <div class="report-card-title-row">
+            <h3 class="report-title">${this.escapeHtml(report.title || '無標題回報')}</h3>
+            <div class="report-author-chip">👤 ${this.escapeHtml(authorDisplay)}</div>
+          </div>
+
+          <!-- 卡片內文 -->
+          <div class="report-content-body">
+            ${this.escapeHtml(report.content || '')}
+          </div>
+
+          <!-- 官方管理員回覆區 -->
+          ${report.admin_reply ? `
+            <div class="report-admin-reply-box">
+              <div class="reply-header">
+                <span class="badge-admin" style="font-size: 0.75rem;">👑 連隊管理員 (13055) 官方回覆</span>
+                <span class="reply-time" style="font-size: 0.75rem; color: #64748b;">${this.formatDateDisplay(report.updated_at)}</span>
+              </div>
+              <div class="reply-content">${this.escapeHtml(report.admin_reply)}</div>
+            </div>
+          ` : ''}
+
+          <!-- 管理員專屬操作列 -->
+          ${(adminResetBtn || adminReplyBtn) ? `
+            <div class="report-admin-actions">
+              ${adminResetBtn}
+              ${adminReplyBtn}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+  },
+
+  // 開啟問題回報 / 忘記密碼申請彈窗
+  openReportModal(prefillType = null, prefillId = null) {
+    const form = document.getElementById('form-submit-report');
+    if (form) form.reset();
+
+    const typeSelect = document.getElementById('report-type');
+    const authorIdInput = document.getElementById('report-author-id');
+    const authorNameInput = document.getElementById('report-author-name');
+    const titleInput = document.getElementById('report-title');
+
+    const currentUser = this.currentUser;
+
+    if (prefillType && typeSelect) {
+      typeSelect.value = prefillType;
+    } else if (typeSelect) {
+      typeSelect.value = 'feedback';
+    }
+
+    if (prefillId && authorIdInput) {
+      authorIdInput.value = prefillId;
+      const m = this.allMembers.find(item => String(item.id) === String(prefillId));
+      if (m && m.name && authorNameInput) authorNameInput.value = m.name;
+    } else if (currentUser) {
+      if (authorIdInput) authorIdInput.value = currentUser.id;
+      if (authorNameInput) authorNameInput.value = currentUser.name || '';
+    }
+
+    this.handleReportTypeChange(typeSelect ? typeSelect.value : 'feedback');
+
+    const modal = document.getElementById('modal-submit-report');
+    if (modal) modal.classList.add('active');
+  },
+
+  // 回報類別切換即時提示
+  handleReportTypeChange(type) {
+    const tipBox = document.getElementById('forgot-password-tip-box');
+    const titleInput = document.getElementById('report-title');
+    const authorIdInput = document.getElementById('report-author-id');
+    const authorNameInput = document.getElementById('report-author-name');
+
+    if (type === 'forgot_password') {
+      if (tipBox) tipBox.style.display = 'block';
+      if (titleInput && (!titleInput.value || titleInput.value.includes('【忘記密碼申請】') || titleInput.value.includes('系統建議'))) {
+        const idVal = authorIdInput ? authorIdInput.value.trim() : '';
+        const nameVal = authorNameInput ? authorNameInput.value.trim() : '';
+        titleInput.value = idVal ? `【忘記密碼申請】學號 #${idVal}${nameVal ? ' (' + nameVal + ')' : ''}` : '【忘記密碼申請】請求重設為預設學號密碼';
+      }
+    } else {
+      if (tipBox) tipBox.style.display = 'none';
+    }
+  },
+
+  // 登入視窗點擊忘記密碼
+  handleForgotPasswordClick() {
+    this.closeModal('modal-login');
+    const loginIdInput = document.getElementById('login-id');
+    const loginId = loginIdInput ? loginIdInput.value.trim() : '';
+    this.openReportModal('forgot_password', loginId);
+  },
+
+  // 提交問題回報 / 忘記密碼申請
+  async handleSubmitReport(e) {
+    e.preventDefault();
+    if (this.isSubmitting) return;
+
+    const type = document.getElementById('report-type').value;
+    const authorId = document.getElementById('report-author-id').value.trim();
+    const authorName = document.getElementById('report-author-name').value.trim();
+    const title = document.getElementById('report-title').value.trim();
+    const content = document.getElementById('report-content').value.trim();
+
+    if (!authorId || !title || !content) {
+      this.showToast('請填寫完整學號、標題與內文！', 'error');
+      return;
+    }
+
+    const form = e.target;
+    const submitBtn = form ? form.querySelector('button[type="submit"]') : document.getElementById('btn-submit-report');
+    const originalBtnText = submitBtn ? submitBtn.textContent : '確認送出申請';
+
+    this.isSubmitting = true;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ 上傳送出中，請稍候...';
+    }
+
+    this.showToast('⏳ 正在送出回報/申請至雲端...', 'info');
+
+    try {
+      const payload = {
+        type,
+        author_id: authorId,
+        author_name: authorName,
+        title,
+        content
+      };
+
+      const result = await API.submitReport(payload);
+      if (result && result.success) {
+        if (result.data) {
+          this.reports.unshift(result.data);
+        }
+        this.closeModal('modal-submit-report');
+        if (type === 'forgot_password') {
+          this.showToast('✅ 忘記密碼申請已成功送出！管理員（13055）將盡快為您重設密碼。', 'success');
+        } else {
+          this.showToast('✨ 問題回報已成功送出！感謝您的寶貴反饋。', 'success');
+        }
+        this.navigate('reports');
+      } else {
+        const errCode = (result && result.code) || 'ERR-REPORT-FAIL';
+        const errMsg = (result && result.message) || '送出失敗，請稍後重試';
+        this.showToast(`❌ [${errCode}] ${errMsg}`, 'error');
+      }
+    } catch (err) {
+      console.error('[ERR-JS-REPORT] 送出回報異常:', err);
+      const errDetail = err && err.message ? err.message : String(err);
+      this.showToast(`❌ 送出異常 (${errDetail})，請稍後重試`, 'error');
+    } finally {
+      this.isSubmitting = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+      }
+    }
+  },
+
+  // 開啟管理員回覆彈窗
+  openAdminReplyModal(reportId) {
+    if (!this.isAdmin()) {
+      this.showToast('權限不足！只有 13055 管理員可執行此操作。', 'error');
+      return;
+    }
+
+    const report = this.reports.find(r => String(r.report_id) === String(reportId));
+    if (!report) return;
+
+    document.getElementById('admin-reply-report-id').value = report.report_id;
+    const summaryEl = document.getElementById('admin-reply-target-summary');
+    if (summaryEl) {
+      summaryEl.innerHTML = `
+        <strong>回報項目 #${report.report_id}：</strong> ${this.escapeHtml(report.title)}<br>
+        <span style="color:#64748b;">提出者：${this.escapeHtml(report.author_name || '弟兄')} (#${report.author_id})</span>
+      `;
+    }
+
+    const statusSelect = document.getElementById('admin-reply-status');
+    if (statusSelect) statusSelect.value = report.status || 'resolved';
+
+    const replyText = document.getElementById('admin-reply-text');
+    if (replyText) replyText.value = report.admin_reply || '';
+
+    const modal = document.getElementById('modal-admin-reply-report');
+    if (modal) modal.classList.add('active');
+  },
+
+  // 保存管理員回覆
+  async handleSaveAdminReply(e) {
+    e.preventDefault();
+    if (!this.isAdmin()) return;
+    if (this.isSubmitting) return;
+
+    const reportId = document.getElementById('admin-reply-report-id').value;
+    const status = document.getElementById('admin-reply-status').value;
+    const adminReply = document.getElementById('admin-reply-text').value.trim();
+
+    if (!reportId || !adminReply) {
+      this.showToast('請填寫官方回覆內容！', 'error');
+      return;
+    }
+
+    const form = e.target;
+    const submitBtn = form ? form.querySelector('button[type="submit"]') : document.getElementById('btn-save-admin-reply');
+    const originalBtnText = submitBtn ? submitBtn.textContent : '確認送出回覆';
+
+    this.isSubmitting = true;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ 保存回覆中...';
+    }
+
+    try {
+      const payload = {
+        admin_id: '13055',
+        report_id: reportId,
+        admin_reply: adminReply,
+        status: status
+      };
+
+      const result = await API.replyReport(payload);
+      if (result && result.success) {
+        const target = this.reports.find(r => String(r.report_id) === String(reportId));
+        if (target) {
+          target.admin_reply = adminReply;
+          target.status = status;
+          target.updated_at = new Date().toISOString();
+        }
+        this.closeModal('modal-admin-reply-report');
+        this.showToast('✅ 已成功保存管理員官方回覆！', 'success');
+        this.renderReportsView();
+      } else {
+        const errMsg = (result && result.message) || '保存回覆失敗';
+        this.showToast(`❌ ${errMsg}`, 'error');
+      }
+    } catch (err) {
+      console.error('[ERR-JS-REPLY] 保存回覆異常:', err);
+      this.showToast('❌ 保存回覆異常，請稍後重試', 'error');
+    } finally {
+      this.isSubmitting = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+      }
+    }
+  },
+
+  // 管理員專屬：一鍵由回報卡片重設弟兄密碼為預設
+  async handleQuickResetPasswordFromReport(reportId, targetId) {
+    if (!this.isAdmin()) {
+      this.showToast('權限不足！只有 13055 管理員可執行此操作。', 'error');
+      return;
+    }
+
+    const targetObj = this.allMembers.find(m => String(m.id) === String(targetId));
+    const targetName = targetObj && targetObj.name ? `${targetObj.name} (#${targetId})` : `學號 #${targetId}`;
+
+    const confirmed = window.confirm(`【👑 管理員一鍵重設確認】\n\n確定要將「${targetName}」的密碼恢復為預設學號 (${targetId}) 嗎？\n\n系統將自動重設密碼並在回報項目中標示為已處理！`);
+    if (!confirmed) return;
+
+    this.showToast(`正在為學號 #${targetId} 恢復密碼...`, 'info');
+
+    try {
+      const result = await API.resetPasswordByReport({
+        admin_id: '13055',
+        report_id: reportId,
+        target_id: targetId
+      });
+
+      if (result && result.success) {
+        const target = this.reports.find(r => String(r.report_id) === String(reportId));
+        if (target) {
+          const nowStr = new Date().toISOString().substring(0, 16).replace('T', ' ');
+          target.status = 'resolved';
+          target.admin_reply = `已於 ${nowStr} 由管理員重設密碼為預設學號 #${targetId}，請重新登入！`;
+          target.updated_at = nowStr;
+        }
+        this.showToast(result.message || `已成功恢復帳號 #${targetId} 密碼為預設！`, 'success');
+        this.renderReportsView();
+      } else {
+        const errMsg = (result && result.message) || '重設失敗，請稍後重試';
+        this.showToast(`❌ ${errMsg}`, 'error');
+      }
+    } catch (err) {
+      console.error('[ERR-JS-QUICK-RESET] 一鍵重設密碼異常:', err);
+      this.showToast('❌ 重設異常，請稍後重試', 'error');
     }
   },
 

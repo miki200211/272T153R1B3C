@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.3.13">
+  <link rel="stylesheet" href="css/style.css?v=3.3.14">
 </head>
 <body>
 
@@ -233,6 +233,11 @@
           <li>
             <button class="nav-item-btn" data-nav="diaries" onclick="APP.navigate('diaries')">
               <span class="nav-label">📖 大兵日記</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-nav="reports" onclick="APP.navigate('reports')">
+              <span class="nav-label">📬 問題回報與密碼處理</span>
             </button>
           </li>
         </ul>
@@ -500,6 +505,33 @@
         </div>
       </section>
 
+      <!-- 7. 問題回報與密碼處理中心 (Reports View) -->
+      <section id="view-reports" class="view-section">
+        <div class="section-header">
+          <div class="section-header-title">
+            <h2>📬 連隊問題回報與密碼處理中心</h2>
+            <span class="tag" id="reports-count-tag">即時處理反饋</span>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn-primary" onclick="APP.openReportModal()">✍️ 我要回報問題 / 申請重設密碼</button>
+          </div>
+        </div>
+
+        <p class="section-desc" style="color: #64748b; font-size: 0.88rem; margin-top: -0.5rem; margin-bottom: 1.25rem;">
+          忘記密碼、操作疑問、系統建議或個資修正，皆可在此提出！管理員（13055）將於後台即時為您處理並回覆。
+        </p>
+
+        <!-- 類別篩選膠囊 -->
+        <div class="duty-filter-bar" id="reports-filter-bar">
+          <!-- 由 JS renderReportsView 動態渲染 -->
+        </div>
+
+        <!-- 回報清單列表容器 -->
+        <div class="reports-list-grid" id="reports-list-container">
+          <!-- 由 JS 動態渲染回報卡片 -->
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -611,7 +643,10 @@
           <div class="form-group">
             <label for="login-password">密碼</label>
             <input type="password" id="login-password" class="form-control" placeholder="預設密碼同為學號" required autocomplete="current-password">
-            <span class="form-hint" style="color: #c1121f; font-weight: 600;">🔒 忘記密碼請聯繫 13055</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.35rem;">
+              <span class="form-hint" style="color: #64748b; font-size: 0.75rem;">🔒 預設密碼同為學號</span>
+              <button type="button" class="btn-link-forgot" onclick="APP.handleForgotPasswordClick()" style="background:none; border:none; color:#c1121f; font-size:0.78rem; font-weight:700; cursor:pointer; text-decoration:underline; padding:0;">忘記密碼？點此申請重設 →</button>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -868,7 +903,93 @@
     </div>
   </div>
 
+  <!-- 5. 問題回報與密碼重設申請彈窗 (Submit Report Modal) -->
+  <div class="modal-overlay" id="modal-submit-report">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="submit-report-modal-title">✍️ 提交問題回報 / 密碼重設申請</h3>
+        <button class="modal-close-btn" onclick="APP.closeModal('modal-submit-report')">&times;</button>
+      </div>
+      <form id="form-submit-report" onsubmit="APP.handleSubmitReport(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="report-type">回報類別 <span style="color: #ef4444;">*</span></label>
+            <select id="report-type" class="form-control" onchange="APP.handleReportTypeChange(this.value)">
+              <option value="forgot_password">🔒 忘記密碼申請 (申請重設為預設學號)</option>
+              <option value="feedback">💡 系統建議與回饋</option>
+              <option value="bug">🐛 系統錯誤回報 (Bug Report)</option>
+              <option value="profile_fix">📝 個人資料修正申請</option>
+              <option value="other">💬 其他問題</option>
+            </select>
+          </div>
 
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group">
+              <label for="report-author-id">申請人學號 (ID) <span style="color: #ef4444;">*</span></label>
+              <input type="text" id="report-author-id" class="form-control" placeholder="例：13008" required>
+            </div>
+            <div class="form-group">
+              <label for="report-author-name">申請人姓名 / 稱呼</label>
+              <input type="text" id="report-author-name" class="form-control" placeholder="例：陳小豪">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="report-title">回報標題 <span style="color: #ef4444;">*</span></label>
+            <input type="text" id="report-title" class="form-control" placeholder="簡短描述問題主旨" required>
+          </div>
+
+          <div class="form-group">
+            <label for="report-content">詳細說明與內文 <span style="color: #ef4444;">*</span></label>
+            <textarea id="report-content" class="form-control" rows="4" placeholder="請詳細說明遇到的問題、忘記密碼原因或改善建議..." required></textarea>
+          </div>
+
+          <div id="forgot-password-tip-box" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-sm); padding: 0.65rem 0.85rem; font-size: 0.8rem; color: #b91c1c; line-height: 1.4;">
+            💡 <strong>忘記密碼處理說明：</strong> 管理員收到申請後，會將您的密碼恢復為「預設學號」，您便可重新登入並自訂新密碼。
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="APP.closeModal('modal-submit-report')">取消</button>
+          <button type="submit" class="btn-primary" id="btn-submit-report">確認送出申請</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5.5 管理員處理與官方回覆彈窗 (Admin Reply Modal - 13055 Only) -->
+  <div class="modal-overlay" id="modal-admin-reply-report">
+    <div class="modal-card" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3>👑 管理員處理與官方回覆</h3>
+        <button class="modal-close-btn" onclick="APP.closeModal('modal-admin-reply-report')">&times;</button>
+      </div>
+      <form id="form-admin-reply" onsubmit="APP.handleSaveAdminReply(event)">
+        <input type="hidden" id="admin-reply-report-id">
+        <div class="modal-body">
+          <div id="admin-reply-target-summary" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 0.75rem; font-size: 0.84rem; margin-bottom: 1rem; color: #334155;">
+            <!-- 回報標題與作者摘要 -->
+          </div>
+
+          <div class="form-group">
+            <label for="admin-reply-status">處理狀態</label>
+            <select id="admin-reply-status" class="form-control">
+              <option value="resolved">✅ 已處理完成 (Resolved)</option>
+              <option value="pending">⏳ 處理中 / 待確認 (Pending)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="admin-reply-text">官方回覆內容</label>
+            <textarea id="admin-reply-text" class="form-control" rows="3" placeholder="輸入要回覆給該弟兄的說明或處理進度..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="APP.closeModal('modal-admin-reply-report')">取消</button>
+          <button type="submit" class="btn-primary" id="btn-save-admin-reply">確認送出回覆</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- 6. 弟兄名片詳情彈窗 / 手機版平滑戰術抽屜 (Member Detail Bottom Sheet / Drawer) -->
   <div class="modal-overlay bottom-sheet-overlay" id="modal-member-detail" onclick="if(event.target===this) APP.closeModal('modal-member-detail')">
@@ -890,9 +1011,9 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- 載入核心腳本 (循序載入) -->
-  <script src="js/config.js?v=3.3.13"></script>
-  <script src="js/mockData.js?v=3.3.13"></script>
-  <script src="js/api.js?v=3.3.13"></script>
-  <script src="js/app.js?v=3.3.13"></script>
+  <script src="js/config.js?v=3.3.14"></script>
+  <script src="js/mockData.js?v=3.3.14"></script>
+  <script src="js/api.js?v=3.3.14"></script>
+  <script src="js/app.js?v=3.3.14"></script>
 </body>
 </html>

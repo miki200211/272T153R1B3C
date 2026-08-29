@@ -181,6 +181,36 @@ const MOCK_DATA = {
     }
 
     return members;
+  },
+
+  // 取得預設問題回報與忘記密碼清單
+  getInitialReports() {
+    return [
+      {
+        report_id: 1,
+        type: 'forgot_password',
+        author_id: '13008',
+        author_name: '陳小豪',
+        title: '【忘記密碼申請】學號 #13008 (陳小豪)',
+        content: '之前自訂的新密碼忘記了，請求管理員協助將密碼重設為預設學號，謝謝！',
+        status: 'pending',
+        admin_reply: '',
+        created_at: '2026-08-28 15:30',
+        updated_at: '2026-08-28 15:30'
+      },
+      {
+        report_id: 2,
+        type: 'feedback',
+        author_id: '13024',
+        author_name: '林俊宇',
+        title: '紀念冊介面超讚！建議大兵日記可以增加表情符號',
+        content: '紀念冊操作很流暢，雙面翻轉照片也很帥！希望莒光日記心得留言也能支援更多貼圖表情！',
+        status: 'resolved',
+        admin_reply: '感謝建議！已於最新版本持續優化介面與互動功能！',
+        created_at: '2026-08-27 19:20',
+        updated_at: '2026-08-27 20:00'
+      }
+    ];
   }
 };
 

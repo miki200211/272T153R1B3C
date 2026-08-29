@@ -135,6 +135,7 @@ const API = {
         const cadres = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.CADRES_CACHE) || '[]');
         const legends = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.LEGENDS_CACHE) || '[]');
         const diaries = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.DIARIES_CACHE) || '[]');
+        const reports = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.REPORTS_CACHE) || '[]');
         return {
           success: true,
           data: {
@@ -149,7 +150,8 @@ const API = {
               return copy;
             }),
             legends,
-            diaries
+            diaries,
+            reports
           }
         };
       }
@@ -360,6 +362,69 @@ const API = {
         }
       }
 
+      case 'getReports': {
+        const reports = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.REPORTS_CACHE) || '[]');
+        reports.sort((a, b) => (b.report_id || 0) - (a.report_id || 0));
+        return { success: true, data: reports };
+      }
+
+      case 'submitReport': {
+        const { type, author_id, author_name, title, content } = payload;
+        const reports = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.REPORTS_CACHE) || '[]');
+        const now = new Date();
+        const nowStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        const newReport = {
+          report_id: reports.length + 1,
+          type: type || 'feedback',
+          author_id: author_id || '',
+          author_name: author_name || '',
+          title: title || '',
+          content: content || '',
+          status: 'pending',
+          admin_reply: '',
+          created_at: nowStr,
+          updated_at: nowStr
+        };
+        reports.unshift(newReport);
+        localStorage.setItem(CONFIG.STORAGE_KEYS.REPORTS_CACHE, JSON.stringify(reports));
+        return { success: true, data: newReport, message: '問題回報/密碼申請已成功送出！' };
+      }
+
+      case 'replyReport': {
+        const { report_id, admin_reply, status } = payload;
+        const reports = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.REPORTS_CACHE) || '[]');
+        const target = reports.find(r => String(r.report_id) === String(report_id));
+        if (!target) return { success: false, message: `查無此回報 #${report_id}` };
+        const now = new Date();
+        const nowStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        target.admin_reply = admin_reply || '';
+        target.status = status || 'resolved';
+        target.updated_at = nowStr;
+        localStorage.setItem(CONFIG.STORAGE_KEYS.REPORTS_CACHE, JSON.stringify(reports));
+        return { success: true, data: target, message: `已成功回覆回報 #${report_id}！` };
+      }
+
+      case 'resetPasswordByReport': {
+        const { report_id, target_id } = payload;
+        const members = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.MEMBERS_CACHE) || '[]');
+        const mIdx = members.findIndex(m => String(m.id) === String(target_id));
+        if (mIdx !== -1) {
+          members[mIdx].password = target_id;
+          localStorage.setItem(CONFIG.STORAGE_KEYS.MEMBERS_CACHE, JSON.stringify(members));
+        }
+        const reports = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.REPORTS_CACHE) || '[]');
+        const target = reports.find(r => String(r.report_id) === String(report_id));
+        const now = new Date();
+        const nowStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        if (target) {
+          target.admin_reply = `已於 ${nowStr} 由管理員重設密碼為預設學號 #${target_id}，請重新登入！`;
+          target.status = 'resolved';
+          target.updated_at = nowStr;
+          localStorage.setItem(CONFIG.STORAGE_KEYS.REPORTS_CACHE, JSON.stringify(reports));
+        }
+        return { success: true, message: `已成功將學號 #${target_id} 密碼重設為預設！` };
+      }
+
       default:
         return { success: false, message: `未知的操作類型: ${action}` };
     }
@@ -432,6 +497,25 @@ const API = {
 
   async getTimeline() {
     return this.sendGasRequest('getTimeline');
+  },
+
+  async getReports() {
+    return this.sendGasRequest('getReports');
+  },
+
+  async submitReport(reportData) {
+    this.invalidateCache();
+    return this.sendGasRequest('submitReport', reportData);
+  },
+
+  async replyReport(replyData) {
+    this.invalidateCache();
+    return this.sendGasRequest('replyReport', replyData);
+  },
+
+  async resetPasswordByReport(resetData) {
+    this.invalidateCache();
+    return this.sendGasRequest('resetPasswordByReport', resetData);
   }
 };
 
