@@ -1741,32 +1741,45 @@ const APP = {
   },
 
   playRollCallAnimation() {
-    const nodes = document.querySelectorAll('.soldier-head-node');
-    if (!nodes || nodes.length === 0) return;
-
     this.showToast('📢 全連注意！開始點名報數！', 'info');
 
-    // 依序為全連 98 位弟兄彈出報數氣泡
-    let count = 0;
-    nodes.forEach((node, idx) => {
+    // 清除畫面上先前的報數氣泡
+    document.querySelectorAll('.roll-call-bubble').forEach(b => b.remove());
+
+    // 依學號由小到大 (13001 -> 13098) 依序報數 1 ~ 98
+    const totalMembers = 98;
+    let animatedCount = 0;
+
+    for (let idNum = 13001; idNum <= 13098; idNum++) {
+      const currentSeq = idNum - 13001 + 1; // 1 ~ 98
+      const memberId = String(idNum);
+      const node = document.getElementById(`formation-node-${memberId}`);
+      if (!node) continue;
+
       setTimeout(() => {
-        count++;
+        animatedCount++;
+
         // 移除舊氣泡
         const oldBubble = node.querySelector('.roll-call-bubble');
         if (oldBubble) oldBubble.remove();
 
         const bubble = document.createElement('span');
         bubble.className = 'roll-call-bubble';
-        bubble.textContent = `${count}`;
+        bubble.textContent = `${currentSeq}`;
         node.appendChild(bubble);
 
-        setTimeout(() => bubble.remove(), 2200);
+        node.classList.add('active');
 
-        if (count === nodes.length) {
+        setTimeout(() => {
+          bubble.remove();
+          node.classList.remove('active');
+        }, 2200);
+
+        if (currentSeq === totalMembers || animatedCount === totalMembers) {
           this.showToast('🎖️ 報告值星官！步三連全連 98 員到齊！無人缺席！', 'success');
         }
-      }, idx * 25);
-    });
+      }, (currentSeq - 1) * 35);
+    }
   },
 
   showOfficerCadreDetail() {
