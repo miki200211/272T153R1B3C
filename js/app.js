@@ -1431,7 +1431,7 @@ const APP = {
     `;
   },
 
-  // 1.5 連方隊渲染 (連集合場 U 字型隊形：直U直 + 橫；左翼987班頭在下、中央456班頭在右第6員對值星官、右翼123班頭在上、值星官在正上方)
+  // 1.5 講話隊形渲染 (連集合場 U 字型隊伍排列)
   renderFormationView() {
     const container = document.getElementById('formation-view-container');
     if (!container) return;
@@ -1508,18 +1508,14 @@ const APP = {
       `;
     };
 
-    // 1. 左翼直向縱隊 (左邊最外側 9 班[10人]、中間 8 班[11人]、最內側 7 班[11人]；班頭在下方)
+    // 1. 左翼直隊 (9 班、8 班、7 班；班頭在下方)
     const leftSquads = [9, 8, 7];
     const leftWingHtml = leftSquads.map(sNum => {
       const members = squadMap[sNum] || [];
       const dutyName = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[sNum]) || '';
       const dutyIcon = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTY_ICONS && CONFIG.SQUAD_DUTY_ICONS[sNum]) || '👥';
-      const isInner = (sNum === 7);
-      const isOuter = (sNum === 9);
-      const locTag = isInner ? '(內側)' : (isOuter ? '(外側)' : '');
 
       // 班頭在下方：從 11 號 (index 10) 往下排到 1 號班頭 (index 0)
-      // 第 9 班為 10 人，index 10 為空，頂部呈現透明佔位符保持班頭對齊
       let stackHtml = '';
       for (let idx = 10; idx >= 0; idx--) {
         const m = members[idx];
@@ -1531,25 +1527,21 @@ const APP = {
         <div class="squad-vertical-column" id="formation-squad-${sNum}">
           <div class="squad-col-pill" onclick="APP.navigate('squad', ${sNum})" title="切換至第${this.toChineseNum(sNum)}班名冊">
             <div class="squad-col-pill-badge">${dutyIcon} 第 ${this.toChineseNum(sNum)} 班</div>
-            <div class="squad-col-pill-duty">${dutyName} ${locTag}</div>
+            <div class="squad-col-pill-duty">${dutyName}</div>
           </div>
           <div class="squad-col-heads-stack">
             ${stackHtml}
           </div>
-          <div style="font-size:0.58rem; color:var(--tactical-amber); font-weight:800; margin-top:2px;">▲ 班頭在下方</div>
         </div>
       `;
     }).join('');
 
-    // 2. 右翼直向縱隊 (右邊最內側 1 班[11人]、中間 2 班[11人]、最外側 3 班[11人]；班頭在上方)
+    // 2. 右翼直隊 (1 班、2 班、3 班；班頭在上方)
     const rightSquads = [1, 2, 3];
     const rightWingHtml = rightSquads.map(sNum => {
       const members = squadMap[sNum] || [];
       const dutyName = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[sNum]) || '';
       const dutyIcon = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTY_ICONS && CONFIG.SQUAD_DUTY_ICONS[sNum]) || '👥';
-      const isInner = (sNum === 1);
-      const isOuter = (sNum === 3);
-      const locTag = isInner ? '(內側)' : (isOuter ? '(外側)' : '');
 
       // 班頭在上方：從 1 號班頭 (index 0) 往下排到 11 號 (index 10)
       let stackHtml = '';
@@ -1563,9 +1555,8 @@ const APP = {
         <div class="squad-vertical-column" id="formation-squad-${sNum}">
           <div class="squad-col-pill" onclick="APP.navigate('squad', ${sNum})" title="切換至第${this.toChineseNum(sNum)}班名冊">
             <div class="squad-col-pill-badge">${dutyIcon} 第 ${this.toChineseNum(sNum)} 班</div>
-            <div class="squad-col-pill-duty">${dutyName} ${locTag}</div>
+            <div class="squad-col-pill-duty">${dutyName}</div>
           </div>
-          <div style="font-size:0.58rem; color:var(--tactical-amber); font-weight:800; margin-bottom:2px;">▼ 班頭在上方</div>
           <div class="squad-col-heads-stack">
             ${stackHtml}
           </div>
@@ -1573,7 +1564,7 @@ const APP = {
       `;
     }).join('');
 
-    // 3. 中央底側橫向橫隊 (4, 5, 6 班各 11人：班頭在右邊，第 6 員置中正對上方值星官)
+    // 3. 中央橫隊 (4 班、5 班、6 班：班頭在右邊，第 6 員正對上方值星官)
     const centerSquads = [4, 5, 6];
     const centerWingHtml = centerSquads.map(sNum => {
       const members = squadMap[sNum] || [];
@@ -1597,61 +1588,51 @@ const APP = {
           <div class="squad-row-header-right" onclick="APP.navigate('squad', ${sNum})" title="切換至第${this.toChineseNum(sNum)}班名冊">
             <div style="font-size:0.74rem; font-weight:900; color:#fff;">${dutyIcon} 第${this.toChineseNum(sNum)}班</div>
             <div style="font-size:0.62rem; font-weight:700; color:var(--tactical-amber);">${dutyName}</div>
-            <div style="font-size:0.52rem; color:#95a798;">(班頭在右 ➔)</div>
           </div>
         </div>
       `;
     }).join('');
 
     container.innerHTML = `
-      <!-- 連集合場 U 字型操場與排列主體 -->
+      <!-- 連集合場 講話隊形 -->
       <div class="formation-parade-ground">
         
-        <!-- 隊列指示標題橫條 -->
+        <!-- 簡潔指示標題 -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; padding:0 0.5rem; color:#95a798; font-size:0.78rem; font-weight:700; border-bottom:1px dashed var(--tactical-olive-border); padding-bottom:0.65rem; min-width:1080px;">
-          <span>👈 【左側縱隊】三排 (9外[10人], 8中[11人], 7內[11人]・班頭在下方)</span>
-          <span style="color:var(--tactical-amber); font-size:0.85rem;">★ 步一營第三連「連方隊 (連集合場 U 字型隊伍)」・全連 98 員滿編排列 ★</span>
-          <span>【右側縱隊】一排 (1內, 2中, 3外[各11人]・班頭在上方) 👉</span>
+          <span>👈 第三排</span>
+          <span style="color:var(--tactical-amber); font-size:0.85rem;">★ 步一營第三連「講話隊形」★</span>
+          <span>第一排 👉</span>
         </div>
 
         <div class="formation-u-ground">
           
-          <!-- 上半部 (直 U 直) -->
+          <!-- 上半部 -->
           <div class="formation-u-upper">
             
-            <!-- 左翼：第三排 (9, 8, 7 班 縱隊) -->
+            <!-- 左翼：第三排 -->
             <div class="formation-vertical-flank">
               <div class="flank-header">
-                <div class="flank-title">🥉 第三排 (左翼直向縱隊)</div>
-                <div class="flank-subtitle">9班 (外側・10人) ｜ 8班 (中間・11人) ｜ 7班 (內側・11人)・班頭在下方</div>
+                <div class="flank-title">🥉 第三排</div>
               </div>
               <div class="flank-columns-container">
                 ${leftWingHtml}
               </div>
             </div>
 
-            <!-- 中央開口：值星官席位 -->
+            <!-- 中央：值星官席位 -->
             <div class="formation-u-center-stage">
-              <div class="formation-podium" onclick="APP.showOfficerCadreDetail()" title="連值星官">
-                <div class="formation-sash-badge">⭐ 本週部隊值星帶</div>
+              <div class="formation-podium" onclick="APP.showOfficerCadreDetail()" title="值星官">
+                <div class="formation-sash-badge">⭐ 本週值星帶</div>
                 <div class="formation-officer-title">
                   <span>🎖️ 值星官</span>
                 </div>
-                <div class="formation-officer-desc">
-                  📍 連集合場指揮位置
-                </div>
-              </div>
-              <div style="margin-top:2.5rem; color:var(--tactical-amber); font-size:0.75rem; font-weight:800; text-align:center; opacity:0.85;">
-                <div>⬇️ 中軸線對齊 ⬇️</div>
-                <div style="font-size:0.68rem; color:#95a798; margin-top:2px;">(正對下方二排各班第 6 員)</div>
               </div>
             </div>
 
-            <!-- 右翼：第一排 (1, 2, 3 班 縱隊) -->
+            <!-- 右翼：第一排 -->
             <div class="formation-vertical-flank">
               <div class="flank-header">
-                <div class="flank-title">🥇 第一排 (右翼直向縱隊)</div>
-                <div class="flank-subtitle">1班 (內側・11人) ｜ 2班 (中間・11人) ｜ 3班 (外側・11人)・班頭在上方</div>
+                <div class="flank-title">🥇 第一排</div>
               </div>
               <div class="flank-columns-container">
                 ${rightWingHtml}
@@ -1660,12 +1641,11 @@ const APP = {
 
           </div>
 
-          <!-- 下半部 (橫隊)：中央二排 4, 5, 6 班 -->
+          <!-- 下半部：第二排 -->
           <div class="formation-u-bottom">
             <div class="formation-horizontal-base">
               <div class="flank-header">
-                <div class="flank-title">🥈 第二排 (中央底側橫向橫隊)</div>
-                <div class="flank-subtitle">第 4 班 (前・11人) ｜ 第 5 班 (中・11人) ｜ 第 6 班 (後・11人)・班頭在右邊，第 6 員正對值星官</div>
+                <div class="flank-title">🥈 第二排</div>
               </div>
               <div class="horizontal-rows-stack">
                 ${centerWingHtml}
@@ -1720,7 +1700,7 @@ const APP = {
     const nodes = document.querySelectorAll('.soldier-head-node');
     if (!nodes || nodes.length === 0) return;
 
-    this.showToast('📢 全連注意！開始連方隊點名報數！', 'info');
+    this.showToast('📢 全連注意！開始點名報數！', 'info');
 
     // 依序為全連 98 位弟兄彈出報數氣泡
     let count = 0;

@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.3.24">
+  <link rel="stylesheet" href="css/style.css?v=3.3.25">
 </head>
 <body>
 
@@ -103,7 +103,7 @@
           </li>
           <li>
             <button class="nav-item-btn" data-nav="formation" onclick="APP.navigate('formation')">
-              <span class="nav-label">🪖 連方隊 (隊伍排列)</span>
+              <span class="nav-label">🪖 講話隊形</span>
             </button>
           </li>
           <li>
@@ -335,22 +335,21 @@
           </div>
         </div>
 
-        <!-- 連集合場・連方隊隊伍排列 入口推薦橫幅 -->
+        <!-- 講話隊形 入口推薦橫幅 -->
         <div class="tactical-banner-card" onclick="APP.navigate('formation')" style="cursor:pointer; background:linear-gradient(135deg, #1d2a21 0%, #111813 100%); border:1.5px solid var(--tactical-amber); border-radius:var(--radius-md); padding:1.15rem 1.35rem; margin-top:2rem; margin-bottom:1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; box-shadow:0 4px 20px rgba(0,0,0,0.4); transition: transform 0.2s ease, box-shadow 0.2s ease;">
           <div style="display:flex; align-items:center; gap:1rem;">
             <div style="font-size:2.2rem; background:rgba(255,159,28,0.15); width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1.5px solid var(--tactical-amber); flex-shrink:0;">🪖</div>
             <div>
               <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                <h3 style="font-size:1.18rem; font-weight:900; color:#ffffff; margin:0;">🪖 連集合場・連方隊戰術隊形排列</h3>
-                <span class="badge" style="background:var(--tactical-amber); color:#000; font-weight:900; font-size:0.7rem; padding:2px 8px; border-radius:4px;">98人滿編排列</span>
+                <h3 style="font-size:1.18rem; font-weight:900; color:#ffffff; margin:0;">🪖 講話隊形</h3>
               </div>
               <p style="font-size:0.84rem; color:#cbd5cb; margin:0.35rem 0 0; line-height:1.45;">
-                連集合場 U 字型隊形：<strong>左側 9~7 班</strong>（直向縱隊）、<strong>中央 4~6 班</strong>（橫向橫隊，第6員正對值星官）、<strong>右側 1~3 班</strong>（直向縱隊）。觸碰大兵人頭即時知曉姓名！
+                連集合場 講話隊形。觸碰大兵人頭可查看姓名與詳細資訊。
               </p>
             </div>
           </div>
           <button class="btn-primary" style="white-space:nowrap; padding:8px 16px; font-size:0.88rem; font-weight:800; flex-shrink:0;">
-            進入連方隊 ➔
+            進入講話隊形 ➔
           </button>
         </div>
 
@@ -389,12 +388,12 @@
         </div>
       </section>
 
-      <!-- 1.5 連方隊專區 (Formation View - 連集合場戰術隊形) -->
+      <!-- 1.5 講話隊形專區 (Formation View) -->
       <section id="view-formation" class="view-section">
         <div class="section-header">
           <div class="section-header-title">
-            <h2>🪖 連方隊・連集合場 U 字型隊伍排列</h2>
-            <span class="tag">全連 98 位弟兄建制排列</span>
+            <h2>🪖 講話隊形</h2>
+            <span class="tag">連集合場</span>
           </div>
           <div class="toolbar-actions">
             <button class="btn-secondary" onclick="APP.findMyFormationPosition()" style="font-size:0.82rem; padding:6px 12px;" title="在方隊中快速定位我的大兵頭像">
@@ -1052,9 +1051,9 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- 載入核心腳本 (循序載入) -->
-  <script src="js/config.js?v=3.3.24"></script>
-  <script src="js/mockData.js?v=3.3.24"></script>
-  <script src="js/api.js?v=3.3.24"></script>
-  <script src="js/app.js?v=3.3.24"></script>
+  <script src="js/config.js?v=3.3.25"></script>
+  <script src="js/mockData.js?v=3.3.25"></script>
+  <script src="js/api.js?v=3.3.25"></script>
+  <script src="js/app.js?v=3.3.25"></script>
 </body>
 </html>
