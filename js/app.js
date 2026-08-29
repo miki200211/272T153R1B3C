@@ -253,8 +253,39 @@ const APP = {
       6: '洗衣班', 7: '外掃班', 8: '公差班', 9: '公差班'
     };
 
+    // 依學號推算建制班級 (1~8班各11人、9班10人，全連98人)
+    const getSquadFromId = (idStr) => {
+      const num = parseInt(idStr, 10);
+      if (isNaN(num) || num < 13001 || num > 13098) return null;
+      const offset = num - 13001; // 0..97
+      if (offset < 77) {
+        return Math.floor(offset / 11) + 1; // 1~7 班 (每班 11 人)
+      } else if (offset < 88) { // 77..87: 13078 ~ 13088 (共 11 人)
+        return 8; // 第八班 (13078 ~ 13088 共 11 人)
+      } else { // 88..97: 13089 ~ 13098 (共 10 人)
+        return 9; // 第九班 (13089 ~ 13098 共 10 人)
+      }
+    };
+
+    // 依學號推算寢室 (1~10寢每寢9人、第11寢8人)
+    const getRoomFromId = (idStr) => {
+      const num = parseInt(idStr, 10);
+      if (isNaN(num) || num < 13001 || num > 13098) return null;
+      const offset = num - 13001; // 0..97
+      if (offset < 90) {
+        return Math.floor(offset / 9) + 1; // 1~10 寢 (每寢 9 人)
+      } else {
+        return 11; // 11 寢 (8 人)
+      }
+    };
+
     return (rawMembers || []).map(m => {
-      const squadNum = Number(m.squad) || 1;
+      const idStr = String(m.id ?? '').trim();
+      const calculatedSquad = getSquadFromId(idStr);
+      const squadNum = calculatedSquad !== null ? calculatedSquad : (Number(m.squad) || 1);
+      const calculatedRoom = getRoomFromId(idStr);
+      const roomNum = (m.room && Number(m.room) > 0) ? Number(m.room) : (calculatedRoom || 1);
+
       const defaultSquadDuty = squadDutyMap[squadNum] || '一般兵';
       let dutyStr = String(m.duty ?? '').trim();
       if (!dutyStr || dutyStr === '一般兵' || dutyStr === '士兵') {
@@ -265,11 +296,11 @@ const APP = {
 
       return {
         ...m,
-        id: String(m.id ?? '').trim(),
+        id: idStr,
         name: String(m.name ?? '').trim(),
         nickname: String(m.nickname ?? '').trim(),
         squad: squadNum,
-        room: Number(m.room) || 1,
+        room: roomNum,
         duty: dutyStr,
         interests: String(m.interests ?? '').trim(),
         dream: String(m.dream ?? '').trim(),

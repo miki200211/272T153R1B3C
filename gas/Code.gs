@@ -214,6 +214,22 @@ function handleGetAllData(requestData) {
 
   const members = getSheetDataAsObjects(ss.getSheetByName('Members')).map(m => {
     delete m.password;
+    const num = parseInt(m.id, 10);
+    if (!isNaN(num) && num >= 13001 && num <= 13098) {
+      const offset = num - 13001;
+      if (offset < 77) {
+        m.squad = Math.floor(offset / 11) + 1;
+      } else if (offset < 88) {
+        m.squad = 8; // 13078 ~ 13088 (11人)
+      } else {
+        m.squad = 9; // 13089 ~ 13098 (10人)
+      }
+      if (offset < 90) {
+        m.room = Math.floor(offset / 9) + 1;
+      } else {
+        m.room = 11;
+      }
+    }
     return m;
   });
 
