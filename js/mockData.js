@@ -8,24 +8,24 @@ const MOCK_DATA = {
   getInitialCadres() {
     const squadCadres = [
       // 一排幹部 (第一班 ~ 第三班)
-      { id: 'CADRE-01-1', squad: 1, name: '潘品濬', nickname: '品濬班長', rank_level: '上士', duty: '一排 第一班 班長', bio: '精實第一班，紀律嚴明、同甘共苦！' },
-      { id: 'CADRE-01-2', squad: 1, name: '劉映祥', nickname: '映祥副班長', rank_level: '中士', duty: '一排 第一班 副班長', bio: '第一班副班長，生活自律，互助合作！' },
-      { id: 'CADRE-02-1', squad: 2, name: '陳明德', nickname: '明德班長', rank_level: '中士', duty: '一排 第二班 班長', bio: '第二班兄弟團結一致，爭取榮譽！' },
-      { id: 'CADRE-03-1', squad: 3, name: '鄭仁河', nickname: '仁河班長', rank_level: '中士', duty: '一排 第三班 班長', bio: '積極進取，第三班全力以赴！' },
-      { id: 'CADRE-03-2', squad: 3, name: '林晉丞', nickname: '晉丞副班長', rank_level: '中士', duty: '一排 第三班 副班長', bio: '第三班副班長，親愛精誠，圓滿結訓！' },
+      { id: 'CADRE-01-1', squad: 1, name: '潘品濬', nickname: '品濬班長', rank_level: '上士', duty: '一排 第一班 班長 (打飯班)', bio: '精實第一班（打飯班），紀律嚴明、同甘共苦！' },
+      { id: 'CADRE-01-2', squad: 1, name: '劉映祥', nickname: '映祥副班長', rank_level: '中士', duty: '一排 第一班 副班長 (打飯班)', bio: '第一班副班長，生活自律，互助合作！' },
+      { id: 'CADRE-02-1', squad: 2, name: '陳明德', nickname: '明德班長', rank_level: '中士', duty: '一排 第二班 班長 (兵工班)', bio: '第二班（兵工班）兄弟團結一致，爭取榮譽！' },
+      { id: 'CADRE-03-1', squad: 3, name: '鄭仁河', nickname: '仁河班長', rank_level: '中士', duty: '一排 第三班 班長 (器材班)', bio: '積極進取，第三班（器材班）全力以赴！' },
+      { id: 'CADRE-03-2', squad: 3, name: '林晉丞', nickname: '晉丞副班長', rank_level: '中士', duty: '一排 第三班 副班長 (器材班)', bio: '第三班副班長，親愛精誠，圓滿結訓！' },
 
       // 二排幹部 (第四班 ~ 第六班)
-      { id: 'CADRE-04-1', squad: 4, name: '陳臺紳', nickname: '臺紳班長', rank_level: '上士', duty: '二排 第四班 班長', bio: '二排先鋒，第四班頂天立地！' },
-      { id: 'CADRE-04-2', squad: 4, name: '陳皓軒', nickname: '皓軒副班長', rank_level: '下士', duty: '二排 第四班 副班長', bio: '第四班副班長，團結合作，共創佳績！' },
-      { id: 'CADRE-05-1', squad: 5, name: '魏國書', nickname: '國書班長', rank_level: '上士', duty: '二排 第五班 班長', bio: '穩紮穩打，第五班勇往直前！' },
-      { id: 'CADRE-06-1', squad: 6, name: '陳家倫', nickname: '家倫班長', rank_level: '上士', duty: '二排 第六班 班長', bio: '齊心協力，第六班無懈可擊！' },
-      { id: 'CADRE-06-2', squad: 6, name: '林昱辰', nickname: '昱辰副班長', rank_level: '一兵', duty: '二排 第六班 副班長', bio: '第六班副班長，用心服務，同甘共苦！' },
+      { id: 'CADRE-04-1', squad: 4, name: '陳臺紳', nickname: '臺紳班長', rank_level: '上士', duty: '二排 第四班 班長 (資收班)', bio: '二排先鋒，第四班（資收班）頂天立地！' },
+      { id: 'CADRE-04-2', squad: 4, name: '陳皓軒', nickname: '皓軒副班長', rank_level: '下士', duty: '二排 第四班 副班長 (資收班)', bio: '第四班副班長，團結合作，共創佳績！' },
+      { id: 'CADRE-05-1', squad: 5, name: '魏國書', nickname: '國書班長', rank_level: '上士', duty: '二排 第五班 班長 (內掃班)', bio: '穩紮穩打，第五班（內掃班）勇往直前！' },
+      { id: 'CADRE-06-1', squad: 6, name: '陳家倫', nickname: '家倫班長', rank_level: '上士', duty: '二排 第六班 班長 (洗衣班)', bio: '齊心協力，第六班（洗衣班）無懈可擊！' },
+      { id: 'CADRE-06-2', squad: 6, name: '林昱辰', nickname: '昱辰副班長', rank_level: '一兵', duty: '二排 第六班 副班長 (洗衣班)', bio: '第六班副班長，用心服務，同甘共苦！' },
 
       // 三排幹部 (第七班 ~ 第九班)
-      { id: 'CADRE-07-1', squad: 7, name: '鄧兆凱', nickname: '兆凱士官長', rank_level: '士官長', duty: '三排 第七班 班長', bio: '三排榮譽，第七班精益求精！' },
-      { id: 'CADRE-08-1', squad: 8, name: '程祖儀', nickname: '祖儀班長', rank_level: '上士', duty: '三排 第八班 班長', bio: '堅持到底，第八班追求卓越！' },
-      { id: 'CADRE-09-1', squad: 9, name: '王韋傑', nickname: '韋傑班長', rank_level: '上士', duty: '三排 第九班 班長', bio: '全力衝刺，第九班榮耀同行！' },
-      { id: 'CADRE-09-2', squad: 9, name: '顏仕庭', nickname: '仕庭副班長', rank_level: '下士', duty: '三排 第九班 副班長', bio: '第九班副班長，堅持到底，榮譽結訓！' }
+      { id: 'CADRE-07-1', squad: 7, name: '鄧兆凱', nickname: '兆凱士官長', rank_level: '士官長', duty: '三排 第七班 班長 (外掃班)', bio: '三排榮譽，第七班（外掃班）精益求精！' },
+      { id: 'CADRE-08-1', squad: 8, name: '程祖儀', nickname: '祖儀班長', rank_level: '上士', duty: '三排 第八班 班長 (公差班)', bio: '堅持到底，第八班（公差班）追求卓越！' },
+      { id: 'CADRE-09-1', squad: 9, name: '王韋傑', nickname: '韋傑班長', rank_level: '上士', duty: '三排 第九班 班長 (公差班)', bio: '全力衝刺，第九班（公差班）榮耀同行！' },
+      { id: 'CADRE-09-2', squad: 9, name: '顏仕庭', nickname: '仕庭副班長', rank_level: '下士', duty: '三排 第九班 副班長 (公差班)', bio: '第九班副班長，堅持到底，榮譽結訓！' }
     ];
 
     return squadCadres.map((c, i) => ({
@@ -49,19 +49,19 @@ const MOCK_DATA = {
     }));
   },
 
-  // 第一~九 班帶班班長與副班長資訊
+  // 第一~九 班帶班班長與副班長資訊 (含各班公差任務)
   squadLeaders: {
-    1: { name: '潘品濬', rank: '上士', duty: '一排 第一班 班長', assistant: { name: '劉映祥', rank: '中士', duty: '副班長' }, quote: '精實第一班，紀律嚴明、同甘共苦！' },
-    2: { name: '陳明德', rank: '中士', duty: '一排 第二班 班長', assistant: null, quote: '第二班兄弟團結一致，爭取榮譽！' },
-    3: { name: '鄭仁河', rank: '中士', duty: '一排 第三班 班長', assistant: { name: '林晉丞', rank: '中士', duty: '副班長' }, quote: '積極進取，第三班全力以赴！' },
-    4: { name: '陳臺紳', rank: '上士', duty: '二排 第四班 班長', assistant: { name: '陳皓軒', rank: '下士', duty: '副班長' }, quote: '二排先鋒，第四班頂天立地！' },
-    5: { name: '魏國書', rank: '上士', duty: '二排 第五班 班長', assistant: null, quote: '穩紮穩打，第五班勇往直前！' },
-    6: { name: '陳家倫', rank: '上士', duty: '二排 第六班 班長', assistant: { name: '林昱辰', rank: '一兵', duty: '副班長' }, quote: '齊心協力，第六班無懈可擊！' },
-    7: { name: '鄧兆凱', rank: '士官長', duty: '三排 第七班 班長', assistant: null, quote: '三排榮譽，第七班精益求精！' },
-    8: { name: '程祖儀', rank: '上士', duty: '三排 第八班 班長', assistant: null, quote: '堅持到底，第八班追求卓越！' },
-    9: { name: '王韋傑', rank: '上士', duty: '三排 第九班 班長', assistant: { name: '顏仕庭', rank: '下士', duty: '副班長' }, quote: '全力衝刺，第九班榮耀同行！' },
-    10: { name: '劉映祥', rank: '中士', duty: '一排 第一班 副班長 (第十寢帶班幹部)', assistant: null, quote: '第一班副班長，生活自律，互助合作！' },
-    11: { name: '林晉丞', rank: '中士', duty: '一排 第三班 副班長 (第十一寢帶班幹部)', assistant: null, quote: '第三班副班長，親愛精誠，圓滿結訓！' }
+    1: { name: '潘品濬', rank: '上士', duty: '一排 第一班 班長', squadDuty: '打飯班', assistant: { name: '劉映祥', rank: '中士', duty: '副班長' }, quote: '精實第一班（打飯班），紀律嚴明、同甘共苦！' },
+    2: { name: '陳明德', rank: '中士', duty: '一排 第二班 班長', squadDuty: '兵工班', assistant: null, quote: '第二班（兵工班）兄弟團結一致，爭取榮譽！' },
+    3: { name: '鄭仁河', rank: '中士', duty: '一排 第三班 班長', squadDuty: '器材班', assistant: { name: '林晉丞', rank: '中士', duty: '副班長' }, quote: '積極進取，第三班（器材班）全力以赴！' },
+    4: { name: '陳臺紳', rank: '上士', duty: '二排 第四班 班長', squadDuty: '資收班', assistant: { name: '陳皓軒', rank: '下士', duty: '副班長' }, quote: '二排先鋒，第四班（資收班）頂天立地！' },
+    5: { name: '魏國書', rank: '上士', duty: '二排 第五班 班長', squadDuty: '內掃班', assistant: null, quote: '穩紮穩打，第五班（內掃班）勇往直前！' },
+    6: { name: '陳家倫', rank: '上士', duty: '二排 第六班 班長', squadDuty: '洗衣班', assistant: { name: '林昱辰', rank: '一兵', duty: '副班長' }, quote: '齊心協力，第六班（洗衣班）無懈可擊！' },
+    7: { name: '鄧兆凱', rank: '士官長', duty: '三排 第七班 班長', squadDuty: '外掃班', assistant: null, quote: '三排榮譽，第七班（外掃班）精益求精！' },
+    8: { name: '程祖儀', rank: '上士', duty: '三排 第八班 班長', squadDuty: '公差班', assistant: null, quote: '堅持到底，第八班（公差班）追求卓越！' },
+    9: { name: '王韋傑', rank: '上士', duty: '三排 第九班 班長', squadDuty: '公差班', assistant: { name: '顏仕庭', rank: '下士', duty: '副班長' }, quote: '全力衝刺，第九班（公差班）榮耀同行！' },
+    10: { name: '劉映祥', rank: '中士', duty: '一排 第一班 副班長 (第十寢帶班幹部)', squadDuty: '打飯班', assistant: null, quote: '第一班副班長，生活自律，互助合作！' },
+    11: { name: '林晉丞', rank: '中士', duty: '一排 第三班 副班長 (第十一寢帶班幹部)', squadDuty: '器材班', assistant: null, quote: '第三班副班長，親愛精誠，圓滿結訓！' }
   },
 
   // 傳奇版初始資料 (清空由弟兄自行爆料)
@@ -141,9 +141,22 @@ const MOCK_DATA = {
     let roomIndex = 1;
     let inRoomCount = 0;
 
+    const squadDutyMap = {
+      1: '打飯班',
+      2: '兵工班',
+      3: '器材班',
+      4: '資收班',
+      5: '內掃班',
+      6: '洗衣班',
+      7: '外掃班',
+      8: '公差班',
+      9: '公差班'
+    };
+
     for (let squad = 1; squad <= 9; squad++) {
       // 1~7班 11人, 8班 10人, 9班 11人 = 98人
       const squadCount = (squad === 8) ? 10 : 11;
+      const squadDuty = squadDutyMap[squad] || '一般兵';
 
       for (let i = 0; i < squadCount; i++) {
         const id = String(currentIdNum);
@@ -156,7 +169,7 @@ const MOCK_DATA = {
           inRoomCount = 0;
         }
 
-        // 所有個人資料留空，待弟兄登入後自行填寫與上傳
+        // 所有個人資料留空，預設帶入各班建制公差
         members.push({
           id: id,
           password: id, // 預設密碼同學號
@@ -164,7 +177,7 @@ const MOCK_DATA = {
           nickname: '',  // 綽號待填寫
           squad: squad,
           room: room,
-          duty: (i === 0) ? '班頭' : '一般兵',
+          duty: (i === 0) ? `班頭 / ${squadDuty}` : squadDuty,
           interests: '', // 個人興趣/專長
           dream: '',     // 未來夢想/目標
           ig: '',

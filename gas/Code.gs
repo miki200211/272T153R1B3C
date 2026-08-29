@@ -912,10 +912,21 @@ function setupDatabase(targetSs) {
   let idNum = 13001;
   let roomIdx = 1;
   let inRoom = 0;
-  const memberRows = [];
+  const squadDutyMap = {
+    1: '打飯班',
+    2: '兵工班',
+    3: '器材班',
+    4: '資收班',
+    5: '內掃班',
+    6: '洗衣班',
+    7: '外掃班',
+    8: '公差班',
+    9: '公差班'
+  };
 
   for (let sq = 1; sq <= 9; sq++) {
     const count = (sq === 8) ? 10 : 11;
+    const squadDuty = squadDutyMap[sq] || '一般兵';
     for (let i = 0; i < count; i++) {
       const id = String(idNum);
       const room = roomIdx;
@@ -925,8 +936,9 @@ function setupDatabase(targetSs) {
         inRoom = 0;
       }
 
-      // 全部空白，由弟兄登入後填寫與上傳雙照片 (含 bio 結訓感言, self_intro 自我介紹)
-      memberRows.push([id, id, '', '', sq, room, (i === 0) ? '班頭' : '一般兵', '', '', '', '', '', '', '', '', '']);
+      // 全部空白，預設帶入各班建制公差 (含 bio 結訓感言, self_intro 自我介紹)
+      const dutyVal = (i === 0) ? `班頭 / ${squadDuty}` : squadDuty;
+      memberRows.push([id, id, '', '', sq, room, dutyVal, '', '', '', '', '', '', '', '', '']);
       idNum++;
     }
   }

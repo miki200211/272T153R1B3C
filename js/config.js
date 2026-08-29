@@ -12,6 +12,31 @@ const CONFIG = {
   // Google Apps Script (GAS) 部署 Web App URL
   DEFAULT_GAS_API_URL: 'https://script.google.com/macros/s/AKfycbzOMOUax5iBiAinnxicDrStVsIpcaMqZCBZH_7aWlCmyW1vuZsoWMd4UnxIV-X5R9jnRQ/exec',
 
+  // 各班建制公差與任務對照表 (一班打飯、二班兵工、三班器材、四班資收、五班內掃、六班洗衣、七班外掃、八班公差、九班公差)
+  SQUAD_DUTIES: {
+    1: '打飯班',
+    2: '兵工班',
+    3: '器材班',
+    4: '資收班',
+    5: '內掃班',
+    6: '洗衣班',
+    7: '外掃班',
+    8: '公差班',
+    9: '公差班'
+  },
+
+  SQUAD_DUTY_ICONS: {
+    1: '🍚',
+    2: '🛠️',
+    3: '🏋️',
+    4: '♻️',
+    5: '🧹',
+    6: '👕',
+    7: '🌿',
+    8: '⚡',
+    9: '⚡'
+  },
+
   // LocalStorage 鍵名
   STORAGE_KEYS: {
     GAS_URL: '153r1b3c_gas_api_url',

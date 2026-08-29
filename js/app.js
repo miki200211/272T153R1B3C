@@ -248,23 +248,39 @@ const APP = {
 
   // 資料型別安全正規化處理 (確保 id 為字串、squad/room 為數字，避免 GAS 數值型別導致呼叫 substring 錯誤)
   normalizeMembers(rawMembers) {
-    return (rawMembers || []).map(m => ({
-      ...m,
-      id: String(m.id ?? '').trim(),
-      name: String(m.name ?? '').trim(),
-      nickname: String(m.nickname ?? '').trim(),
-      squad: Number(m.squad) || 1,
-      room: Number(m.room) || 1,
-      duty: String(m.duty ?? '一般兵').trim(),
-      interests: String(m.interests ?? '').trim(),
-      dream: String(m.dream ?? '').trim(),
-      ig: String(m.ig ?? '').trim(),
-      line: String(m.line ?? '').trim(),
-      bio: String(m.bio ?? m.graduation_quote ?? '').trim(), // 💬 結訓感言 (原本的 bio 欄位，外層卡片展示)
-      self_intro: String(m.self_intro ?? m.intro ?? m.dossier_bio ?? '').trim(), // 📝 個人自我介紹 (新增在 Excel 的 self_intro 欄位，點進檔案才展示)
-      avatar_military: this.formatImageUrl(m.avatar_military || m.avatar_url || ''),
-      avatar_civilian: this.formatImageUrl(m.avatar_civilian || '')
-    }));
+    const squadDutyMap = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES) ? CONFIG.SQUAD_DUTIES : {
+      1: '打飯班', 2: '兵工班', 3: '器材班', 4: '資收班', 5: '內掃班',
+      6: '洗衣班', 7: '外掃班', 8: '公差班', 9: '公差班'
+    };
+
+    return (rawMembers || []).map(m => {
+      const squadNum = Number(m.squad) || 1;
+      const defaultSquadDuty = squadDutyMap[squadNum] || '一般兵';
+      let dutyStr = String(m.duty ?? '').trim();
+      if (!dutyStr || dutyStr === '一般兵' || dutyStr === '士兵') {
+        dutyStr = defaultSquadDuty;
+      } else if (dutyStr === '班頭') {
+        dutyStr = `班頭 / ${defaultSquadDuty}`;
+      }
+
+      return {
+        ...m,
+        id: String(m.id ?? '').trim(),
+        name: String(m.name ?? '').trim(),
+        nickname: String(m.nickname ?? '').trim(),
+        squad: squadNum,
+        room: Number(m.room) || 1,
+        duty: dutyStr,
+        interests: String(m.interests ?? '').trim(),
+        dream: String(m.dream ?? '').trim(),
+        ig: String(m.ig ?? '').trim(),
+        line: String(m.line ?? '').trim(),
+        bio: String(m.bio ?? m.graduation_quote ?? '').trim(), // 💬 結訓感言 (原本的 bio 欄位，外層卡片展示)
+        self_intro: String(m.self_intro ?? m.intro ?? m.dossier_bio ?? '').trim(), // 📝 個人自我介紹 (新增在 Excel 的 self_intro 欄位，點進檔案才展示)
+        avatar_military: this.formatImageUrl(m.avatar_military || m.avatar_url || ''),
+        avatar_civilian: this.formatImageUrl(m.avatar_civilian || '')
+      };
+    });
   },
 
   normalizeCadres(rawCadres) {
@@ -546,13 +562,15 @@ const APP = {
       grid.innerHTML = squads.map(num => {
         const isActive = (this.currentView === 'squad' && this.selectedSquad === num);
         const leader = MOCK_DATA.squadLeaders[num] || { name: '帶班班長', rank: '帶班幹部' };
+        const dutyName = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[num]) || '';
+        const dutyIcon = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTY_ICONS && CONFIG.SQUAD_DUTY_ICONS[num]) || '👥';
         const leaderText = `🎖️ 班長：${leader.rank || ''} ${leader.name || ''}`;
-        const countText = (num === 8) ? '10 人滿編' : '11 人滿編';
+        const countText = (num === 8) ? '10 人' : '11 人';
         return `
           <div class="selector-card-item ${isActive ? 'active' : ''}" onclick="APP.selectSquad(${num})">
-            <div class="selector-card-title">👥 第 ${this.toChineseNum(num)} 班</div>
+            <div class="selector-card-title">${dutyIcon} 第 ${this.toChineseNum(num)} 班・${dutyName}</div>
             <div class="selector-card-subtitle" style="font-size:0.75rem;">${this.escapeHtml(leaderText)}</div>
-            <div class="selector-card-badge">${countText}</div>
+            <div class="selector-card-badge">${countText}滿編</div>
           </div>
         `;
       }).join('');
@@ -1384,7 +1402,9 @@ const APP = {
     if (squadNum >= 1 && squadNum <= 3) platoonName = '一排';
     else if (squadNum >= 4 && squadNum <= 6) platoonName = '二排';
     else if (squadNum >= 7 && squadNum <= 9) platoonName = '三排';
-    const squadName = squadNum > 0 ? `第${this.toChineseNum(squadNum)}班` : '連部';
+    
+    const squadDuty = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[squadNum]) ? ` (${CONFIG.SQUAD_DUTIES[squadNum]})` : '';
+    const squadName = squadNum > 0 ? `第${this.toChineseNum(squadNum)}班${squadDuty}` : '連部';
     const isAssistant = String(cadre.duty || '').includes('副');
     const roleTag = isAssistant ? '🛡️ 副班長' : '⚔️ 班長';
     const rankTitle = cadre.rank_level || '幹部';
@@ -1491,7 +1511,8 @@ const APP = {
       });
 
       if (titleEl) {
-        titleEl.textContent = `第 ${this.toChineseNum(squadNum)} 班 成員名冊`;
+        const squadDuty = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[squadNum]) ? `・${CONFIG.SQUAD_DUTIES[squadNum]}` : '';
+        titleEl.textContent = `第 ${this.toChineseNum(squadNum)} 班${squadDuty} 成員名冊`;
       }
 
       if (countTag) {
@@ -1527,13 +1548,14 @@ const APP = {
       const dutyList = [
         { key: 'ALL', label: '全部職位 (ALL)' },
         { key: '班頭', label: '🎖️ 班頭' },
-        { key: '射擊', label: '🎯 射擊手' },
-        { key: '器材', label: '📦 器材班' },
-        { key: '軍械', label: '🔫 軍械班' },
-        { key: '打飯', label: '🍚 打飯班' },
-        { key: '福委', label: '💳 福委' },
-        { key: '查哨', label: '🔦 查哨' },
-        { key: '一般兵', label: '🪖 一般兵' }
+        { key: '打飯', label: '🍚 打飯班 (1班)' },
+        { key: '兵工', label: '🛠️ 兵工班 (2班)' },
+        { key: '器材', label: '🏋️ 器材班 (3班)' },
+        { key: '資收', label: '♻️ 資收班 (4班)' },
+        { key: '內掃', label: '🧹 內掃班 (5班)' },
+        { key: '洗衣', label: '👕 洗衣班 (6班)' },
+        { key: '外掃', label: '🌿 外掃班 (7班)' },
+        { key: '公差', label: '⚡ 公差班 (8/9班)' }
       ];
 
       dutyFilterBar.innerHTML = dutyList.map(item => {
@@ -1550,10 +1572,12 @@ const APP = {
     if (squadPillBar) {
       squadPillBar.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
         const isActive = (!isSearching && num === squadNum);
+        const dutyName = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[num]) || '';
+        const dutyIcon = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTY_ICONS && CONFIG.SQUAD_DUTY_ICONS[num]) || '🎖️';
         return `
-          <button class="quick-pill-item ${isActive ? 'active' : ''}" onclick="APP.selectSquadFromPill(${num})" title="切換至第${this.toChineseNum(num)}班">
+          <button class="quick-pill-item ${isActive ? 'active' : ''}" onclick="APP.selectSquadFromPill(${num})" title="切換至第${this.toChineseNum(num)}班 (${dutyName})">
             <span>第${this.toChineseNum(num)}班</span>
-            <span class="pill-badge">${(num === 8) ? '10人' : '11人'}</span>
+            <span class="pill-badge">${dutyIcon} ${dutyName}</span>
           </button>
         `;
       }).join('');
@@ -3597,7 +3621,7 @@ const APP = {
             <!-- 戰術中繼徽章 -->
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin-top:0.35rem;">
               <span class="dossier-code-chip" style="font-size:0.75rem;">ID #${cleanId}</span>
-              <span class="dossier-squad-chip" style="font-size:0.75rem;">SQD 0${member.squad}・第${this.toChineseNum(member.squad)}班</span>
+              <span class="dossier-squad-chip" style="font-size:0.75rem;">SQD 0${member.squad}・第${this.toChineseNum(member.squad)}班 (${(typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[member.squad]) || ''})</span>
               <span class="dossier-room-chip" style="font-size:0.75rem;">RM 0${member.room}・第${this.toChineseNum(member.room)}寢</span>
               <span class="dossier-duty-tag" style="font-size:0.75rem;">🎖️ ${this.escapeHtml(member.duty || '一般兵')}</span>
             </div>
