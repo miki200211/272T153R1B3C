@@ -3989,3 +3989,403 @@ textarea.form-control {
     font-size: 0.68rem;
   }
 }
+
+/* ==========================================================================
+   連方隊 (Company Formation) - 連集合場戰術隊形排隊樣式
+   ========================================================================== */
+
+.formation-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* 操場地表與戰術格線 (Parade Ground Tactical Turf / Asphalt) */
+.formation-parade-ground {
+  background: radial-gradient(circle at 50% 12%, #1e2a22 0%, #0e140f 100%);
+  border: 1.5px solid var(--tactical-olive-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1rem 2rem;
+  position: relative;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.7), 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* 連集合場標線與透視戰術感 */
+.formation-parade-ground::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(to right, rgba(74, 88, 68, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(74, 88, 68, 0.12) 1px, transparent 1px);
+  background-size: 30px 30px;
+  pointer-events: none;
+}
+
+/* 頂部司令台與值星官 (Duty Officer Stage Area) */
+.formation-officer-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2.25rem;
+  position: relative;
+  z-index: 20;
+}
+
+.formation-podium {
+  background: linear-gradient(135deg, #243026 0%, #17211a 100%);
+  border: 2px solid var(--tactical-amber);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.75rem;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  box-shadow: 0 0 24px var(--tactical-amber-glow);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+}
+
+.formation-podium:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 32px rgba(255, 159, 28, 0.7);
+}
+
+.formation-sash-badge {
+  background: linear-gradient(90deg, #dc2626 0%, #ffffff 50%, #2563eb 100%);
+  color: #000;
+  font-weight: 900;
+  font-size: 0.72rem;
+  padding: 2px 12px;
+  border-radius: 999px;
+  letter-spacing: 1px;
+  margin-bottom: 0.35rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.formation-officer-title {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.formation-officer-desc {
+  font-size: 0.75rem;
+  color: var(--tactical-amber);
+  margin-top: 0.25rem;
+  font-weight: 700;
+}
+
+/* 戰術分隊排組 (Three Wings: 7~9班 左, 4~6班 中, 1~3班 右) */
+.formation-wings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(290px, 1fr));
+  gap: 1.25rem;
+  min-width: 920px; /* 確保 9 個班在桌面與橫向滾動時完整縱向對齊 */
+  position: relative;
+  z-index: 10;
+}
+
+.platoon-wing {
+  background: rgba(18, 25, 20, 0.78);
+  border: 1px solid rgba(74, 88, 68, 0.5);
+  border-radius: var(--radius-md);
+  padding: 1rem 0.65rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  backdrop-filter: blur(4px);
+}
+
+.platoon-wing-header {
+  text-align: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1.5px dashed var(--tactical-olive-border);
+}
+
+.platoon-wing-title {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--tactical-amber);
+  letter-spacing: 0.5px;
+}
+
+.platoon-wing-subtitle {
+  font-size: 0.72rem;
+  color: #95a798;
+  margin-top: 0.2rem;
+  font-weight: 600;
+}
+
+/* 一個排組內的 3 個班 (3 縱隊) */
+.platoon-squads-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+}
+
+.squad-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.squad-col-header {
+  background: var(--tactical-charcoal-elevated);
+  border: 1px solid var(--tactical-olive-border);
+  border-radius: 6px;
+  padding: 0.4rem 0.25rem;
+  width: 100%;
+  text-align: center;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #f1f5f2;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.squad-col-duty {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--tactical-amber);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+/* 班兵人頭節點 (Soldier Head Node) */
+.soldier-head-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  padding: 4px 2px;
+  border-radius: 8px;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s ease;
+  user-select: none;
+  width: 100%;
+}
+
+.soldier-head-node:hover, .soldier-head-node.active {
+  transform: scale(1.18);
+  z-index: 60;
+}
+
+.soldier-avatar-bubble {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #4a5844;
+  background: #19211b;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.6);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.soldier-head-node.is-leader .soldier-avatar-bubble {
+  border: 2.5px solid #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.55);
+}
+
+.soldier-head-node.is-current-user .soldier-avatar-bubble {
+  border: 3px solid #22c55e;
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.85);
+  animation: pulse-me 1.8s infinite;
+}
+
+@keyframes pulse-me {
+  0% { box-shadow: 0 0 6px rgba(34, 197, 94, 0.6); }
+  50% { box-shadow: 0 0 22px rgba(34, 197, 94, 1); }
+  100% { box-shadow: 0 0 6px rgba(34, 197, 94, 0.6); }
+}
+
+.soldier-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.soldier-helmet-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.soldier-head-name {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #e2e8f0;
+  text-align: center;
+  max-width: 64px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 3px;
+}
+
+.soldier-head-seq {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.soldier-leader-badge {
+  position: absolute;
+  top: -2px;
+  right: 6px;
+  background: #f59e0b;
+  color: #000;
+  font-size: 0.55rem;
+  font-weight: 900;
+  padding: 1px 4px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  line-height: 1;
+  z-index: 2;
+}
+
+.soldier-me-badge {
+  position: absolute;
+  bottom: 22px;
+  left: 6px;
+  background: #22c55e;
+  color: #000;
+  font-size: 0.55rem;
+  font-weight: 900;
+  padding: 1px 4px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  line-height: 1;
+  z-index: 2;
+}
+
+/* 懸停與觸碰戰術 HUD Tooltip */
+.formation-soldier-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0d120e;
+  border: 1.5px solid var(--tactical-amber);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.85rem;
+  min-width: 180px;
+  max-width: 240px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.85);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 100;
+  text-align: left;
+}
+
+.soldier-head-node:hover .formation-soldier-tooltip,
+.soldier-head-node.active .formation-soldier-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.formation-soldier-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--tactical-amber) transparent transparent transparent;
+}
+
+.tooltip-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-bottom: 1px solid rgba(255, 159, 28, 0.3);
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
+}
+
+.tooltip-name {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.tooltip-id {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--tactical-amber);
+  font-weight: 700;
+}
+
+.tooltip-body-row {
+  font-size: 0.74rem;
+  color: #cbd5cb;
+  line-height: 1.45;
+}
+
+.tooltip-tap-hint {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  margin-top: 0.35rem;
+  border-top: 1px dashed rgba(255,255,255,0.15);
+  padding-top: 0.25rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* 報數專用動畫徽章 */
+.roll-call-bubble {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) scale(1.25);
+  background: #ef4444;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-weight: 900;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+  animation: pop-bubble 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 70;
+}
+
+@keyframes pop-bubble {
+  0% { transform: translateX(-50%) scale(0.4); opacity: 0; }
+  60% { transform: translateX(-50%) scale(1.35); opacity: 1; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+/* 連方隊手機版底部即時選中同袍橫條 */
+.formation-bottom-active-card {
+  position: sticky;
+  bottom: 60px;
+  background: var(--tactical-charcoal-card);
+  border: 1.5px solid var(--tactical-amber);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.6);
+  z-index: 40;
+  margin-top: 1rem;
+}
+

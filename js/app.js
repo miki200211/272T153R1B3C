@@ -482,6 +482,11 @@ const APP = {
       if (homeSec) homeSec.classList.add('active');
       this.setActiveNavBtn('home');
       this.renderHomeView();
+    } else if (viewName === 'formation') {
+      const formationSec = document.getElementById('view-formation');
+      if (formationSec) formationSec.classList.add('active');
+      this.setActiveNavBtn('formation');
+      this.renderFormationView();
     } else if (viewName === 'cadres') {
       const cadresSec = document.getElementById('view-cadres');
       if (cadresSec) cadresSec.classList.add('active');
@@ -1424,6 +1429,261 @@ const APP = {
         </div>
       </div>
     `;
+  },
+
+  // 1.5 連方隊渲染 (連集合場戰術隊形：右邊 1~3 班、中間 4~6 班、左方 7~9 班，前方中央值星官)
+  renderFormationView() {
+    const container = document.getElementById('formation-view-container');
+    if (!container) return;
+
+    // 確保有成員資料
+    if (!this.allMembers || this.allMembers.length === 0) {
+      this.allMembers = this.normalizeMembers(MOCK_DATA.getInitialMembers());
+    }
+
+    // 依班級分組 (1~9 班)
+    const squadMap = {};
+    for (let s = 1; s <= 9; s++) {
+      squadMap[s] = [];
+    }
+    this.allMembers.forEach(m => {
+      const sq = Number(m.squad) || 1;
+      if (squadMap[sq]) squadMap[sq].push(m);
+    });
+
+    // 排序各班 (依學號排序，第一位即為班頭)
+    for (let s = 1; s <= 9; s++) {
+      squadMap[s].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+    }
+
+    // 定義三大排組 (從司令台面向視角：左翼三排 7~9班、中央二排 4~6班、右翼一排 1~3班)
+    const wings = [
+      {
+        id: 3,
+        name: '第三排 (左翼)',
+        badge: '🥉 三排',
+        squads: [7, 8, 9],
+        sub: '第 7 班 (外掃) ・ 第 8 班 (公差) ・ 第 9 班 (公差)'
+      },
+      {
+        id: 2,
+        name: '第二排 (中央)',
+        badge: '🥈 二排',
+        squads: [4, 5, 6],
+        sub: '第 4 班 (資收) ・ 第 5 班 (內掃) ・ 第 6 班 (洗衣)'
+      },
+      {
+        id: 1,
+        name: '第一排 (右翼)',
+        badge: '🥇 一排',
+        squads: [1, 2, 3],
+        sub: '第 1 班 (打飯) ・ 第 2 班 (兵工) ・ 第 3 班 (器材)'
+      }
+    ];
+
+    // 值星官預設
+    const dutyOfficer = {
+      rank: '上士',
+      name: '潘品濬',
+      title: '第一排 第 1 班 班長'
+    };
+
+    let wingsHtml = wings.map(wing => {
+      let squadsHtml = wing.squads.map(sNum => {
+        const members = squadMap[sNum] || [];
+        const dutyName = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[sNum]) || '';
+        const dutyIcon = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTY_ICONS && CONFIG.SQUAD_DUTY_ICONS[sNum]) || '👥';
+
+        // 班級欄位 header
+        let colHeader = `
+          <div class="squad-col-header" onclick="APP.navigate('squad', ${sNum})" style="cursor:pointer;" title="點擊切換至第${this.toChineseNum(sNum)}班名冊">
+            <div>${dutyIcon} 第 ${this.toChineseNum(sNum)} 班</div>
+            <span class="squad-col-duty">${dutyName}</span>
+          </div>
+        `;
+
+        // 班兵節點 (共 11 列，固定行數保持部隊排列對齊)
+        let nodesHtml = '';
+        for (let rowIdx = 0; rowIdx < 11; rowIdx++) {
+          const m = members[rowIdx];
+          if (!m) {
+            // 第 8 班 10 人編制，第 11 列放置透明佔位符保持對齊
+            nodesHtml += `<div style="height:62px; width:100%; opacity:0; pointer-events:none;"></div>`;
+            continue;
+          }
+
+          const isLeader = rowIdx === 0;
+          const isCurrentUser = this.currentUser && String(this.currentUser.id).trim() === String(m.id).trim();
+
+          // 人頭頭像呈現
+          let avatarInner = '';
+          if (m.avatar_military) {
+            avatarInner = `<img src="${this.formatImageUrl(m.avatar_military)}" class="soldier-avatar-img" alt="${this.escapeHtml(m.name)}" loading="lazy">`;
+          } else if (m.avatar_civilian) {
+            avatarInner = `<img src="${this.formatImageUrl(m.avatar_civilian)}" class="soldier-avatar-img" alt="${this.escapeHtml(m.name)}" loading="lazy">`;
+          } else {
+            avatarInner = `<span class="soldier-helmet-icon">🪖</span>`;
+          }
+
+          const cleanSeq = String(m.id).substring(Math.max(0, String(m.id).length - 2));
+
+          nodesHtml += `
+            <div class="soldier-head-node ${isLeader ? 'is-leader' : ''} ${isCurrentUser ? 'is-current-user' : ''}"
+                 id="formation-node-${m.id}"
+                 data-member-id="${m.id}"
+                 onclick="APP.handleFormationSoldierClick('${m.id}')"
+                 onmouseenter="APP.handleFormationSoldierHover('${m.id}')">
+              
+              <div class="soldier-avatar-bubble">
+                ${avatarInner}
+              </div>
+
+              ${isLeader ? `<span class="soldier-leader-badge">班頭</span>` : ''}
+              ${isCurrentUser ? `<span class="soldier-me-badge">我</span>` : ''}
+
+              <div class="soldier-head-name">${this.escapeHtml(m.name)}</div>
+              <div class="soldier-head-seq">#${cleanSeq}</div>
+
+              <!-- 懸停與觸碰戰術 HUD 卡片 -->
+              <div class="formation-soldier-tooltip">
+                <div class="tooltip-header-row">
+                  <span class="tooltip-name">${this.escapeHtml(m.name)}</span>
+                  <span class="tooltip-id">#${m.id}</span>
+                </div>
+                <div class="tooltip-body-row">
+                  <div><strong>班級：</strong>第 ${this.toChineseNum(m.squad)} 班 (${dutyName})</div>
+                  <div><strong>職責：</strong>${this.escapeHtml(m.duty || dutyName)}</div>
+                  <div><strong>寢室：</strong>第 ${this.toChineseNum(m.room)} 寢</div>
+                  ${m.nickname ? `<div><strong>綽號：</strong>${this.escapeHtml(m.nickname)}</div>` : ''}
+                </div>
+                <div class="tooltip-tap-hint">👆 點擊開啟個人完整檔案</div>
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="squad-column" id="formation-squad-${sNum}">
+            ${colHeader}
+            ${nodesHtml}
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="platoon-wing">
+          <div class="platoon-wing-header">
+            <div class="platoon-wing-title">${wing.badge}・${wing.name}</div>
+            <div class="platoon-wing-subtitle">${wing.sub}</div>
+          </div>
+          <div class="platoon-squads-row">
+            ${squadsHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <!-- 連集合場操場與排列主體 -->
+      <div class="formation-parade-ground">
+        
+        <!-- 頂部前方中央司令台值星官 -->
+        <div class="formation-officer-area">
+          <div class="formation-podium" onclick="APP.showOfficerCadreDetail()" title="點擊查看本週連值星官">
+            <div class="formation-sash-badge">⭐ 本週部隊值星帶</div>
+            <div class="formation-officer-title">
+              <span>🎖️ 連值星官：${this.escapeHtml(dutyOfficer.rank)} ${this.escapeHtml(dutyOfficer.name)}</span>
+            </div>
+            <div class="formation-officer-desc">
+              📍 連集合場前方中央指揮位置・統率步三連 98 員弟兄
+            </div>
+          </div>
+        </div>
+
+        <!-- 隊列指示橫條 -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding:0 0.5rem; color:#95a798; font-size:0.75rem; font-weight:700; border-bottom:1px dashed var(--tactical-olive-border); padding-bottom:0.5rem; min-width:920px;">
+          <span>👈 【左翼】第三排 (7~9班)</span>
+          <span style="color:var(--tactical-amber);">★ 步一營第三連「連方隊」陣列（第 1 列為各班班頭，後續縱隊排齊）★</span>
+          <span>【右翼】第一排 (1~3班) 👉</span>
+        </div>
+
+        <!-- 三大排組 9 班縱隊方陣 -->
+        <div class="formation-wings-grid" id="formation-grid">
+          ${wingsHtml}
+        </div>
+      </div>
+    `;
+  },
+
+  handleFormationSoldierClick(memberId) {
+    this.showMemberDetail(memberId);
+  },
+
+  handleFormationSoldierHover(memberId) {
+    // 支援觸碰與懸停選中反饋
+    const node = document.getElementById(`formation-node-${memberId}`);
+    if (node) {
+      document.querySelectorAll('.soldier-head-node.active').forEach(n => n.classList.remove('active'));
+      node.classList.add('active');
+    }
+  },
+
+  findMyFormationPosition() {
+    if (!this.currentUser || !this.currentUser.id) {
+      this.showToast('請先登入學號，系統將即刻在方隊中為您點亮站位！', 'info');
+      this.openLoginModal();
+      return;
+    }
+
+    const myNode = document.getElementById(`formation-node-${this.currentUser.id}`);
+    if (myNode) {
+      document.querySelectorAll('.soldier-head-node.active').forEach(n => n.classList.remove('active'));
+      myNode.classList.add('active');
+      myNode.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+
+      const sq = Number(this.currentUser.squad) || 1;
+      let pName = '一排 (右翼)';
+      if (sq >= 4 && sq <= 6) pName = '二排 (中央)';
+      if (sq >= 7 && sq <= 9) pName = '三排 (左翼)';
+
+      const dutyName = (typeof CONFIG !== 'undefined' && CONFIG.SQUAD_DUTIES && CONFIG.SQUAD_DUTIES[sq]) || '';
+      this.showToast(`📍 報告！您在【${pName} 第 ${this.toChineseNum(sq)} 班・${dutyName}】！`, 'success');
+    } else {
+      this.showToast('正在方隊中搜尋您的位置...', 'info');
+    }
+  },
+
+  playRollCallAnimation() {
+    const nodes = document.querySelectorAll('.soldier-head-node');
+    if (!nodes || nodes.length === 0) return;
+
+    this.showToast('📢 全連注意！開始連方隊點名報數！', 'info');
+
+    // 依序為全連 98 位弟兄彈出報數氣泡
+    let count = 0;
+    nodes.forEach((node, idx) => {
+      setTimeout(() => {
+        count++;
+        // 移除舊氣泡
+        const oldBubble = node.querySelector('.roll-call-bubble');
+        if (oldBubble) oldBubble.remove();
+
+        const bubble = document.createElement('span');
+        bubble.className = 'roll-call-bubble';
+        bubble.textContent = `${count}`;
+        node.appendChild(bubble);
+
+        setTimeout(() => bubble.remove(), 2200);
+
+        if (count === nodes.length) {
+          this.showToast('🎖️ 報告連值星官！步三連全連 98 員到齊！無人缺席！', 'success');
+        }
+      }, idx * 25);
+    });
+  },
+
+  showOfficerCadreDetail() {
+    this.showToast('🎖️ 連值星官：潘品濬 上士 (一排第一班班長)', 'info');
   },
 
   // 3. 班級名冊渲染 (支援全連 1~9 班 98 位弟兄跨班級即時搜尋)
